@@ -15,3 +15,5 @@ PORT=porthere
 3. Go back to the main directory and run the following command: `npm start`
 
 ---
+
+NOTE: This is just a fun side project! please do not trust me with every bits of your personal information!
