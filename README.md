@@ -1,6 +1,6 @@
-# Vaults
+# Vaults / Bub
 
-### Vaults is a social media platform inspired by twitter and nexify
+### Vaults / Bub is a social media platform inspired by twitter and nexify
 
 ## How to install and run Vaults?
 
@@ -17,3 +17,5 @@ PORT=porthere
 ---
 
 NOTE: This is just a fun side project! please do not trust me with every bits of your personal information!
+
+ANOTHER NOTE: This project is either going to be called Vaults or Bub!
