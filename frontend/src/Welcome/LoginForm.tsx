@@ -1,5 +1,6 @@
 import axios from "axios";
 import { FormEvent, useRef } from "react";
+import RegisterTokenData from "../interfaces/RegisterTokenData";
 // import LoginTokenData from "../interfaces/LoginTokenData";
 
 interface LoginFormInterface {
@@ -8,10 +9,8 @@ interface LoginFormInterface {
 
 function LoginForm({ state_change }: LoginFormInterface) {
 	const login_form = useRef<HTMLFormElement>(null);
-	const username = useRef<HTMLInputElement>(null);
 	const email = useRef<HTMLInputElement>(null);
 	const password = useRef<HTMLInputElement>(null);
-	const confirm_password = useRef<HTMLInputElement>(null);
 	const login_error = useRef<HTMLParagraphElement>(null);
 	const btn = useRef<HTMLButtonElement>(null);
 
@@ -20,6 +19,24 @@ function LoginForm({ state_change }: LoginFormInterface) {
 		btn.current!.disabled = true;
 		login_error.current!.style.color = "white";
 		login_error.current!.innerText = "Logging in, please wait...";
+
+		axios.post("http://localhost:3000/api/login", {
+			email: email.current!.value,
+			password: password.current!.value,
+		}).then(res => {
+			const data = res.data as RegisterTokenData;
+
+			if (data.was_error) {
+				login_error.current!.style.color =
+					"red";
+				login_error.current!.innerText =
+					data.error;
+				return;
+			}
+
+			localStorage.setItem("auth_token", data.token);
+			window.location.href = "/home";
+		});
 	};
 
 	const state_stuff = () => state_change(true);

@@ -10,6 +10,8 @@ import cors from "cors";
 // MongoDB Models
 import User from "./models/User";
 import UserType from "./interfaces/UserType";
+import GetUserByEmail from "./searches/GetUserByEmail";
+import GetUserByHandle from "./searches/GetUserByHandle";
 
 const limiter = rateLimit({
 	windowMs: 5 * 60 * 1000, // 15 minutes
@@ -100,6 +102,28 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 
 	const token = jwt.sign(user.toJSON(), process.env.TOKEN_SECRET as string);
 	res.json({ token, error: "", was_error: false });
+});
+
+app.post("/api/login", async (req: express.Request, res: express.Response) => {
+	const { email, password } = req.body;
+	const user = (await GetUserByEmail(email)) || (await GetUserByHandle(email));
+
+	if (!user) {
+		return res.json({
+			error: "Incorrect email address!",
+			was_error: true,
+		});
+	}
+
+	if (!(await bcrypt.compare(password, user.password))) {
+		return res.json({
+			error: "Incorrect password!",
+			was_error: true,
+		});
+	}
+
+	const token = jwt.sign(user.toJSON(), process.env.TOKEN_SECRET as string);
+	return res.json({ token, error: "", was_error: false });
 });
 
 app.post("/api/verify-token", async (req: express.Request, res: express.Response) => {
