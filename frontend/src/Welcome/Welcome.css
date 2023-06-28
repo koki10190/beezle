@@ -8,8 +8,13 @@
 	src: url("./fonts/OpenSans-Light.ttf");
 }
 
+@font-face {
+	font-family: "Chirp";
+	src: url("./fonts/Cantarell-Regular.ttf");
+}
+
 :root {
-	font-family: "Open Sans", sans-serif;
+	font-family: "Chirp", sans-serif;
 }
 
 body {
@@ -34,6 +39,17 @@ nav > .icon {
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-image: url(/icon.png);
+}
+
+.icon {
+	width: 70px;
+	height: 70px;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-image: url(/icon.png);
+	margin-bottom: 50px;
+	margin-left: 10px;
 }
 
 header {
@@ -135,4 +151,11 @@ header > h3 {
 .welcome-form-registration > button:hover {
 	transform: rotateZ(5deg) scale(1.1);
 	background-color: rgb(216, 216, 0);
+}
+
+.welcome-form-registration > .centered-text-form {
+	text-align: center;
+	font-size: 15px;
+	color: gray;
+	cursor: pointer;
 }

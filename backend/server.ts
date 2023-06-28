@@ -105,7 +105,6 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 app.post("/api/verify-token", async (req: express.Request, res: express.Response) => {
 	const { token } = req.body;
 	jwt.verify(token, process.env.TOKEN_SECRET as string, (err: any, user: any) => {
-		console.log(err);
 		if (err) return res.json({ error: true });
 
 		res.json({ user, error: false });
