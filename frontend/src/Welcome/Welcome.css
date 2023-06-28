@@ -1,0 +1,68 @@
+@font-face {
+	font-family: "Open Sans";
+	src: url("./fonts/OpenSans-SemiBold.ttf");
+}
+
+:root {
+	font-family: "Open Sans", sans-serif;
+}
+
+body {
+	background-color: rgb(0, 0, 0);
+	margin: none;
+	padding: none;
+	color: white;
+}
+
+nav {
+	width: 100%;
+	/* height: 50px; */
+}
+
+header {
+	width: 50%;
+	height: calc(100vh - 50px);
+	background-color: black;
+	text-align: right;
+	display: inline-block;
+	box-sizing: border-box;
+	vertical-align: top;
+	padding: 15px;
+}
+
+header > h1 {
+	margin-right: 50px;
+	margin-top: 150px;
+	font-size: 100px;
+	background: -webkit-linear-gradient(rgb(255, 223, 135), rgb(192, 147, 0));
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+header > h3 {
+	font-size: 25px;
+	margin-top: -70px;
+	margin-right: 50px;
+	/* margin-left: 10px; */
+}
+
+.other-side {
+	padding: 15px;
+	box-sizing: border-box;
+	vertical-align: top;
+	background-color: black;
+	width: 50%;
+	height: calc(100vh - 50px);
+	display: inline-block;
+}
+
+.welcome-form-registration {
+	margin-left: 50px;
+	width: 50%;
+	height: 55%;
+	border-radius: 30px;
+	margin-top: 170px;
+	background-color: rgb(53, 43, 24);
+	border: solid 5px rgb(192, 147, 0);
+	border: solid 1px rgb(192, 147, 0);
+}
