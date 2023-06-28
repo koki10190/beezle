@@ -19,3 +19,9 @@ PORT=porthere
 NOTE: This is just a fun side project! please do not trust me with every bits of your personal information!
 
 ANOTHER NOTE: This project is either going to be called Vaults or Bub!
+
+---
+
+## Credits
+
+- @MavTheDav on twitter came up with the name "Beezle" and gave me a placeholder icon/actual icon of this project, it might be subject to change.
