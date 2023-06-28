@@ -24,7 +24,7 @@ function Profile() {
 			if (user.moderator)
 				username.current!.innerHTML += ` <i style="color: yellow" class="fa-solid fa-shield-check"></i>`;
 			tag.current!.textContent = "@" + user.handle;
-			bio.current!.textContent = user.bio;
+			bio.current!.innerHTML = user.bio;
 			avatar.current!.style.backgroundImage = `url("${user.avatar}")`;
 			banner.current!.style.backgroundImage = `url("${user.banner}")`;
 		})();

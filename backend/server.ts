@@ -18,6 +18,8 @@ import UserType from "./interfaces/UserType";
 import GetUserByEmail from "./searches/GetUserByEmail";
 import GetUserByHandle from "./searches/GetUserByHandle";
 import { TextChannel } from "discord.js";
+import sanitize from "sanitize-html";
+import { marked } from "marked";
 
 const limiter = rateLimit({
 	windowMs: 30 * 1000, // 15 minutes
@@ -279,6 +281,7 @@ app.post("/api/upload-banner", upload.single("banner"), async (req, res) => {
 
 app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
 	const { displayName, token, bio } = req.body;
+	const m_bio = sanitize(marked(bio));
 
 	console.log(req.body);
 	jwt.verify(
@@ -294,7 +297,7 @@ app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
 				},
 				{
 					displayName,
-					bio,
+					bio: m_bio,
 				}
 			);
 

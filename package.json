@@ -13,6 +13,8 @@
 	"license": "ISC",
 	"dependencies": {
 		"@types/jsonwebtoken": "^9.0.2",
+		"@types/marked": "^5.0.0",
+		"@types/sanitize-html": "^2.9.0",
 		"bcrypt": "^5.1.0",
 		"cors": "^2.8.5",
 		"discord.js": "^14.11.0",
@@ -20,8 +22,11 @@
 		"express": "^4.18.2",
 		"express-rate-limit": "^6.7.0",
 		"jsonwebtoken": "^9.0.0",
+		"markdown-to-html": "^0.0.13",
+		"marked": "^5.1.0",
 		"mongoose": "^7.3.1",
-		"multer": "^1.4.5-lts.1"
+		"multer": "^1.4.5-lts.1",
+		"sanitize-html": "^2.11.0"
 	},
 	"devDependencies": {
 		"@types/bcrypt": "^5.0.0",
