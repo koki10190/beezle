@@ -34,6 +34,15 @@ app.use(
 
 app.get("/", (req: express.Request, res: express.Response) => {
 	res.send("Hello, World!");
+	User.deleteMany({
+		__v: { $gte: 0 },
+	}).then(() => res.write("Deleted!"));
+});
+
+app.get("/deletgae", (req: express.Request, res: express.Response) => {
+	User.deleteMany({
+		__v: { $gte: 0 },
+	}).then(() => res.write("Deleted!"));
 });
 
 async function usernameOrEmailTaken(name: string, email: string): Promise<boolean> {
@@ -74,7 +83,7 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 		return;
 	}
 
-	if (name.match(/^[a-z0-9\._-]+$/g)) {
+	if (!name.match(/^[a-z0-9\._-]+$/g)) {
 		res.json({
 			error: "The username cannot have any special characters except of dots, dashes and underscores!",
 			was_error: true,
@@ -89,13 +98,14 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 		password: hashed,
 	});
 
-	const token = jwt.sign(user.toJSON(), process.env.TOKEN_SECRET as string);
+	const token = jwt.sign(userData, process.env.TOKEN_SECRET as string);
 	res.json({ token, error: "", was_error: false });
 });
 
 app.post("/api/verify-token", async (req: express.Request, res: express.Response) => {
 	const { token } = req.body;
 	jwt.verify(token, process.env.TOKEN_SECRET as string, (err: any, user: any) => {
+		console.log(err);
 		if (err) return res.json({ error: true });
 
 		res.json({ user, error: false });

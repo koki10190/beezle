@@ -2,6 +2,7 @@ import axios from "axios";
 import "./Welcome.css";
 import { FormEvent, useRef } from "react";
 import RegisterTokenData from "../interfaces/RegisterTokenData";
+import GetUserData from "../api/GetUserData";
 
 function Welcome() {
 	const register_form = useRef<HTMLFormElement>(null);
@@ -66,6 +67,13 @@ function Welcome() {
 				"Thank you for registering! Redirecting...";
 		});
 	};
+
+	if (localStorage.getItem("auth_token")) {
+		(async () => {
+			const data = await GetUserData();
+			console.log(data);
+		})();
+	}
 
 	return (
 		<>

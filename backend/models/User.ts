@@ -19,8 +19,18 @@ const schema = new mongoose.Schema({
 	},
 	bio: {
 		type: String,
-		require: false,
+		required: false,
 		default: "Hello!",
+	},
+	avatar: {
+		type: String,
+		required: true,
+		default: "https://cdn.discordapp.com/attachments/1123624150225920060/1123624173076488212/icon.png",
+	},
+	banner: {
+		type: String,
+		required: true,
+		default: "https://cdn.discordapp.com/attachments/1123624150225920060/1123624173076488212/icon.png",
 	},
 	// token: {
 	// 	type: String,
