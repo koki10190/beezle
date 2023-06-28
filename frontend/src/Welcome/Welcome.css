@@ -3,6 +3,11 @@
 	src: url("./fonts/OpenSans-SemiBold.ttf");
 }
 
+@font-face {
+	font-family: "Open Sans Thin";
+	src: url("./fonts/OpenSans-Light.ttf");
+}
+
 :root {
 	font-family: "Open Sans", sans-serif;
 }
@@ -71,10 +76,53 @@ header > h3 {
 .welcome-form-registration {
 	margin-left: 50px;
 	width: 50%;
-	height: 55%;
+	min-height: 50%;
 	border-radius: 30px;
 	margin-top: 170px;
 	background-color: rgb(53, 43, 24);
 	border: solid 5px rgb(192, 147, 0);
 	border: solid 1px rgb(192, 147, 0);
+	box-sizing: border-box;
+	padding: 50px;
+}
+
+.form-control {
+	width: 100%;
+
+	background-color: rgb(31, 25, 14);
+	outline: none;
+	border: solid 1px rgb(192, 147, 0);
+	border-radius: 5px;
+	height: 40px;
+	color: white;
+	padding-left: 7px;
+	padding-right: 7px;
+	box-sizing: border-box;
+	font-family: "Open Sans";
+	margin-bottom: 17px;
+}
+
+.welcome-form-registration > p {
+	font-size: 15px;
+	margin-top: -10px;
+	margin-left: 2px;
+	color: rgb(200, 200, 200);
+	font-family: "Open Sans Thin";
+}
+
+.welcome-form-registration > button {
+	width: 100%;
+	height: 50px;
+	background-color: yellow;
+	outline: none;
+	border: none;
+	font-family: "Open Sans";
+	font-size: 20px;
+	border-radius: 5px;
+	transition: ease-in-out 150ms;
+}
+
+.welcome-form-registration > button:hover {
+	transform: rotateZ(5deg) scale(1.1);
+	background-color: rgb(216, 216, 0);
 }
