@@ -89,6 +89,11 @@ header > h3 {
 	display: inline-block;
 }
 
+textarea {
+	resize: vertical;
+	font-size: 15px;
+}
+
 .welcome-form-registration {
 	margin-left: 50px;
 	width: 50%;

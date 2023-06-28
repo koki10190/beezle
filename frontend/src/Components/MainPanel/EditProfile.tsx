@@ -137,7 +137,7 @@ function EditProfile() {
 			if (!res.data.error) {
 				setTimeout(() => {
 					window.location.href = `/profile/${user.handle}`;
-				}, 1000);
+				}, 2500);
 			}
 		});
 	};

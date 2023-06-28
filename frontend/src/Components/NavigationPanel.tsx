@@ -13,6 +13,10 @@ function NavigationPanel() {
 		window.location.href = `/profile/${data.handle}`;
 	};
 
+	const post = async () => {
+		window.location.href = `/post`;
+	};
+
 	return (
 		<div className="navigation-panel nav-pad-right">
 			<div className="icon"></div>
@@ -36,7 +40,7 @@ function NavigationPanel() {
 				Profile{" "}
 				<i className="fa-solid fa-user"></i>
 			</a>
-			<a onClick={myProfile}>
+			<a onClick={post}>
 				Post{" "}
 				<i className="fa-solid fa-pencil"></i>
 			</a>

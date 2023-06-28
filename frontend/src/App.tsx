@@ -3,6 +3,8 @@ import Welcome from "./Welcome/Welcome";
 import Home from "./Home/Home";
 import HomeProfile from "./Home/HomeProfile";
 import HomeEditProfile from "./Home/HomeEditProfile";
+import Post from "./Components/MainPanel/Post";
+import HomePost from "./Home/HomePost";
 
 function App() {
 	return (
@@ -22,6 +24,10 @@ function App() {
 					element={
 						<HomeEditProfile />
 					}
+				/>
+				<Route
+					path="/post"
+					element={<HomePost />}
 				/>
 			</Routes>
 		</BrowserRouter>
