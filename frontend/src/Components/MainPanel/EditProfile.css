@@ -1,0 +1,46 @@
+.navigation-panel.edit-profile {
+	box-sizing: border-box;
+	padding: 25px;
+}
+
+.avatar-edit:hover:after {
+	content: "Add Profile Picture";
+	display: flex;
+	justify-content: center;
+	align-content: center;
+	padding-top: calc(150px / 2 - 10px);
+}
+
+.banner-edit:hover:after {
+	content: "Add Banner";
+	display: flex;
+	justify-content: center;
+	align-content: center;
+	padding-top: calc(250px / 2 - 10px);
+}
+
+.banner-edit {
+	cursor: pointer;
+	width: 100%;
+	height: 250px;
+	background-color: rgb(50, 50, 50);
+
+	background-position: center;
+	background-size: cover;
+	background-repeat: no-repeat;
+}
+
+.avatar-edit {
+	cursor: pointer;
+	border-radius: 100%;
+	border: solid 6px black;
+	background-color: rgb(50, 50, 50);
+	width: 150px;
+	height: 150px;
+	margin-top: -80px;
+	margin-left: 20px;
+
+	background-position: center;
+	background-size: cover;
+	background-repeat: no-repeat;
+}

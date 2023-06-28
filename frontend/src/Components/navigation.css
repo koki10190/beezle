@@ -33,3 +33,23 @@
 .nav-pad-right > h1:hover {
 	background-color: rgba(255, 255, 255, 0.205);
 }
+
+.edit-prof-btn {
+	cursor: pointer;
+	margin-top: -60px;
+	border-radius: 30px;
+	font-size: 25px;
+	padding: 8px 20px 8px 20px;
+	outline: none;
+	border: none;
+	margin-right: 10px;
+	background-color: yellow;
+	font-family: "Chirp";
+	float: right;
+	transition: ease-in-out 150ms;
+}
+
+.edit-prof-btn:hover {
+	transform: rotateZ(-5deg) scale(1.1);
+	background-color: rgb(212, 212, 0);
+}

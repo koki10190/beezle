@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Welcome from "./Welcome/Welcome";
 import Home from "./Home/Home";
 import HomeProfile from "./Home/HomeProfile";
+import HomeEditProfile from "./Home/HomeEditProfile";
 
 function App() {
 	return (
@@ -13,8 +14,14 @@ function App() {
 					element={<Home />}
 				/>
 				<Route
-					path="/:handle"
+					path="/profile/:handle"
 					element={<HomeProfile />}
+				/>
+				<Route
+					path="/user/edit-profile"
+					element={
+						<HomeEditProfile />
+					}
 				/>
 			</Routes>
 		</BrowserRouter>

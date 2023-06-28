@@ -44,3 +44,7 @@
 .profile-bio {
 	margin-left: 25px;
 }
+
+.hidden-input {
+	display: none;
+}

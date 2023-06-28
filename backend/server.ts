@@ -1,17 +1,23 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+const database_guild = "1123623839037919304";
+const database_channel = "1123624150225920060";
 import express from "express";
+import multer from "multer";
 import bcrypt, { hash } from "bcrypt";
+import fs from "fs";
 import mongoose from "mongoose";
 import { rateLimit } from "express-rate-limit";
 import jwt from "jsonwebtoken";
+import client from "./discord/bot";
 import cors from "cors";
 // MongoDB Models
 import User from "./models/User";
 import UserType from "./interfaces/UserType";
 import GetUserByEmail from "./searches/GetUserByEmail";
 import GetUserByHandle from "./searches/GetUserByHandle";
+import { TextChannel } from "discord.js";
 
 const limiter = rateLimit({
 	windowMs: 5 * 60 * 1000, // 15 minutes
@@ -19,6 +25,8 @@ const limiter = rateLimit({
 	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
+
+const upload = multer({ dest: "uploads" });
 
 mongoose.connect(process.env.MONGO_URI as string).then(() =>
 	console.log("[BEEZLE] Connected to the Mongoose Database")
@@ -139,8 +147,28 @@ app.post("/api/get-user", async (req: express.Request, res: express.Response) =>
 	const { handle } = req.body;
 
 	const user = await GetUserByHandle(handle);
+	if (!user) return res.json({ error: "Couldn't find user!", was_error: true });
 	const userData = user!.toJSON() as any;
 	delete userData["password"];
-	if (!user) return res.json({ error: "Couldn't find user!", was_error: true });
 	return res.json({ user: userData, was_error: false, error: "" });
+});
+
+app.post("/api/upload-avatar", upload.single("avatar"), async (req, res) => {
+	let path = req.file?.path;
+	console.log(path);
+
+	fs.rename(path!, path! + "." + (req.body.ext as string), err => {
+		if (err) console.log(err);
+	});
+	path = path! + "." + (req.body.ext as string);
+
+	const guild = await client.guilds.fetch(database_guild);
+	const channel = (await guild.channels.fetch(database_channel)) as TextChannel;
+	const message = await channel.send({
+		files: [{ attachment: path! }],
+	});
+
+	fs.unlink(path, err => {
+		if (err) console.log(err);
+	});
 });

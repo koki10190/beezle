@@ -1,9 +1,16 @@
+import GetUserData from "../api/GetUserData";
 import "./navigation.css";
 
 function NavigationPanel() {
 	const logout = () => {
 		localStorage.removeItem("auth_token");
 		window.location.reload();
+	};
+
+	const myProfile = async () => {
+		const data = (await GetUserData()).user;
+
+		window.location.href = `/profile/${data.handle}`;
 	};
 
 	return (
@@ -25,7 +32,7 @@ function NavigationPanel() {
 				<i className="fa-solid fa-bookmark"></i>{" "}
 				Bookmarks
 			</h1>
-			<h1>
+			<h1 onClick={myProfile}>
 				<i className="fa-solid fa-user"></i>{" "}
 				Profile
 			</h1>
