@@ -20,8 +20,8 @@ import GetUserByHandle from "./searches/GetUserByHandle";
 import { TextChannel } from "discord.js";
 
 const limiter = rateLimit({
-	windowMs: 5 * 60 * 1000, // 15 minutes
-	max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+	windowMs: 30 * 1000, // 15 minutes
+	max: 50, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
 	standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
@@ -136,11 +136,20 @@ app.post("/api/login", async (req: express.Request, res: express.Response) => {
 
 app.post("/api/verify-token", async (req: express.Request, res: express.Response) => {
 	const { token } = req.body;
-	jwt.verify(token, process.env.TOKEN_SECRET as string, (err: any, user: any) => {
-		if (err) return res.json({ error: true });
+	jwt.verify(
+		token,
+		process.env.TOKEN_SECRET as string,
+		async (err: any, user: any) => {
+			if (err) return res.json({ error: true });
 
-		res.json({ user, error: false });
-	});
+			const m_user = await User.findOne({
+				email: user.email,
+				handle: user.handle,
+			});
+
+			res.json({ user: m_user, error: false });
+		}
+	);
 });
 
 app.post("/api/get-user", async (req: express.Request, res: express.Response) => {
@@ -155,20 +164,141 @@ app.post("/api/get-user", async (req: express.Request, res: express.Response) =>
 
 app.post("/api/upload-avatar", upload.single("avatar"), async (req, res) => {
 	let path = req.file?.path;
-	console.log(path);
+	const { token } = req.body;
 
-	fs.rename(path!, path! + "." + (req.body.ext as string), err => {
-		if (err) console.log(err);
-	});
-	path = path! + "." + (req.body.ext as string);
+	jwt.verify(
+		token,
+		process.env.TOKEN_SECRET as string,
+		async (err: any, user: any) => {
+			if (err) return res.json({ error: true });
 
-	const guild = await client.guilds.fetch(database_guild);
-	const channel = (await guild.channels.fetch(database_channel)) as TextChannel;
-	const message = await channel.send({
-		files: [{ attachment: path! }],
-	});
+			res.json({ user, error: false });
+			console.log(path);
 
-	fs.unlink(path, err => {
-		if (err) console.log(err);
-	});
+			fs.rename(
+				path!,
+				path! + "." + (req.body.ext as string),
+				err => {
+					if (err)
+						console.log(
+							err
+						);
+				}
+			);
+			path = path! + "." + (req.body.ext as string);
+
+			const guild = await client.guilds.fetch(
+				database_guild
+			);
+			const channel = (await guild.channels.fetch(
+				database_channel
+			)) as TextChannel;
+			const message = await channel.send({
+				files: [{ attachment: path! }],
+			});
+
+			const attachment =
+				message.attachments.first()?.proxyURL;
+			console.log(attachment);
+
+			const m_user = await User.updateOne(
+				{
+					email: user.email,
+					handle: user.handle,
+				},
+				{
+					avatar: attachment,
+				}
+			);
+
+			fs.unlink(path, err => {
+				if (err) console.log(err);
+			});
+		}
+	);
+});
+
+app.post("/api/upload-banner", upload.single("banner"), async (req, res) => {
+	let path = req.file?.path;
+	const { token } = req.body;
+
+	jwt.verify(
+		token,
+		process.env.TOKEN_SECRET as string,
+		async (err: any, user: any) => {
+			if (err) return res.json({ error: true });
+
+			res.json({ user, error: false });
+			console.log(path);
+
+			fs.rename(
+				path!,
+				path! +
+					"." +
+					(req.body
+						.ext_banner as string),
+				err => {
+					if (err)
+						console.log(
+							err
+						);
+				}
+			);
+			path = path! + "." + (req.body.ext_banner as string);
+
+			const guild = await client.guilds.fetch(
+				database_guild
+			);
+			const channel = (await guild.channels.fetch(
+				database_channel
+			)) as TextChannel;
+			const message = await channel.send({
+				files: [{ attachment: path! }],
+			});
+
+			const attachment =
+				message.attachments.first()?.proxyURL;
+			console.log(attachment);
+
+			const m_user = await User.updateOne(
+				{
+					email: user.email,
+					handle: user.handle,
+				},
+				{
+					banner: attachment,
+				}
+			);
+
+			fs.unlink(path, err => {
+				if (err) console.log(err);
+			});
+		}
+	);
+});
+
+app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
+	const { displayName, token, bio } = req.body;
+
+	console.log(req.body);
+	jwt.verify(
+		token,
+		process.env.TOKEN_SECRET as string,
+		async (err: any, user: any) => {
+			console.log(err);
+			if (err) return res.json({ error: true });
+			const m_user = await User.updateOne(
+				{
+					email: user.email,
+					handle: user.handle,
+				},
+				{
+					displayName,
+					bio,
+				}
+			);
+
+			res.send({ error: false });
+		}
+	);
 });

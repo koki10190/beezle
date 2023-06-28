@@ -1,3 +1,24 @@
+/* width */
+::-webkit-scrollbar {
+	width: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+	background: #313131;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+	border-radius: 5px;
+	background: rgb(255, 238, 0);
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+	background: #555;
+}
+
 .navigation-panel {
 	width: calc(100% / 3);
 	height: 100vh;
@@ -7,7 +28,7 @@
 	vertical-align: top;
 	text-align: left;
 	box-sizing: border-box;
-	overflow: hidden;
+	overflow-y: auto;
 }
 
 .nav-pad-right {

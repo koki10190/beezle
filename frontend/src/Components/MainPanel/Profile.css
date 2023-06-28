@@ -43,6 +43,7 @@
 
 .profile-bio {
 	margin-left: 25px;
+	white-space: pre-wrap;
 }
 
 .hidden-input {

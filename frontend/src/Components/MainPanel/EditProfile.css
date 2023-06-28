@@ -3,11 +3,19 @@
 	padding: 25px;
 }
 
+.avatar-edit {
+	transition: ease-in-out 150ms;
+}
+
 .avatar-edit:hover:after {
 	content: "Add Profile Picture";
 	display: flex;
 	justify-content: center;
 	align-content: center;
+	text-shadow: black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px,
+		black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px,
+		black 0px 0px 15px;
+	/* border-radius: 100%; */
 	padding-top: calc(150px / 2 - 10px);
 }
 
@@ -16,6 +24,9 @@
 	display: flex;
 	justify-content: center;
 	align-content: center;
+	text-shadow: black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px,
+		black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px,
+		black 0px 0px 15px;
 	padding-top: calc(250px / 2 - 10px);
 }
 
@@ -43,4 +54,25 @@
 	background-position: center;
 	background-size: cover;
 	background-repeat: no-repeat;
+}
+
+.button {
+	width: 100%;
+	height: 50px;
+	background-color: yellow;
+	outline: none;
+	border: none;
+	font-family: "Open Sans";
+	font-size: 20px;
+	border-radius: 5px;
+	transition: ease-in-out 150ms;
+	cursor: pointer;
+}
+
+.button:hover {
+	background-color: rgb(216, 216, 0);
+}
+
+textarea {
+	white-space: pre-wrap;
 }
