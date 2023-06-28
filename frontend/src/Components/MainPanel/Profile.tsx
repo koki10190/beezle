@@ -19,6 +19,10 @@ function Profile() {
 			user = (await GetOtherUser(handle!)).user;
 
 			username.current!.textContent = user.displayName;
+			if (user.verified || user.owner)
+				username.current!.innerHTML += ` <i style="color: yellow" class="fa-solid fa-badge-check"></i>`;
+			if (user.moderator)
+				username.current!.innerHTML += ` <i style="color: yellow" class="fa-solid fa-shield-check"></i>`;
 			tag.current!.textContent = "@" + user.handle;
 			bio.current!.textContent = user.bio;
 			avatar.current!.style.backgroundImage = `url("${user.avatar}")`;
@@ -40,6 +44,7 @@ function Profile() {
 			<h1 ref={username} className="profile-name"></h1>
 			<h3 ref={tag} className="profile-handle"></h3>
 			<p ref={bio} className="profile-bio"></p>
+			<hr className="small-bar" />
 		</div>
 	);
 }

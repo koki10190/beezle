@@ -302,3 +302,18 @@ app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
 		}
 	);
 });
+
+app.get("/verify/:handle", async (req: express.Request, res: express.Response) => {
+	const { handle } = req.params;
+
+	const user = await User.updateOne(
+		{
+			handle,
+		},
+		{
+			verified: true,
+		}
+	);
+
+	res.send("test!");
+});

@@ -32,6 +32,21 @@ const schema = new mongoose.Schema({
 		required: true,
 		default: "https://cdn.discordapp.com/attachments/1123624150225920060/1123624173076488212/icon.png",
 	},
+	verified: {
+		type: Boolean,
+		required: true,
+		default: false,
+	},
+	moderator: {
+		type: Boolean,
+		required: true,
+		default: false,
+	},
+	owner: {
+		type: Boolean,
+		required: true,
+		default: false,
+	},
 	// token: {
 	// 	type: String,
 	// 	required: true,

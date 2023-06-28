@@ -26,46 +26,55 @@
 	border-right: 1px solid rgb(51, 37, 0);
 	display: inline-block;
 	vertical-align: top;
-	text-align: left;
+	/* text-align: left; */
 	box-sizing: border-box;
 	overflow-y: auto;
 }
 
 .nav-pad-right {
 	font-size: 13px;
-	font-family: "Chirp";
+	font-family: "Open Sans";
 	padding-top: 50px;
+	text-align: right;
 	padding-left: calc(33% / 2 - 85px);
 }
+.navigation-panel.nav-pad-right {
+	text-align: right;
+}
 
-.nav-pad-right > h1 {
+.nav-pad-right > a {
+	text-align: right;
 	cursor: pointer;
 	margin-bottom: 20px;
-	width: fit-content;
+	/* width: fit-content; */
 	/* background-color: red; */
 	border-radius: 50px;
 	box-sizing: border-box;
 	padding: 15px;
 	padding-left: 20px;
+	font-size: 22px;
+	margin-right: 50%;
 	padding-right: 20px;
 	transition: ease-in-out 150ms;
+	display: block;
 }
 
-.nav-pad-right > h1:hover {
-	background-color: rgba(255, 255, 255, 0.205);
+.nav-pad-right > a:hover {
+	transform: scale(1.1);
+	/* background-color: rgba(255, 255, 255, 0.205); */
 }
 
 .edit-prof-btn {
 	cursor: pointer;
 	margin-top: -60px;
 	border-radius: 30px;
-	font-size: 25px;
+	font-size: 20px;
 	padding: 8px 20px 8px 20px;
 	outline: none;
 	border: none;
 	margin-right: 10px;
 	background-color: yellow;
-	font-family: "Chirp";
+	font-family: "Open Sans";
 	float: right;
 	transition: ease-in-out 150ms;
 }
@@ -73,4 +82,14 @@
 .edit-prof-btn:hover {
 	transform: rotateZ(-5deg) scale(1.1);
 	background-color: rgb(212, 212, 0);
+}
+
+.info-div {
+	padding: 25px;
+	/* background-color: red; */
+}
+
+.info-div > h2 {
+	margin-top: -20px;
+	color: gray;
 }

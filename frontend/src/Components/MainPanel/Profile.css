@@ -49,3 +49,9 @@
 .hidden-input {
 	display: none;
 }
+
+.small-bar {
+	height: 1px;
+	border: none;
+	background-color: rgb(51, 37, 0);
+}

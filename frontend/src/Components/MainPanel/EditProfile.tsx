@@ -18,7 +18,8 @@ function EditProfile() {
 	const aboutMe = useRef<HTMLTextAreaElement>(null);
 	const displayName = useRef<HTMLInputElement>(null);
 
-	const formData = new FormData();
+	const formDataAvatar = new FormData();
+	const formDataBanner = new FormData();
 	useEffect(() => {
 		(async () => {
 			user = (await GetUserData()).user;
@@ -33,7 +34,7 @@ function EditProfile() {
 				avatarInput.current!.files![0]
 			);
 			avatar.current!.style.backgroundImage = `url("${link}")`;
-			formData.append(
+			formDataAvatar.append(
 				"avatar",
 				avatarInput.current!.files![0]
 			);
@@ -43,8 +44,8 @@ function EditProfile() {
 					"."
 				);
 			const ext = split[split.length - 1];
-			formData.append("ext", ext);
-			formData.append(
+			formDataAvatar.append("ext", ext);
+			formDataAvatar.append(
 				"token",
 				localStorage.getItem(
 					"auth_token"
@@ -67,7 +68,7 @@ function EditProfile() {
 			);
 			banner.current!.style.backgroundImage = `url("${link}")`;
 
-			formData.append(
+			formDataBanner.append(
 				"banner",
 				bannerInput.current!.files![0]
 			);
@@ -77,8 +78,8 @@ function EditProfile() {
 					"."
 				);
 			const ext = split[split.length - 1];
-			formData.append("ext_banner", ext);
-			formData.append(
+			formDataBanner.append("ext_banner", ext);
+			formDataBanner.append(
 				"token",
 				localStorage.getItem(
 					"auth_token"
@@ -108,19 +109,25 @@ function EditProfile() {
 
 	const saveChanges = (event: FormEvent) => {
 		event.preventDefault();
-		formData.append("displayName", displayName.current!.value);
-		formData.append("bio", aboutMe.current!.value);
-		axios.post("http://localhost:3000/api/upload-banner", formData, {
-			headers: {
-				"Content-Type": "multipart/form-data",
-			},
-		});
+		axios.post(
+			"http://localhost:3000/api/upload-banner",
+			formDataBanner,
+			{
+				headers: {
+					"Content-Type": "multipart/form-data",
+				},
+			}
+		);
 
-		axios.post("http://localhost:3000/api/upload-avatar", formData, {
-			headers: {
-				"Content-Type": "multipart/form-data",
-			},
-		});
+		axios.post(
+			"http://localhost:3000/api/upload-avatar",
+			formDataAvatar,
+			{
+				headers: {
+					"Content-Type": "multipart/form-data",
+				},
+			}
+		);
 
 		axios.post("http://localhost:3000/api/edit-profile", {
 			displayName: displayName.current!.value as string,

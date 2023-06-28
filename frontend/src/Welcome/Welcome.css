@@ -14,7 +14,7 @@
 }
 
 :root {
-	font-family: "Chirp", sans-serif;
+	font-family: "Open Sans", sans-serif;
 }
 
 body {
@@ -49,7 +49,7 @@ nav > .icon {
 	background-size: cover;
 	background-image: url(/icon.png);
 	margin-bottom: 50px;
-	margin-left: 10px;
+	margin-left: 130px;
 }
 
 header {

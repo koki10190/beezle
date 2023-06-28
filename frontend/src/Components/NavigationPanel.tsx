@@ -16,30 +16,34 @@ function NavigationPanel() {
 	return (
 		<div className="navigation-panel nav-pad-right">
 			<div className="icon"></div>
-			<h1>
-				<i className="fa-solid fa-house"></i>{" "}
-				Home
-			</h1>
-			<h1>
-				<i className="fa-solid fa-magnifying-glass"></i>{" "}
-				Explore
-			</h1>
-			<h1>
-				<i className="fa-solid fa-bell"></i>{" "}
-				Notifications
-			</h1>
-			<h1>
-				<i className="fa-solid fa-bookmark"></i>{" "}
-				Bookmarks
-			</h1>
-			<h1 onClick={myProfile}>
-				<i className="fa-solid fa-user"></i>{" "}
-				Profile
-			</h1>
-			<h1 onClick={logout} style={{ color: "red" }}>
-				<i className="fa-solid fa-right-from-bracket"></i>{" "}
-				Log Out
-			</h1>
+			<a>
+				Home{" "}
+				<i className="fa-solid fa-house"></i>
+			</a>
+			<a>
+				Notifications{" "}
+				<i className="fa-solid fa-bell"></i>
+			</a>
+			<a>
+				Explore{" "}
+				<i className="fa-solid fa-magnifying-glass"></i>
+			</a>
+			<a>
+				Bookmarks{" "}
+				<i className="fa-solid fa-bookmark"></i>
+			</a>
+			<a onClick={myProfile}>
+				Profile{" "}
+				<i className="fa-solid fa-user"></i>
+			</a>
+			<a onClick={myProfile}>
+				Post{" "}
+				<i className="fa-solid fa-pencil"></i>
+			</a>
+			<a onClick={logout} style={{ color: "red" }}>
+				Log Out{" "}
+				<i className="fa-solid fa-right-from-bracket"></i>
+			</a>
 		</div>
 	);
 }

@@ -33,9 +33,9 @@ function HomeProfile() {
 			<img ref={avatar} width={250} />
 			<h1 ref={username}></h1> */}
 			<div className="main-pages">
-				<NavigationPanel />
-				<Profile />
 				<InfoPanel />
+				<Profile />
+				<NavigationPanel />
 			</div>
 		</>
 	);
