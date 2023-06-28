@@ -102,12 +102,22 @@ header > h3 {
 	margin-bottom: 17px;
 }
 
-.welcome-form-registration > p {
+.welcome-form-registration > .username-field-text {
 	font-size: 15px;
 	margin-top: -10px;
 	margin-left: 2px;
 	color: rgb(200, 200, 200);
 	font-family: "Open Sans Thin";
+}
+
+.welcome-form-registration > .register-error {
+	font-size: 15px;
+	text-align: center;
+	color: white;
+	font-family: "Open Sans Thin";
+}
+.welcome-form-registration > .register-error .red-color {
+	color: red;
 }
 
 .welcome-form-registration > button {
