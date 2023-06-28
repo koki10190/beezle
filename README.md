@@ -1,6 +1,6 @@
-# Vaults / Bub
+# Beezle
 
-### Vaults / Bub is a social media platform inspired by twitter and nexify
+### Beezle is a social media platform inspired by twitter and nexify
 
 ## How to install and run Vaults?
 
