@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Welcome from "./Welcome/Welcome";
 import Home from "./Home/Home";
+import HomeProfile from "./Home/HomeProfile";
 
 function App() {
 	return (
@@ -10,6 +11,10 @@ function App() {
 				<Route
 					path="/home"
 					element={<Home />}
+				/>
+				<Route
+					path="/:handle"
+					element={<HomeProfile />}
 				/>
 			</Routes>
 		</BrowserRouter>

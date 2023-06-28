@@ -30,8 +30,8 @@ function NavigationPanel() {
 				Profile
 			</h1>
 			<h1 onClick={logout} style={{ color: "red" }}>
-				<i className="fa-solid fa-user"></i> Log
-				out
+				<i className="fa-solid fa-right-from-bracket"></i>{" "}
+				Log Out
 			</h1>
 		</div>
 	);

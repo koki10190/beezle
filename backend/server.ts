@@ -134,3 +134,13 @@ app.post("/api/verify-token", async (req: express.Request, res: express.Response
 		res.json({ user, error: false });
 	});
 });
+
+app.post("/api/get-user", async (req: express.Request, res: express.Response) => {
+	const { handle } = req.body;
+
+	const user = await GetUserByHandle(handle);
+	const userData = user!.toJSON() as any;
+	delete userData["password"];
+	if (!user) return res.json({ error: "Couldn't find user!", was_error: true });
+	return res.json({ user: userData, was_error: false, error: "" });
+});

@@ -1,0 +1,46 @@
+.banner {
+	width: 100%;
+	height: 250px;
+	background-color: rgb(50, 50, 50);
+
+	background-position: center;
+	background-size: cover;
+	background-repeat: no-repeat;
+}
+
+@media only screen and (max-width: 1200px) {
+	.navigation-panel.info-panel {
+		display: none;
+	}
+
+	.navigation-panel {
+		width: calc(100% / 2);
+	}
+}
+.avatar {
+	border-radius: 100%;
+	border: solid 6px black;
+	background-color: rgb(50, 50, 50);
+	width: 150px;
+	height: 150px;
+	margin-top: -80px;
+	margin-left: 20px;
+
+	background-position: center;
+	background-size: cover;
+	background-repeat: no-repeat;
+}
+
+.profile-name,
+.profile-handle {
+	margin-left: 25px;
+}
+
+.profile-handle {
+	margin-top: -23px;
+	color: gray;
+}
+
+.profile-bio {
+	margin-left: 25px;
+}

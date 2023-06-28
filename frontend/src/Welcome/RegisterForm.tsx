@@ -114,7 +114,7 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 				type="password"
 			/>
 			<button ref={btn} type="submit">
-				REGISTER
+				Register
 			</button>
 			<p ref={register_error} className="register-error"></p>
 			<a
