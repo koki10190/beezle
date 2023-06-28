@@ -98,7 +98,7 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 		password: hashed,
 	});
 
-	const token = jwt.sign(userData, process.env.TOKEN_SECRET as string);
+	const token = jwt.sign(user.toJSON(), process.env.TOKEN_SECRET as string);
 	res.json({ token, error: "", was_error: false });
 });
 
