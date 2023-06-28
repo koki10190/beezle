@@ -3,7 +3,9 @@ import "./Welcome.css";
 function Welcome() {
 	return (
 		<>
-			<nav></nav>
+			<nav>
+				<div className="icon"></div>
+			</nav>
 			<div>
 				<header>
 					<h1>Beezle</h1>

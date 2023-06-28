@@ -9,14 +9,26 @@
 
 body {
 	background-color: rgb(0, 0, 0);
-	margin: none;
-	padding: none;
+	margin: 0;
+	padding: 0;
 	color: white;
+	overflow-y: hidden;
 }
 
 nav {
 	width: 100%;
+	padding: 5px;
+	box-sizing: border-box;
 	/* height: 50px; */
+}
+
+nav > .icon {
+	width: 70px;
+	height: 70px;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-image: url(/icon.png);
 }
 
 header {
