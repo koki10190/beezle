@@ -21,6 +21,7 @@
 }
 
 .post-box {
+	margin-bottom: 15px;
 	width: 100%;
 	min-height: 150px;
 	background-color: grey;
