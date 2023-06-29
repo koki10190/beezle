@@ -1,3 +1,10 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap");
+
+@font-face {
+	font-family: "AppleMojis";
+	src: url(./AppleColorEmoji.ttf);
+}
+
 .make-post {
 	padding: 25px;
 }
@@ -14,7 +21,7 @@
 	border: solid 1px rgb(192, 147, 0);
 }
 
-.make-post > textarea {
+.make-post textarea {
 	min-height: 70px;
 	/* padding: 15px; */
 	font-size: 20px;
@@ -65,7 +72,7 @@
 	height: 40px;
 	color: white;
 	box-sizing: border-box;
-	font-family: "Open Sans";
+	font-family: "Open Sans", "AppleMojis";
 	margin-bottom: 17px;
 	margin-top: 10px;
 }
@@ -100,4 +107,42 @@
 
 .post-text-user {
 	cursor: pointer;
+}
+
+.post-text-buttons > a {
+	font-size: 25px;
+	color: white;
+	text-decoration: none;
+	cursor: pointer;
+	transition: ease-in-out 150ms;
+}
+
+.post-text-buttons > a:hover {
+	color: yellow;
+}
+
+.post-text-buttons > button {
+	float: right;
+	font-size: 20px;
+	box-sizing: border-box;
+	padding: 5px 25px 5px 25px;
+	border-radius: 15px;
+	border: none;
+	font-family: "Open Sans";
+	cursor: pointer;
+	transition: ease-in-out 150ms;
+	background-color: yellow;
+}
+
+.post-text-buttons > button:hover {
+	transform: rotate(5deg) scale(1.1);
+	background-color: rgb(209, 209, 0);
+}
+
+.post-text-box {
+	margin-bottom: 20px;
+}
+
+.emoji-picker-post {
+	margin-top: 10px;
 }
