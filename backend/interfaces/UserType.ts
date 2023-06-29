@@ -9,6 +9,7 @@ interface UserType {
 	verified: boolean;
 	moderator: boolean;
 	owner: boolean;
+	pinned_post: string;
 }
 
 export default UserType;

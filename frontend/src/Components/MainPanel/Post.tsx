@@ -24,6 +24,11 @@ function Post() {
 			handle.current!.innerText = "@" + user.handle;
 
 			post.current!.innerText = "";
+
+			if (user.verified || user.owner)
+				username.current!.innerHTML += ` <i style="color: yellow" class="fa-solid fa-badge-check"></i>`;
+			if (user.moderator)
+				username.current!.innerHTML += ` <i style="color: yellow" class="fa-solid fa-shield-check"></i>`;
 		})();
 	}, []);
 

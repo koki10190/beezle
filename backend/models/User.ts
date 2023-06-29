@@ -47,6 +47,7 @@ const schema = new mongoose.Schema({
 		required: true,
 		default: false,
 	},
+	pinned_post: String,
 	// token: {
 	// 	type: String,
 	// 	required: true,

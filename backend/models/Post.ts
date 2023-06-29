@@ -27,6 +27,15 @@ const schema = new mongoose.Schema({
 		required: true,
 		default: 0,
 	},
+	replies: {
+		amount: { type: Number, required: true, default: 0 },
+		posts: [
+			{
+				type: String,
+				required: false,
+			},
+		],
+	},
 });
 
 export default mongoose.model("Post", schema);
