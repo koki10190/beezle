@@ -79,6 +79,18 @@ async function usernameOrEmailTaken(name: string, email: string): Promise<boolea
 	return users ? true : false;
 }
 
+function sendEmail(to: string, subject: string, text: string) {
+	const mailOptions = {
+		from: process.env.GMAIL_ACCOUNT,
+		to,
+		subject,
+		text,
+	};
+	transporter.sendMail(mailOptions as Mail.Options, (err, info) => {
+		if (err) return console.log(err);
+	});
+}
+
 app.post("/api/register-user", async (req: express.Request, res: express.Response) => {
 	const { name, email, password } = req.body;
 	const salt = await bcrypt.genSalt(10);
@@ -121,18 +133,11 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 	});
 
 	const token = jwt.sign(user.toJSON(), process.env.TOKEN_SECRET as string);
-
-	const mailOptions = {
-		from: process.env.GMAIL_ACCOUNT,
-		to: email,
-		subject: "Thank you for registering on Beezle!",
-		text: `Thank you for registering on Beezle, ${name}!\n\nYou can use your account to post, discover accounts, follow accounts and much more!.`,
-	};
-	transporter.sendMail(mailOptions as Mail.Options, (err, info) => {
-		if (err) return console.log(err);
-
-		console.log(info);
-	});
+	sendEmail(
+		email,
+		"Thank you for registering on Beezle!",
+		`Thank you for registering on Beezle, ${name}!\n\nYou can use your account to post, discover accounts, follow accounts and much more!.`
+	);
 
 	res.json({ token, error: "", was_error: false });
 });
