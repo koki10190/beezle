@@ -43,6 +43,8 @@
 }
 
 .nav-pad-right > a {
+	text-decoration: none;
+	color: white;
 	text-align: right;
 	cursor: pointer;
 	margin-bottom: 20px;

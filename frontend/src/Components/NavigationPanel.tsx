@@ -20,29 +20,25 @@ function NavigationPanel() {
 	return (
 		<div className="navigation-panel nav-pad-right">
 			<div className="icon"></div>
-			<a>
+			<a href="/home">
 				Home{" "}
 				<i className="fa-solid fa-house"></i>
 			</a>
-			<a>
+			<a href="/notifications">
 				Notifications{" "}
 				<i className="fa-solid fa-bell"></i>
 			</a>
-			<a>
+			<a href="/explore">
 				Explore{" "}
 				<i className="fa-solid fa-magnifying-glass"></i>
 			</a>
-			<a>
+			<a href="/bookmarks">
 				Bookmarks{" "}
 				<i className="fa-solid fa-bookmark"></i>
 			</a>
 			<a onClick={myProfile}>
 				Profile{" "}
 				<i className="fa-solid fa-user"></i>
-			</a>
-			<a onClick={post}>
-				Post{" "}
-				<i className="fa-solid fa-pencil"></i>
 			</a>
 			<a onClick={logout} style={{ color: "red" }}>
 				Log Out{" "}

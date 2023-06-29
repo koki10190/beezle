@@ -15,8 +15,8 @@
 }
 
 .make-post > textarea {
-	min-height: 150px;
-	padding: 15px;
+	min-height: 70px;
+	/* padding: 15px; */
 	font-size: 20px;
 }
 
@@ -52,4 +52,51 @@
 	margin-top: -25px;
 	margin-left: 60px;
 	color: gray;
+}
+
+.post-textarea {
+	width: 100%;
+
+	background: none;
+	outline: none;
+	border: none;
+	border-radius: 5px;
+	height: 40px;
+	color: white;
+	box-sizing: border-box;
+	font-family: "Open Sans";
+	margin-bottom: 17px;
+	margin-top: 10px;
+}
+
+.post-text-avatar {
+	width: 50px;
+	vertical-align: top;
+	height: 50px;
+	margin-bottom: 15px;
+	border-radius: 100%;
+	display: inline-block;
+
+	background-position: center;
+	background-size: contain;
+	background-color: grey;
+}
+
+.post-text-name {
+	vertical-align: top;
+	display: inline-block;
+	margin-top: 5px;
+	margin-left: 10px;
+}
+
+.post-text-handle {
+	margin-top: -40px;
+	margin-left: 60px;
+	color: gray;
+	font-size: 15px;
+	vertical-align: top;
+}
+
+.post-text-user {
+	cursor: pointer;
 }

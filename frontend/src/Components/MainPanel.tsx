@@ -1,7 +1,8 @@
+import Post from "./MainPanel/Post";
 import "./navigation.css";
 
 function MainPanel() {
-	return <div className="navigation-panel"></div>;
+	return <Post />;
 }
 
 export default MainPanel;
