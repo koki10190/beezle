@@ -43,7 +43,7 @@ function Post() {
 	const showEmojiPicker = () => setEmojiShown(!isEmojiPickerShown);
 
 	return (
-		<div className="navigation-panel make-post">
+		<div className="navigation-panel main-panel make-post">
 			<div
 				onClick={redirectToUserProfile}
 				className="post-text-user"

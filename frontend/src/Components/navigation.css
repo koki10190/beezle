@@ -42,7 +42,7 @@
 	text-align: right;
 }
 
-.nav-pad-right > a {
+.nav-pad-right a {
 	text-decoration: none;
 	color: white;
 	text-align: right;
@@ -61,7 +61,7 @@
 	display: block;
 }
 
-.nav-pad-right > a:hover {
+.nav-pad-right a:hover {
 	transform: scale(1.1);
 	/* background-color: rgba(255, 255, 255, 0.205); */
 }
@@ -94,4 +94,63 @@
 .info-div > h2 {
 	margin-top: -20px;
 	color: gray;
+}
+
+.close-btn {
+	font-size: 35px;
+	position: absolute;
+	top: 5px;
+	right: 20px;
+	cursor: pointer;
+}
+
+.main-panel.scale-twice {
+	width: calc(100% - (100% / 3));
+}
+
+@media only screen and (max-width: 1200px) {
+	.main-panel.scale-twice {
+		width: 100%;
+	}
+
+	.main-panel.remove-main {
+		display: none;
+	}
+
+	.navigation-panel.nav-pad-right {
+		width: 100%;
+	}
+
+	.navigation-panel .icon {
+		display: none;
+
+		/* margin-top: 150px; */
+	}
+
+	.nav-pad-right a {
+		text-decoration: none;
+		color: white;
+		text-align: right;
+		cursor: pointer;
+		margin-bottom: 20px;
+		/* width: fit-content; */
+		/* background-color: red; */
+		border-radius: 50px;
+		box-sizing: border-box;
+		padding: 15px;
+		padding-left: 20px;
+		font-size: 20px;
+		margin-right: 0;
+		padding-right: 20px;
+		transition: ease-in-out 150ms;
+		display: block;
+	}
+
+	.nav-pad-right a:hover {
+		transform: scale(1);
+	}
+
+	.nav-buttons {
+		margin-top: 50px;
+	}
 }

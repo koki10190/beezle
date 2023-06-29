@@ -143,7 +143,7 @@ function EditProfile() {
 	};
 
 	return (
-		<div className="navigation-panel edit-profile">
+		<div className="navigation-panel main-panel edit-profile">
 			<h1>Edit Profile</h1>
 			<br />
 			<form onSubmit={saveChanges}>

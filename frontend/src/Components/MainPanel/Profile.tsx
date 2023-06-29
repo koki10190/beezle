@@ -35,7 +35,7 @@ function Profile() {
 	};
 
 	return (
-		<div className="navigation-panel">
+		<div className="navigation-panel main-panel">
 			<div ref={banner} className="banner"></div>
 			<div ref={avatar} className="avatar"></div>
 			<button onClick={editProf} className="edit-prof-btn">
