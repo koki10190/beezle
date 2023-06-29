@@ -20,6 +20,16 @@ import GetUserByHandle from "./searches/GetUserByHandle";
 import { TextChannel } from "discord.js";
 import sanitize from "sanitize-html";
 import { marked } from "marked";
+import nodemailer from "nodemailer";
+import Mail from "nodemailer/lib/mailer";
+
+const transporter = nodemailer.createTransport({
+	service: "gmail",
+	auth: {
+		user: "beezle.app.lol@gmail.com",
+		pass: process.env.GMAIL_PASS as string,
+	},
+});
 
 const limiter = rateLimit({
 	windowMs: 30 * 1000, // 15 minutes
@@ -111,6 +121,19 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 	});
 
 	const token = jwt.sign(user.toJSON(), process.env.TOKEN_SECRET as string);
+
+	const mailOptions = {
+		from: process.env.GMAIL_ACCOUNT,
+		to: email,
+		subject: "Thank you for registering on Beezle!",
+		text: `Thank you for registering on Beezle, ${name}!\n\nYou can use your account to post, discover accounts, follow accounts and much more!.`,
+	};
+	transporter.sendMail(mailOptions as Mail.Options, (err, info) => {
+		if (err) return console.log(err);
+
+		console.log(info);
+	});
+
 	res.json({ token, error: "", was_error: false });
 });
 
