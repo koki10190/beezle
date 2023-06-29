@@ -8,6 +8,9 @@
 
 ```
 PORT=porthere
+MONGO_URI=MongoDBUri
+TOKEN_SECRET=shhhh
+DISCORD_TOKEN=DiscordBotToken
 ```
 
 2. Run `npm i` in main directory, after done go to frontend and type `npm i`
@@ -24,4 +27,5 @@ ANOTHER NOTE: This project is either going to be called Vaults or Bub!
 
 ## Credits
 
+- @ecto_demon on twitter for coming up with ideas and making graphics for the website!
 - @MavTheDav on twitter came up with the name "Beezle" and gave me a placeholder icon/actual icon of this project, it might be subject to change.
