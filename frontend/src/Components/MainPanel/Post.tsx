@@ -3,7 +3,7 @@ import "./Post.css";
 import UserType from "../../interfaces/UserType";
 import GetUserData from "../../api/GetUserData";
 import PostBox from "./PostBox";
-import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
+import EmojiPicker, { EmojiClickData, EmojiStyle, Theme } from "emoji-picker-react";
 import VerifyBadge from "../../functions/VerifyBadge";
 import CutLong from "../../functions/CutLong";
 
@@ -94,6 +94,9 @@ function Post() {
 							}
 							theme={
 								Theme.DARK
+							}
+							emojiStyle={
+								EmojiStyle.APPLE
 							}
 						/>
 					</div>

@@ -6,6 +6,7 @@
 }
 
 .make-post {
+	position: relative;
 	padding: 25px;
 }
 
@@ -141,7 +142,16 @@
 }
 
 .post-text-box {
+	position: relative;
 	margin-bottom: 20px;
+}
+
+.post-text-box > .EmojiPickerReact {
+	position: absolute;
+}
+
+.emoji-picker-post {
+	position: absolute;
 }
 
 .emoji-picker-post {
