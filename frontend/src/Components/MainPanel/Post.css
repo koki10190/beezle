@@ -147,3 +147,28 @@
 .emoji-picker-post {
 	margin-top: 10px;
 }
+
+.makeitleft {
+	float: left;
+}
+
+.buttons {
+	display: flex; /* establish flex container */
+	flex-direction: row; /* default value; can be omitted */
+	flex-wrap: nowrap; /* default value; can be omitted */
+	justify-content: space-between; /* switched from default (flex-start, see below) */
+	/* background-color: lightyellow; */
+	font-size: 20px;
+	margin-top: 25px;
+
+	color: rgba(255, 255, 255, 0.377);
+}
+
+.buttons > div {
+	cursor: pointer;
+	transition: ease-in-out 150ms;
+}
+
+.buttons > div:hover {
+	transform: rotateZ(5deg) scale(1.2);
+}

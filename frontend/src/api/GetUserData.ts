@@ -7,7 +7,10 @@ async function GetUserData(): Promise<TokenDataType> {
 			token: localStorage.getItem("auth_token"),
 		})
 	).data as TokenDataType;
-
+	data.user.displayName =
+		data.user.displayName.length > 10
+			? data.user.displayName.substring(0, 10) + "..."
+			: data.user.displayName;
 	return data;
 }
 

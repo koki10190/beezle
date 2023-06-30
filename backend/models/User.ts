@@ -48,6 +48,16 @@ const schema = new mongoose.Schema({
 		default: false,
 	},
 	pinned_post: String,
+	following: [
+		{
+			type: String,
+		},
+	],
+	followers: [
+		{
+			type: String,
+		},
+	],
 	// token: {
 	// 	type: String,
 	// 	required: true,

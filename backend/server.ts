@@ -12,6 +12,7 @@ import { rateLimit } from "express-rate-limit";
 import jwt from "jsonwebtoken";
 import client from "./discord/bot";
 import cors from "cors";
+import uuid from "uuid4";
 // MongoDB Models
 import User from "./models/User";
 import UserType from "./interfaces/UserType";
@@ -22,6 +23,10 @@ import sanitize from "sanitize-html";
 import { marked } from "marked";
 import nodemailer from "nodemailer";
 import Mail from "nodemailer/lib/mailer";
+import Post from "./models/Post";
+import uuid4 from "uuid4";
+import usernameOrEmailTaken from "./functions/usernameOrEmailTaken";
+import { fetchGlobalPosts, fetchPostsFollowing, fetchUserPosts } from "./functions/fetchPosts";
 
 const transporter = nodemailer.createTransport({
 	service: "gmail",
@@ -30,6 +35,18 @@ const transporter = nodemailer.createTransport({
 		pass: process.env.GMAIL_PASS as string,
 	},
 });
+
+function sendEmail(to: string, subject: string, text: string) {
+	const mailOptions = {
+		from: process.env.GMAIL_ACCOUNT,
+		to,
+		subject,
+		text,
+	};
+	transporter.sendMail(mailOptions as Mail.Options, (err, info) => {
+		if (err) return console.log(err);
+	});
+}
 
 const limiter = rateLimit({
 	windowMs: 30 * 1000, // 15 minutes
@@ -66,30 +83,6 @@ app.get("/deletgae", (req: express.Request, res: express.Response) => {
 		__v: { $gte: 0 },
 	}).then(() => res.write("Deleted!"));
 });
-
-async function usernameOrEmailTaken(name: string, email: string): Promise<boolean> {
-	const users =
-		(await User.findOne({
-			handle: name,
-		})) ||
-		(await User.findOne({
-			email: email,
-		}));
-
-	return users ? true : false;
-}
-
-function sendEmail(to: string, subject: string, text: string) {
-	const mailOptions = {
-		from: process.env.GMAIL_ACCOUNT,
-		to,
-		subject,
-		text,
-	};
-	transporter.sendMail(mailOptions as Mail.Options, (err, info) => {
-		if (err) return console.log(err);
-	});
-}
 
 app.post("/api/register-user", async (req: express.Request, res: express.Response) => {
 	const { name, email, password } = req.body;
@@ -342,9 +335,69 @@ app.get("/verify/:handle", async (req: express.Request, res: express.Response) =
 			handle,
 		},
 		{
-			verified: true,
+			owner: true,
 		}
 	);
 
 	res.send("test!");
+});
+
+app.post("/api/post", async (req: express.Request, res: express.Response) => {
+	const { content, token } = req.body;
+
+	jwt.verify(
+		token,
+		process.env.TOKEN_SECRET as string,
+		async (err: any, user: any) => {
+			if (err) return res.json({ error: true });
+
+			const m_user = await User.findOne({
+				email: user.email,
+				handle: user.handle,
+			});
+
+			const post = await Post.create({
+				postID: uuid4(),
+				content,
+				op: m_user?.handle,
+			});
+
+			res.json(post);
+		}
+	);
+});
+
+app.get("/api/explore-posts", async (req: express.Request, res: express.Response) => {
+	return res.json({
+		posts: fetchGlobalPosts(),
+	});
+});
+
+app.get("/api/user-posts/:handle", async (req: express.Request, res: express.Response) => {
+	const { handle } = req.params;
+
+	return res.json({
+		posts: fetchUserPosts(handle as string),
+	});
+});
+
+app.post("/api/follow-posts", async (req: express.Request, res: express.Response) => {
+	const { token } = req.body;
+
+	jwt.verify(
+		token,
+		process.env.TOKEN_SECRET as string,
+		async (err: any, user: any) => {
+			const m_user = (await User.findOne({
+				email: user.email,
+				handle: user.handle,
+			}))!;
+
+			return res.json({
+				posts: fetchPostsFollowing(
+					m_user.following as string[]
+				),
+			});
+		}
+	);
 });

@@ -3,6 +3,7 @@ import GetOtherUser from "../../api/GetOtherUser";
 import { useEffect, useRef } from "react";
 import UserType from "../../interfaces/UserType";
 import "./Profile.css";
+import VerifyBadge from "../../functions/VerifyBadge";
 
 function Profile() {
 	const { handle } = useParams();
@@ -18,11 +19,7 @@ function Profile() {
 		(async () => {
 			user = (await GetOtherUser(handle!)).user;
 
-			username.current!.textContent = user.displayName;
-			if (user.verified || user.owner)
-				username.current!.innerHTML += ` <i style="color: yellow" class="fa-solid fa-badge-check"></i>`;
-			if (user.moderator)
-				username.current!.innerHTML += ` <i style="color: yellow" class="fa-solid fa-shield-check"></i>`;
+			VerifyBadge(username.current!, user);
 			tag.current!.textContent = "@" + user.handle;
 			bio.current!.innerHTML = user.bio;
 			avatar.current!.style.backgroundImage = `url("${user.avatar}")`;

@@ -6,6 +6,8 @@ import "./Profile.css";
 import "./EditProfile.css";
 import GetUserData from "../../api/GetUserData";
 import axios from "axios";
+import { marked } from "marked";
+import { NodeHtmlMarkdown } from "node-html-markdown";
 
 function EditProfile() {
 	let user: UserType;

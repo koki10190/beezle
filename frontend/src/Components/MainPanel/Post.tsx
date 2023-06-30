@@ -4,6 +4,8 @@ import UserType from "../../interfaces/UserType";
 import GetUserData from "../../api/GetUserData";
 import PostBox from "./PostBox";
 import EmojiPicker, { EmojiClickData, Theme } from "emoji-picker-react";
+import VerifyBadge from "../../functions/VerifyBadge";
+import CutLong from "../../functions/CutLong";
 
 function Post() {
 	let user: UserType;
@@ -25,10 +27,8 @@ function Post() {
 
 			post.current!.innerText = "";
 
-			if (user.verified || user.owner)
-				username.current!.innerHTML += ` <i style="color: yellow" class="fa-solid fa-badge-check"></i>`;
-			if (user.moderator)
-				username.current!.innerHTML += ` <i style="color: yellow" class="fa-solid fa-shield-check"></i>`;
+			VerifyBadge(username.current!, user);
+			CutLong(user.displayName, 10);
 		})();
 	}, []);
 
@@ -104,6 +104,15 @@ function Post() {
 			<hr
 				style={{ boxSizing: "content-box" }}
 				className="small-bar"
+			/>
+			<PostBox
+				name="koki"
+				handle="koki"
+				avatarURL=""
+				content="hello, world!"
+				likes={0}
+				reposts={0}
+				replies={0}
 			/>
 		</div>
 	);
