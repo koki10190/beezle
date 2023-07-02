@@ -1,8 +1,3 @@
-interface ReplyType {
-	amount: number;
-	posts: string;
-}
-
 interface PostType {
 	postID: string;
 	content: string;
@@ -13,9 +8,9 @@ interface PostType {
 		default: false;
 	};
 	op: string;
-	likes: number;
-	reposts: number;
-	replies: Array<ReplyType>;
+	likes: string[];
+	reposts: string[];
+	replies: string[];
 }
 
-export type { PostType, ReplyType };
+export type { PostType };

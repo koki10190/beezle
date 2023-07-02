@@ -23,25 +23,24 @@ const schema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
-	likes: {
-		type: Number,
-		required: true,
-		default: 0,
-	},
-	reposts: {
-		type: Number,
-		required: true,
-		default: 0,
-	},
-	replies: {
-		amount: { type: Number, required: true, default: 0 },
-		posts: [
-			{
-				type: String,
-				required: false,
-			},
-		],
-	},
+	likes: [
+		{
+			type: String,
+			required: true,
+		},
+	],
+	reposts: [
+		{
+			type: String,
+			required: true,
+		},
+	],
+	replies: [
+		{
+			type: String,
+			required: false,
+		},
+	],
 });
 
 export default mongoose.model("Post", schema);

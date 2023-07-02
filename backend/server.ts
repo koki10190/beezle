@@ -20,6 +20,7 @@ import GetUserByEmail from "./searches/GetUserByEmail";
 import GetUserByHandle from "./searches/GetUserByHandle";
 import { TextChannel } from "discord.js";
 import sanitize from "sanitize-html";
+import http from "http";
 import { marked } from "marked";
 import nodemailer from "nodemailer";
 import Mail from "nodemailer/lib/mailer";
@@ -27,14 +28,21 @@ import Post from "./models/Post";
 import uuid4 from "uuid4";
 import usernameOrEmailTaken from "./functions/usernameOrEmailTaken";
 import { fetchGlobalPosts, fetchPostsFollowing, fetchUserPosts } from "./functions/fetchPosts";
+import { Socket, Server as ioServer } from "socket.io";
+import { initSocket } from "./io/socket";
+import smtpTransport from "nodemailer-smtp-transport";
 
-const transporter = nodemailer.createTransport({
-	service: "gmail",
-	auth: {
-		user: "beezle.app.lol@gmail.com",
-		pass: process.env.GMAIL_PASS as string,
-	},
-});
+const transporter = nodemailer.createTransport(
+	smtpTransport({
+		service: "smtp.gmail.com",
+		secure: false,
+		port: 465,
+		auth: {
+			user: "beezle.app.lol@gmail.com",
+			pass: process.env.GMAIL_PASS as string,
+		},
+	})
+);
 
 function sendEmail(to: string, subject: string, text: string) {
 	const mailOptions = {
@@ -60,19 +68,28 @@ const upload = multer({ dest: "uploads" });
 mongoose.connect(process.env.MONGO_URI as string).then(() =>
 	console.log("[BEEZLE] Connected to the Mongoose Database")
 );
+
 const app = express();
-app.listen(process.env.PORT, () => console.log("[BEEZLE] Listening to port " + process.env.PORT));
-app.use(limiter);
+const server = http.createServer(app);
+const io = initSocket(server);
+server.listen(process.env.PORT, () =>
+	console.log("[BEEZLE] Listening to port " + process.env.PORT)
+);
+// app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(
 	cors({
-		origin: "*",
+		origin: "http://localhost:5173",
 	})
 );
 
 app.get("/", (req: express.Request, res: express.Response) => {
 	res.send("Hello, World!");
+	Post.deleteMany({
+		__v: { $gte: 0 },
+	}).then(() => res.write("Deleted!"));
+
 	User.deleteMany({
 		__v: { $gte: 0 },
 	}).then(() => res.write("Deleted!"));
@@ -126,11 +143,11 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 	});
 
 	const token = jwt.sign(user.toJSON(), process.env.TOKEN_SECRET as string);
-	sendEmail(
-		email,
-		"Thank you for registering on Beezle!",
-		`Thank you for registering on Beezle, ${name}!\n\nYou can use your account to post, discover accounts, follow accounts and much more!.`
-	);
+	// sendEmail(
+	// 	email,
+	// 	"Thank you for registering on Beezle!",
+	// 	`Thank you for registering on Beezle, ${name}!\n\nYou can use your account to post, discover accounts, follow accounts and much more!.`
+	// );
 
 	res.json({ token, error: "", was_error: false });
 });
@@ -362,14 +379,18 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 				op: m_user?.handle,
 			});
 
+			io.emit("post", post);
+
 			res.json(post);
 		}
 	);
 });
 
 app.get("/api/explore-posts", async (req: express.Request, res: express.Response) => {
+	const posts = await fetchGlobalPosts();
+
 	return res.json({
-		posts: fetchGlobalPosts(),
+		posts,
 	});
 });
 
@@ -398,6 +419,43 @@ app.post("/api/follow-posts", async (req: express.Request, res: express.Response
 					m_user.following as string[]
 				),
 			});
+		}
+	);
+});
+
+app.post("/api/like-post", async (req: express.Request, res: express.Response) => {
+	const { token, postId } = req.body;
+
+	jwt.verify(
+		token,
+		process.env.TOKEN_SECRET as string,
+		async (err: any, user: any) => {
+			const m_user = (await User.findOne({
+				email: user.email,
+				handle: user.handle,
+			}))!;
+			const m_post = await Post.findOne({ postID: postId });
+			if (m_post?.likes.find(x => x === user.handle)) return;
+			const post = await Post.findOneAndUpdate(
+				{
+					postID: postId,
+				},
+				{
+					$push: {
+						likes: m_user.handle,
+					},
+				}
+			);
+			m_post?.likes.push(m_user.handle);
+
+			if (!post) return res.json({ error: true });
+
+			res.json({ error: false });
+			io.emit(
+				"post-like-refresh",
+				m_post!.likes,
+				post.postID
+			);
 		}
 	);
 });
