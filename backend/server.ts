@@ -387,8 +387,8 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 });
 
 app.get("/api/explore-posts", async (req: express.Request, res: express.Response) => {
-	const posts = await fetchGlobalPosts();
-
+	const posts = (await fetchGlobalPosts()).reverse();
+	console.log(posts);
 	return res.json({
 		posts,
 	});

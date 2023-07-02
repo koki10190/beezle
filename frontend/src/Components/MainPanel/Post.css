@@ -29,6 +29,7 @@
 }
 
 .post-box {
+	white-space: pre-line;
 	margin-bottom: 15px;
 	width: 100%;
 	min-height: 150px;

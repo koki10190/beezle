@@ -33,8 +33,8 @@ function Post() {
 
 	socket.on("post", async (post: PostType) => {
 		const user = (await GetOtherUser(post.op)).user;
-		posts.push({ data: post, op: user });
-		setPosts(posts.reverse());
+		posts.unshift({ data: post, op: user });
+		setPosts(posts);
 	});
 
 	socket.on("post-like-refresh", async (likes: string[], postId: string) => {
@@ -76,7 +76,7 @@ function Post() {
 						op: user,
 					} as PostBoxType);
 				}
-				setPosts(actualPosts.reverse());
+				setPosts(actualPosts);
 			});
 		})();
 	}, []);
@@ -177,7 +177,11 @@ function Post() {
 			{showPosts
 				? posts.map(item => (
 						<PostBox
-							key={uuid4()}
+							key={
+								item
+									.data
+									.postID
+							}
 							postId={
 								item
 									.data
