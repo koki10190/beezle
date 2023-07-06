@@ -29,27 +29,32 @@ function Post() {
 	const [posts, setPosts] = useState([] as PostBoxType[]);
 	const [showPosts, setShowPosts] = useState(false);
 
-	socket.connect();
-
-	socket.on("post", async (post: PostType) => {
-		const user = (await GetOtherUser(post.op)).user;
-		posts.unshift({ data: post, op: user });
-		setPosts(posts);
-	});
-
-	socket.on("post-like-refresh", async (likes: string[], postId: string) => {
-		console.log(postId);
-		const post = posts.findIndex(x => x.data.postID == postId);
-		if (post < 0) return;
-		posts[post].data.likes = likes;
-		console.log(posts[post].data.likes);
+	let postCheck = 0;
+	socket.on("post", async (post: PostBoxType) => {
+		if (postCheck > 0) {
+			if (postCheck >= 4) postCheck = 0;
+		}
+		posts.unshift(post);
 		setPosts([...posts]);
+		postCheck++;
+	});
+	let postLikesCheck = 0;
+	socket.on("post-like-refresh", async (postId: string, liked: string[]) => {
+		if (postLikesCheck > 0) {
+			if (postLikesCheck >= 4) postLikesCheck = 0;
+		}
+		const post = posts.findIndex(m_post => m_post.data.postID == postId);
+		if (post < 0) return;
+		posts[post].data.likes = liked;
+		setPosts([...posts]);
+		postLikesCheck++;
 	});
 
 	useEffect(() => {
 		(async () => {
 			user = (await GetUserData()).user;
 			setShowPosts(true);
+			localStorage.setItem("handle", user.handle);
 
 			avatar.current!.style.backgroundImage = `url("${user.avatar}")`;
 			username.current!.innerText = user.displayName;

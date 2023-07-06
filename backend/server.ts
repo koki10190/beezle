@@ -89,10 +89,6 @@ app.get("/", (req: express.Request, res: express.Response) => {
 	Post.deleteMany({
 		__v: { $gte: 0 },
 	}).then(() => res.write("Deleted!"));
-
-	User.deleteMany({
-		__v: { $gte: 0 },
-	}).then(() => res.write("Deleted!"));
 });
 
 app.get("/deletgae", (req: express.Request, res: express.Response) => {
@@ -379,16 +375,21 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 				op: m_user?.handle,
 			});
 
-			io.emit("post", post);
+			const box_type = {
+				op: await User.findOne({
+					handle: post.op,
+				}),
+				data: post,
+			};
 
-			res.json(post);
+			io.emit("post", box_type);
+			res.json(box_type);
 		}
 	);
 });
 
 app.get("/api/explore-posts", async (req: express.Request, res: express.Response) => {
 	const posts = (await fetchGlobalPosts()).reverse();
-	console.log(posts);
 	return res.json({
 		posts,
 	});
@@ -451,11 +452,7 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 			if (!post) return res.json({ error: true });
 
 			res.json({ error: false });
-			io.emit(
-				"post-like-refresh",
-				m_post!.likes,
-				post.postID
-			);
+			io.emit("post-like-refresh", postId, m_post?.likes);
 		}
 	);
 });

@@ -39,11 +39,17 @@ function PostBox({
 	useEffect(() => {
 		(async () => {
 			user = (await GetOtherUser(handle)).user;
-
-			const me = await (await GetUserData()).user;
 			VerifyBadge(username.current!, user);
 
-			if (likes.find(x => x === me.handle)) {
+			if (
+				likes.find(
+					x =>
+						x ===
+						localStorage.getItem(
+							"handle"
+						)
+				)
+			) {
 				html_likes.current!.style.color =
 					"#ff4281";
 				setLiked(true);
@@ -52,14 +58,30 @@ function PostBox({
 					"rgba(255, 255, 255, 0.377);";
 			}
 		})();
-	}, []);
+	}, [likes]);
 
 	const likePost = () => {
-		if (isLiked) return;
-		axios.post("http://localhost:3000/api/like-post", {
-			token: localStorage.getItem("auth_token") as string,
-			postId,
-		});
+		switch (isLiked) {
+			case true:
+				setLiked(false);
+				html_likes.current!.style.color =
+					"rgba(255, 255, 255, 0.377);";
+				break;
+			case false:
+				setLiked(true);
+				html_likes.current!.style.color =
+					"#ff4281";
+				axios.post(
+					"http://localhost:3000/api/like-post",
+					{
+						token: localStorage.getItem(
+							"auth_token"
+						) as string,
+						postId,
+					}
+				);
+				break;
+		}
 	};
 
 	return (

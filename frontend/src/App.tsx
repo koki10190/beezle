@@ -5,8 +5,10 @@ import HomeProfile from "./Home/HomeProfile";
 import HomeEditProfile from "./Home/HomeEditProfile";
 import Post from "./Components/MainPanel/Post";
 import HomePost from "./Home/HomePost";
+import socket from "./io/socket";
 
 function App() {
+	socket.connect();
 	return (
 		<BrowserRouter>
 			<Routes>
