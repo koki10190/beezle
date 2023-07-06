@@ -56,29 +56,35 @@ function PostBox({
 				setLiked(true);
 			} else {
 				html_likes.current!.style.color =
-					"rgba(255, 255, 255, 0.377);";
+					"rgba(255, 255, 255, 0.377)";
 			}
 		})();
 	}, [likes]);
 
 	const likePost = () => {
-		switch (isLiked) {
-			case true:
-				setLiked(false);
-				html_likes.current!.style.color =
-					"rgba(255, 255, 255, 0.377);";
-				break;
-			case false:
-				setLiked(true);
-				html_likes.current!.style.color =
-					"#ff4281";
-				axios.post(`${api_url}/api/like-post`, {
-					token: localStorage.getItem(
-						"auth_token"
-					) as string,
-					postId,
-				});
-				break;
+		console.log(isLiked);
+		if (isLiked) {
+			setLiked(false);
+			html_likes.current!.style.color =
+				"rgba(255, 255, 255, 0.377)";
+
+			axios.post(`${api_url}/api/like-post`, {
+				token: localStorage.getItem(
+					"auth_token"
+				) as string,
+				postId,
+				unlike: true,
+			});
+		} else {
+			setLiked(true);
+			html_likes.current!.style.color = "#ff4281";
+			axios.post(`${api_url}/api/like-post`, {
+				token: localStorage.getItem(
+					"auth_token"
+				) as string,
+				postId,
+				unlike: false,
+			});
 		}
 	};
 

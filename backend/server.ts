@@ -434,7 +434,7 @@ app.post("/api/follow-posts", async (req: express.Request, res: express.Response
 });
 
 app.post("/api/like-post", async (req: express.Request, res: express.Response) => {
-	const { token, postId } = req.body;
+	const { token, postId, unlike } = req.body;
 
 	jwt.verify(
 		token,
@@ -444,21 +444,60 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 				email: user.email,
 				handle: user.handle,
 			}))!;
-			const m_post = await Post.findOne({ postID: postId });
-			if (m_post?.likes.find(x => x === user.handle)) return;
-			const post = await Post.findOneAndUpdate(
-				{
-					postID: postId,
-				},
-				{
-					$push: {
-						likes: m_user.handle,
-					},
-				}
-			);
-			m_post?.likes.push(m_user.handle);
+			const Unlike = async () => {
+				const post =
+					await Post.findOneAndUpdate(
+						{
+							postID: postId,
+						},
+						{
+							$pull: {
+								likes: m_user.handle,
+							},
+						}
+					);
+				if (!post)
+					return res.json({
+						error: true,
+					});
 
-			if (!post) return res.json({ error: true });
+				const index = m_post?.likes.findIndex(
+					x => x === user.handle
+				);
+				if (index! < 0) return;
+				m_post?.likes.splice(index!, 1);
+
+				io.emit(
+					"post-like-refresh",
+					postId,
+					m_post?.likes
+				);
+			};
+
+			const m_post = await Post.findOne({ postID: postId });
+			if (m_post?.likes.find(x => x === user.handle))
+				return Unlike();
+
+			if (unlike) {
+				Unlike();
+			} else {
+				const post =
+					await Post.findOneAndUpdate(
+						{
+							postID: postId,
+						},
+						{
+							$push: {
+								likes: m_user.handle,
+							},
+						}
+					);
+				if (!post)
+					return res.json({
+						error: true,
+					});
+				m_post?.likes.push(m_user.handle);
+			}
 
 			res.json({ error: false });
 			io.emit("post-like-refresh", postId, m_post?.likes);
