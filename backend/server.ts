@@ -456,3 +456,9 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 		}
 	);
 });
+
+app.get("/api/get-user-posts/:handle", async (req: express.Request, res: express.Response) => {
+	const { handle } = req.params;
+	const posts = await Post.find({ op: handle });
+	res.json(posts);
+});

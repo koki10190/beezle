@@ -7,15 +7,10 @@ import EmojiPicker, { EmojiClickData, EmojiStyle, Theme } from "emoji-picker-rea
 import VerifyBadge from "../../functions/VerifyBadge";
 import CutLong from "../../functions/CutLong";
 import axios from "axios";
-import { PostType } from "../../interfaces/PostType";
+import { PostType, PostBoxType } from "../../interfaces/PostType";
 import GetOtherUser from "../../api/GetOtherUser";
 import socket from "../../io/socket";
 import uuid4 from "uuid4";
-
-interface PostBoxType {
-	data: PostType;
-	op: UserType;
-}
 
 function Post() {
 	let user: UserType;
