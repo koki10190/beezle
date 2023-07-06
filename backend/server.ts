@@ -367,6 +367,8 @@ app.get("/verify/:handle", async (req: express.Request, res: express.Response) =
 app.post("/api/post", async (req: express.Request, res: express.Response) => {
 	const { content, token } = req.body;
 
+	if (content === "") return;
+
 	jwt.verify(
 		token,
 		process.env.TOKEN_SECRET as string,

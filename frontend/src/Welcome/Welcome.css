@@ -72,6 +72,12 @@ header > h1 {
 	-webkit-text-fill-color: transparent;
 }
 
+.gradient {
+	background: -webkit-linear-gradient(rgb(255, 223, 135), rgb(192, 147, 0));
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
 header > h3 {
 	font-size: 25px;
 	margin-top: -70px;
@@ -169,4 +175,13 @@ textarea {
 	.info-panel {
 		display: none;
 	}
+}
+
+.link {
+	color: rgb(60, 184, 255);
+	text-decoration: none;
+}
+
+.link:hover {
+	text-decoration: underline;
 }

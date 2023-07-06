@@ -108,7 +108,7 @@ function Post() {
 			token: localStorage.getItem("auth_token")!,
 			content: post.current!.value,
 		}).then(res => {
-			console.log(res.data);
+			post.current!.value = "";
 		});
 	};
 

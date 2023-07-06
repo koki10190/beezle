@@ -62,8 +62,8 @@
 }
 
 .nav-pad-right a:hover {
-	transform: scale(1.1);
-	/* background-color: rgba(255, 255, 255, 0.205); */
+	/* transform: scale(1.1); */
+	color: rgb(216, 188, 111);
 }
 
 .edit-prof-btn {
