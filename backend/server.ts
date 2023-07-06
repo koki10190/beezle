@@ -80,7 +80,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(
 	cors({
-		origin: "http://localhost:5173",
+		origin: "*",
 	})
 );
 
@@ -324,7 +324,9 @@ app.post("/api/upload-banner", upload.single("banner"), async (req, res) => {
 
 app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
 	const { displayName, token, bio } = req.body;
-	const m_bio = sanitize(marked(bio));
+	const m_bio = sanitize(marked(bio), {
+		allowedTags: ["img"],
+	});
 
 	console.log(req.body);
 	jwt.verify(
@@ -357,7 +359,7 @@ app.get("/verify/:handle", async (req: express.Request, res: express.Response) =
 			handle,
 		},
 		{
-			owner: true,
+			moderator: true,
 		}
 	);
 

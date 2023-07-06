@@ -64,7 +64,7 @@ function Profile() {
 
 			const posts = (
 				await axios.get(
-					`${api_url}/api/get-user-posts/koki`
+					`${api_url}/api/get-user-posts/${handle}`
 				)
 			).data as PostType[];
 			const actualPosts: PostBoxType[] = [];

@@ -15,7 +15,7 @@ function handleConnections() {
 function initSocket(server: http.Server): ioServer {
 	io = new ioServer(server, {
 		cors: {
-			origin: "http://localhost:5173",
+			origin: "*",
 			methods: ["GET", "POST"],
 		},
 	});
