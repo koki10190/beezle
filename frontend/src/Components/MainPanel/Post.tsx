@@ -35,6 +35,7 @@ function Post() {
 		postCheck++;
 	});
 	let postLikesCheck = 0;
+	socket.connect();
 	socket.on("post-like-refresh", async (postId: string, liked: string[]) => {
 		if (postLikesCheck > 0) {
 			if (postLikesCheck >= 4) postLikesCheck = 0;
@@ -103,7 +104,7 @@ function Post() {
 	const makePost = () => {
 		if (post.current!.value == "") return;
 
-		axios.post("${api_url}/api/post", {
+		axios.post(`${api_url}/api/post`, {
 			token: localStorage.getItem("auth_token")!,
 			content: post.current!.value,
 		}).then(res => {

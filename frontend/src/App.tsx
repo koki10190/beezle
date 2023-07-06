@@ -8,7 +8,6 @@ import HomePost from "./Home/HomePost";
 import socket from "./io/socket";
 
 function App() {
-	socket.connect();
 	return (
 		<BrowserRouter>
 			<Routes>

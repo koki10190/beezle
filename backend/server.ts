@@ -89,6 +89,15 @@ app.get("/", (req: express.Request, res: express.Response) => {
 	Post.deleteMany({
 		__v: { $gte: 0 },
 	}).then(() => res.write("Deleted!"));
+
+	User.findOneAndUpdate(
+		{
+			handle: "koki2",
+		},
+		{
+			following: [],
+		}
+	);
 });
 
 app.get("/deletgae", (req: express.Request, res: express.Response) => {
@@ -471,6 +480,33 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 		process.env.TOKEN_SECRET as string,
 		async (err: any, user: any) => {
 			if (toFollow == user.handle) return;
+			const Unfollow = async () => {
+				const m_user =
+					await User.findOneAndUpdate(
+						{
+							email: user.email,
+							handle: user.handle,
+						},
+						{
+							$pull: {
+								following: toFollow,
+							},
+						}
+					);
+
+				const m_user_follow =
+					await User.findOneAndUpdate(
+						{
+							handle: toFollow,
+						},
+						{
+							$pull: {
+								followers: user.handle,
+							},
+						}
+					);
+			};
+
 			const m_user = await User.findOneAndUpdate(
 				{
 					email: user.email,
@@ -485,22 +521,13 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 			const userToFollow = await User.findOne({
 				handle: toFollow,
 			});
+
 			if (
 				userToFollow?.followers.find(
 					x => x == user.handle
 				)
 			) {
-				const m_user_follow =
-					await User.findOneAndUpdate(
-						{
-							handle: toFollow,
-						},
-						{
-							$pull: {
-								followers: user.handle,
-							},
-						}
-					);
+				Unfollow();
 			}
 
 			if (!unfollow) {
@@ -516,17 +543,7 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 						}
 					);
 			} else {
-				const m_user_follow =
-					await User.findOneAndUpdate(
-						{
-							handle: toFollow,
-						},
-						{
-							$pull: {
-								followers: user.handle,
-							},
-						}
-					);
+				Unfollow();
 			}
 		}
 	);
