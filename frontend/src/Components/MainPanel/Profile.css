@@ -61,3 +61,17 @@
 	padding: 20px;
 	box-sizing: border-box;
 }
+
+.profile-follower-box {
+	margin-left: 24px;
+}
+
+.profile-follower-box > p {
+	display: inline-block;
+	margin-right: 15px;
+	color: rgba(255, 255, 255, 0.438);
+}
+
+.profile-follower-box > p > span {
+	color: white;
+}

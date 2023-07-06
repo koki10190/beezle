@@ -48,6 +48,11 @@ const schema = new mongoose.Schema({
 		default: false,
 	},
 	pinned_post: String,
+	bookmarks: [
+		{
+			type: String,
+		},
+	],
 	following: [
 		{
 			type: String,

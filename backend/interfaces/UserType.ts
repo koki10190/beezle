@@ -10,6 +10,9 @@ interface UserType {
 	moderator: boolean;
 	owner: boolean;
 	pinned_post: string;
+	followers: string[];
+	following: string[];
+	bookmarks: string[];
 }
 
 export default UserType;

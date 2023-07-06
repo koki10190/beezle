@@ -1,6 +1,7 @@
 import axios from "axios";
 import { FormEvent, useRef } from "react";
 import RegisterTokenData from "../interfaces/RegisterTokenData";
+import { api_url } from "../constants/ApiURL";
 // import LoginTokenData from "../interfaces/LoginTokenData";
 
 interface LoginFormInterface {
@@ -20,7 +21,7 @@ function LoginForm({ state_change }: LoginFormInterface) {
 		login_error.current!.style.color = "white";
 		login_error.current!.innerText = "Logging in, please wait...";
 
-		axios.post("http://localhost:3000/api/login", {
+		axios.post(`${api_url}/api/login`, {
 			email: email.current!.value,
 			password: password.current!.value,
 		}).then(res => {

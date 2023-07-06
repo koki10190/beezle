@@ -56,16 +56,20 @@
 	background-color: grey;
 }
 
-.user-stuff > .post-name {
+.user-stuff > .user-desc > .post-name {
 	vertical-align: top;
 	display: inline-block;
 	margin-top: 5px;
 	margin-left: 10px;
 }
-.user-stuff > .post-date {
+.user-stuff > .user-desc > .post-date {
 	margin-top: -25px;
 	margin-left: 60px;
 	color: gray;
+}
+
+.user-desc {
+	cursor: pointer;
 }
 
 .post-textarea {

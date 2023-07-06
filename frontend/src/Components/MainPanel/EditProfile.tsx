@@ -8,6 +8,7 @@ import GetUserData from "../../api/GetUserData";
 import axios from "axios";
 import { marked } from "marked";
 import { NodeHtmlMarkdown } from "node-html-markdown";
+import { api_url } from "../../constants/ApiURL";
 
 function EditProfile() {
 	let user: UserType;
@@ -54,7 +55,7 @@ function EditProfile() {
 				) as string
 			);
 			// axios.post(
-			// 	"http://localhost:3000/api/upload-avatar",
+			// 	"${api_url}/api/upload-avatar",
 			// 	formData,
 			// 	{
 			// 		headers: {
@@ -88,7 +89,7 @@ function EditProfile() {
 				) as string
 			);
 			// axios.post(
-			// 	"http://localhost:3000/api/upload-banner",
+			// 	"${api_url}/api/upload-banner",
 			// 	formData,
 			// 	{
 			// 		headers: {
@@ -111,27 +112,19 @@ function EditProfile() {
 
 	const saveChanges = (event: FormEvent) => {
 		event.preventDefault();
-		axios.post(
-			"http://localhost:3000/api/upload-banner",
-			formDataBanner,
-			{
-				headers: {
-					"Content-Type": "multipart/form-data",
-				},
-			}
-		);
+		axios.post(`${api_url}/api/upload-banner`, formDataBanner, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+		});
 
-		axios.post(
-			"http://localhost:3000/api/upload-avatar",
-			formDataAvatar,
-			{
-				headers: {
-					"Content-Type": "multipart/form-data",
-				},
-			}
-		);
+		axios.post(`${api_url}/api/upload-avatar`, formDataAvatar, {
+			headers: {
+				"Content-Type": "multipart/form-data",
+			},
+		});
 
-		axios.post("http://localhost:3000/api/edit-profile", {
+		axios.post(`${api_url}/api/edit-profile`, {
 			displayName: displayName.current!.value as string,
 			bio: aboutMe.current!.value as string,
 			token: localStorage.getItem("auth_token") as string,

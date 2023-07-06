@@ -11,6 +11,7 @@ import { PostType, PostBoxType } from "../../interfaces/PostType";
 import GetOtherUser from "../../api/GetOtherUser";
 import socket from "../../io/socket";
 import uuid4 from "uuid4";
+import { api_url } from "../../constants/ApiURL";
 
 function Post() {
 	let user: UserType;
@@ -60,29 +61,37 @@ function Post() {
 			VerifyBadge(username.current!, user);
 			CutLong(user.displayName, 10);
 
-			axios.get(
-				"http://localhost:3000/api/explore-posts"
-			).then(async res => {
-				const actualPosts: PostBoxType[] = [];
-				for (const post of res.data
-					.posts as PostType[]) {
-					const user = (
-						await GetOtherUser(
-							post.op
-						)
-					).user;
-					actualPosts.push({
-						data: post,
-						op: user,
-					} as PostBoxType);
+			axios.get(`${api_url}/api/explore-posts`).then(
+				async res => {
+					const actualPosts: PostBoxType[] =
+						[];
+					for (const post of res
+						.data
+						.posts as PostType[]) {
+						const user =
+							(
+								await GetOtherUser(
+									post.op
+								)
+							)
+								.user;
+						actualPosts.push(
+							{
+								data: post,
+								op: user,
+							} as PostBoxType
+						);
+					}
+					setPosts(actualPosts);
 				}
-				setPosts(actualPosts);
-			});
+			);
 		})();
 	}, []);
 
 	const redirectToUserProfile = () => {
-		window.location.href = "/profile/" + user.handle;
+		console.log(user);
+		window.location.href = ("/profile/" +
+			localStorage.getItem("handle")) as string;
 	};
 
 	const addEmoji = (emoji: EmojiClickData) => {
@@ -94,7 +103,7 @@ function Post() {
 	const makePost = () => {
 		if (post.current!.value == "") return;
 
-		axios.post("http://localhost:3000/api/post", {
+		axios.post("${api_url}/api/post", {
 			token: localStorage.getItem("auth_token")!,
 			content: post.current!.value,
 		}).then(res => {

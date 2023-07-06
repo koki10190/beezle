@@ -1,9 +1,10 @@
 import axios from "axios";
 import TokenDataType from "../interfaces/TokenDataType";
+import { api_url } from "../constants/ApiURL";
 
 async function GetUserData(): Promise<TokenDataType> {
 	const data: TokenDataType = (
-		await axios.post("http://localhost:3000/api/verify-token", {
+		await axios.post(`${api_url}/api/verify-token`, {
 			token: localStorage.getItem("auth_token"),
 		})
 	).data as TokenDataType;

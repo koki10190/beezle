@@ -462,3 +462,73 @@ app.get("/api/get-user-posts/:handle", async (req: express.Request, res: express
 	const posts = await Post.find({ op: handle });
 	res.json(posts);
 });
+
+app.post("/api/follow", async (req: express.Request, res: express.Response) => {
+	const { token, toFollow, unfollow } = req.body;
+
+	jwt.verify(
+		token,
+		process.env.TOKEN_SECRET as string,
+		async (err: any, user: any) => {
+			if (toFollow == user.handle) return;
+			const m_user = await User.findOneAndUpdate(
+				{
+					email: user.email,
+					handle: user.handle,
+				},
+				{
+					$push: {
+						following: toFollow,
+					},
+				}
+			);
+			const userToFollow = await User.findOne({
+				handle: toFollow,
+			});
+			if (
+				userToFollow?.followers.find(
+					x => x == user.handle
+				)
+			) {
+				const m_user_follow =
+					await User.findOneAndUpdate(
+						{
+							handle: toFollow,
+						},
+						{
+							$pull: {
+								followers: user.handle,
+							},
+						}
+					);
+			}
+
+			if (!unfollow) {
+				const m_user_follow =
+					await User.findOneAndUpdate(
+						{
+							handle: toFollow,
+						},
+						{
+							$push: {
+								followers: user.handle,
+							},
+						}
+					);
+			} else {
+				const m_user_follow =
+					await User.findOneAndUpdate(
+						{
+							handle: toFollow,
+						},
+						{
+							$pull: {
+								followers: user.handle,
+							},
+						}
+					);
+			}
+		}
+	);
+	res.json({ followed: true });
+});

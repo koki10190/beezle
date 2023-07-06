@@ -6,6 +6,7 @@ import VerifyBadge from "../../functions/VerifyBadge";
 import FlipNumbers from "react-flip-numbers";
 import socket from "../../io/socket";
 import axios from "axios";
+import { api_url } from "../../constants/ApiURL";
 
 interface PostBoxInterface {
 	name: string;
@@ -71,35 +72,48 @@ function PostBox({
 				setLiked(true);
 				html_likes.current!.style.color =
 					"#ff4281";
-				axios.post(
-					"http://localhost:3000/api/like-post",
-					{
-						token: localStorage.getItem(
-							"auth_token"
-						) as string,
-						postId,
-					}
-				);
+				axios.post(`${api_url}/api/like-post`, {
+					token: localStorage.getItem(
+						"auth_token"
+					) as string,
+					postId,
+				});
 				break;
 		}
 	};
+
+	const redirectToProfile = () => (window.location.href = "/profile/" + handle);
 
 	return (
 		<div className="post-box">
 			<div className="user-stuff">
 				<div
-					style={{
-						backgroundImage: `url("${avatarURL}")`,
-					}}
-					className="post-avatar"
-				></div>
-				<p ref={username} className="post-name">
-					{name}
-				</p>
-				<p className="post-date">@{handle}</p>
-				<p className="post-content">
-					{content}
-				</p>
+					onClick={
+						redirectToProfile
+					}
+					className="user-desc"
+				>
+					<div
+						style={{
+							backgroundImage: `url("${avatarURL}")`,
+						}}
+						className="post-avatar"
+					></div>
+					<p
+						ref={
+							username
+						}
+						className="post-name"
+					>
+						{name}
+					</p>
+					<p className="post-date">
+						@{handle}
+					</p>
+					<p className="post-content">
+						{content}
+					</p>
+				</div>
 				<div className="buttons">
 					<div ref={html_replies}>
 						<i className="fa-solid fa-comment"></i>{" "}
@@ -133,7 +147,7 @@ function PostBox({
 						</span>
 					</div>
 					<div>
-						<i className="fa-solid fa-clipboard"></i>
+						<i className="fa-solid fa-bookmark"></i>
 					</div>
 				</div>
 			</div>

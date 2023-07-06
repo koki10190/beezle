@@ -1,6 +1,7 @@
 import axios from "axios";
 import { FormEvent, useRef } from "react";
 import RegisterTokenData from "../interfaces/RegisterTokenData";
+import { api_url } from "../constants/ApiURL";
 
 interface RegisterFormInterface {
 	state_change: (bool: boolean) => void;
@@ -47,7 +48,7 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 			btn.current!.disabled = false;
 			return;
 		}
-		axios.post("http://localhost:3000/api/register-user", {
+		axios.post(`${api_url}/api/register-user`, {
 			name: username.current?.value,
 			email: email.current?.value,
 			password: password.current?.value,
