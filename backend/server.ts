@@ -511,11 +511,21 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 	);
 });
 
-app.get("/api/get-user-posts/:handle", async (req: express.Request, res: express.Response) => {
-	const { handle } = req.params;
-	const posts = await Post.find({ op: handle });
-	res.json(posts);
-});
+app.get(
+	"/api/get-user-posts/:handle/:offset",
+	async (req: express.Request, res: express.Response) => {
+		const { offset, handle } = req.params;
+		const posts = (await Post.find({ op: handle })
+			.sort({ $natural: -1 })
+			.skip(parseInt(offset))
+			.limit(10)) as any[];
+
+		res.json({
+			posts,
+			latestIndex: parseInt(offset) + posts.length - 1,
+		});
+	}
+);
 
 app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 	const { token, toFollow, unfollow } = req.body;

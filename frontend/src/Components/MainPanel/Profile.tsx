@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
 import GetOtherUser from "../../api/GetOtherUser";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, UIEvent } from "react";
 import UserType from "../../interfaces/UserType";
 import "./Profile.css";
 import VerifyBadge from "../../functions/VerifyBadge";
@@ -9,6 +9,7 @@ import axios from "axios";
 import PostBox from "./PostBox";
 import { api_url } from "../../constants/ApiURL";
 import GetUserData from "../../api/GetUserData";
+import socket from "../../io/socket";
 
 function Profile() {
 	let user: UserType;
@@ -26,6 +27,30 @@ function Profile() {
 	const followBtn = useRef<HTMLButtonElement>(null);
 
 	const [posts, setPosts] = useState([] as PostBoxType[]);
+	const [offset, setOffset] = useState(0);
+
+	let postCheck = 0;
+	socket.on("post", async (post: PostBoxType) => {
+		if (postCheck > 0) {
+			if (postCheck >= 4) postCheck = 0;
+		}
+		if (post.op.handle !== user?.handle) return;
+		posts.unshift(post);
+		setPosts([...posts]);
+		postCheck++;
+	});
+
+	let postLikesCheck = 0;
+	socket.on("post-like-refresh", async (postId: string, liked: string[]) => {
+		if (postLikesCheck > 0) {
+			if (postLikesCheck >= 4) postLikesCheck = 0;
+		}
+		const post = posts.findIndex(m_post => m_post.data.postID == postId);
+		if (post < 0) return;
+		posts[post].data.likes = liked;
+		setPosts([...posts]);
+		postLikesCheck++;
+	});
 
 	const follow = () => {
 		axios.post(`${api_url}/api/follow`, {
@@ -38,6 +63,10 @@ function Profile() {
 					: false,
 		}).then(res => window.location.reload());
 	};
+
+	(async () => {
+		user = (await GetOtherUser(handle!)).user;
+	})();
 
 	useEffect(() => {
 		(async () => {
@@ -64,17 +93,18 @@ function Profile() {
 
 			const posts = (
 				await axios.get(
-					`${api_url}/api/get-user-posts/${handle}`
+					`${api_url}/api/get-user-posts/${handle}/${offset}`
 				)
-			).data as PostType[];
+			).data;
 			const actualPosts: PostBoxType[] = [];
-			posts.forEach(post =>
+			(posts.posts as PostType[]).forEach(post =>
 				actualPosts.push({
 					data: post,
 					op: user,
 				})
 			);
 			setPosts(actualPosts);
+			setOffset(posts.latestIndex);
 		})();
 	}, []);
 
@@ -82,8 +112,51 @@ function Profile() {
 		window.location.href = "/user/edit-profile";
 	};
 
+	const followersPage = () => {
+		window.location.href = "/followers/" + user.handle;
+	};
+
+	const followingPage = () => {
+		window.location.href = "/following/" + user.handle;
+	};
+
+	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
+		const element = event.target! as HTMLDivElement;
+		if (
+			element.scrollHeight - element.scrollTop ===
+			element.clientHeight
+		) {
+			axios.get(
+				`${api_url}/api/get-user-posts/${handle}/${
+					offset + 1
+				}`
+			).then(async res => {
+				const actualPosts: PostBoxType[] = [];
+				(res.data.posts as PostType[]).forEach(
+					post =>
+						actualPosts.push(
+							{
+								data: post,
+								op: user,
+							}
+						)
+				);
+
+				setPosts(posts.concat(actualPosts));
+
+				setOffset(res.data.latestIndex);
+				console.log(
+					`Offset: ${res.data.latestIndex}`
+				);
+			});
+		}
+	};
+
 	return (
-		<div className="navigation-panel main-panel">
+		<div
+			onScroll={detectScrolling}
+			className="navigation-panel main-panel profile-panel"
+		>
 			<div ref={banner} className="banner"></div>
 			<div ref={avatar} className="avatar"></div>
 			<div>
@@ -115,7 +188,12 @@ function Profile() {
 			<h3 ref={tag} className="profile-handle"></h3>
 			<p ref={bio} className="profile-bio"></p>
 			<div className="profile-follower-box">
-				<p>
+				<p
+					style={{
+						cursor: "pointer",
+					}}
+					onClick={followingPage}
+				>
 					<span
 						ref={
 							following
@@ -126,7 +204,12 @@ function Profile() {
 					</span>{" "}
 					Following
 				</p>
-				<p>
+				<p
+					style={{
+						cursor: "pointer",
+					}}
+					onClick={followersPage}
+				>
 					<span
 						ref={
 							followers

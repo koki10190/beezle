@@ -1,0 +1,56 @@
+.followers-panel {
+	padding: 20px;
+}
+
+.followers-panel > hr {
+	margin-top: 30px;
+	margin-bottom: 30px;
+}
+
+.follower-box {
+	white-space: pre-line;
+	margin-bottom: 15px;
+	width: 100%;
+	min-height: 150px;
+	background-color: grey;
+	padding: 0 15px 0px 15px;
+	box-sizing: border-box;
+	border-radius: 15px;
+	background-color: rgb(53, 43, 24);
+	/* border: solid 5px rgb(192, 147, 0); */
+	/* border: solid 1px rgb(192, 147, 0); */
+	padding: 15px;
+}
+
+.follower-avatar {
+	width: 60px;
+	height: 60px;
+	background-color: gray;
+	border-radius: 100%;
+	background-position: center;
+	background-size: cover;
+	display: inline-block;
+	background-repeat: no-repeat;
+}
+
+.follower-name {
+	/* display: inline-block; */
+	margin-top: -55px;
+	margin-left: 70px;
+}
+
+.follower-handle {
+	/* display: inline-block; */
+	margin-top: -20px;
+	margin-left: 70px;
+	color: rgba(255, 255, 255, 0.582);
+	font-size: 15px;
+}
+
+.follower-bio {
+	margin-top: 30px;
+}
+
+.follower-data {
+	cursor: pointer;
+}

@@ -36,7 +36,6 @@ function Post() {
 		postCheck++;
 	});
 	let postLikesCheck = 0;
-	socket.connect();
 	socket.on("post-like-refresh", async (postId: string, liked: string[]) => {
 		if (postLikesCheck > 0) {
 			if (postLikesCheck >= 4) postLikesCheck = 0;

@@ -75,3 +75,7 @@
 .profile-follower-box > p > span {
 	color: white;
 }
+
+.profile-panel {
+	overflow-x: hidden;
+}
