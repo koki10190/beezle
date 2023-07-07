@@ -1,3 +1,5 @@
+import UserType from "./UserType";
+
 interface PostType {
 	postID: string;
 	content: string;
@@ -13,4 +15,9 @@ interface PostType {
 	replies: string[];
 }
 
-export { PostType };
+interface PostBoxType {
+	data: PostType;
+	op: UserType;
+}
+
+export type { PostType, PostBoxType };

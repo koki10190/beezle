@@ -1,10 +1,18 @@
-import { PostType } from "../interfaces/PostType";
+import { PostBoxType, PostType } from "../interfaces/PostType";
 import Post from "../models/Post";
+import GetUserByHandle from "../searches/GetUserByHandle";
 
 async function fetchGlobalPosts() {
-	const posts = await Post.find({
+	const posts = (await Post.find({
 		__v: { $gte: 0 },
-	});
+	})) as any[];
+
+	for (let i = 0; i < posts.length; i++) {
+		posts[i] = {
+			data: posts[i],
+			op: await GetUserByHandle(posts[i].op),
+		};
+	}
 
 	return posts;
 }

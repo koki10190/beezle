@@ -64,26 +64,10 @@ function Post() {
 
 			axios.get(`${api_url}/api/explore-posts`).then(
 				async res => {
-					const actualPosts: PostBoxType[] =
-						[];
-					for (const post of res
-						.data
-						.posts as PostType[]) {
-						const user =
-							(
-								await GetOtherUser(
-									post.op
-								)
-							)
-								.user;
-						actualPosts.push(
-							{
-								data: post,
-								op: user,
-							} as PostBoxType
-						);
-					}
-					setPosts(actualPosts);
+					setPosts(
+						res.data
+							.posts as PostBoxType[]
+					);
 				}
 			);
 		})();

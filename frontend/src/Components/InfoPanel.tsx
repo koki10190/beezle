@@ -8,10 +8,10 @@ function InfoPanel() {
 					<span className="gradient">
 						Beezle
 					</span>{" "}
-					BETA v0.1
+					ALPHA v0.1
 				</h1>
 				<h2>
-					This is a beta release!
+					This is an alpha release!
 					<br />
 					<br />
 					If you find any bugs,
