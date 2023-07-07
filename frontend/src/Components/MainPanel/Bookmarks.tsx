@@ -11,6 +11,7 @@ import PostBox from "./PostBox";
 import { BadgeType } from "../../functions/VerifyBadgeBool";
 import GetUserData from "../../api/GetUserData";
 import uuid4 from "uuid4";
+import getBadgeType from "../../functions/getBadgeType";
 
 function Bookmarks() {
 	const [user, setUser] = useState<UserType>();
@@ -62,13 +63,6 @@ function Bookmarks() {
 				);
 			});
 		}
-	};
-
-	const getBadgeType = (user: UserType): BadgeType => {
-		if (user.owner) return BadgeType.OWNER;
-		if (user.moderator) return BadgeType.MODERATOR;
-		if (user.verified) return BadgeType.VERIFIED;
-		else return BadgeType.NONE;
 	};
 
 	return (

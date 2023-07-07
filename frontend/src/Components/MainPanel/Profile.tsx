@@ -11,6 +11,7 @@ import { api_url } from "../../constants/ApiURL";
 import GetUserData from "../../api/GetUserData";
 import socket from "../../io/socket";
 import { BadgeType } from "../../functions/VerifyBadgeBool";
+import getBadgeType from "../../functions/getBadgeType";
 
 function Profile() {
 	let user: UserType;
@@ -151,13 +152,6 @@ function Profile() {
 				);
 			});
 		}
-	};
-
-	const getBadgeType = (user: UserType): BadgeType => {
-		if (user.owner) return BadgeType.OWNER;
-		if (user.moderator) return BadgeType.MODERATOR;
-		if (user.verified) return BadgeType.VERIFIED;
-		else return BadgeType.NONE;
 	};
 
 	return (

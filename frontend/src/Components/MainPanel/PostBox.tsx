@@ -79,9 +79,11 @@ function PostBox({
 
 	useEffect(() => {
 		if (tokenUser) {
-			if (tokenUser.bookmarks.find(x => x == postId))
+			if (tokenUser.bookmarks.find(x => x == postId)) {
 				html_bookmarks.current!.style.color =
 					"#349beb";
+				setBookmarked(true);
+			}
 		}
 	}, []);
 

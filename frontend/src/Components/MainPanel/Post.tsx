@@ -13,6 +13,7 @@ import socket from "../../io/socket";
 import uuid4 from "uuid4";
 import { api_url } from "../../constants/ApiURL";
 import { BadgeType } from "../../functions/VerifyBadgeBool";
+import getBadgeType from "../../functions/getBadgeType";
 
 function Post() {
 	let user: UserType;
@@ -139,13 +140,6 @@ function Post() {
 				);
 			});
 		}
-	};
-
-	const getBadgeType = (user: UserType): BadgeType => {
-		if (user.owner) return BadgeType.OWNER;
-		if (user.moderator) return BadgeType.MODERATOR;
-		if (user.verified) return BadgeType.VERIFIED;
-		else return BadgeType.NONE;
 	};
 
 	return (
