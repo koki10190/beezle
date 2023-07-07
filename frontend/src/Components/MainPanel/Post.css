@@ -191,3 +191,12 @@
 .buttons > div:hover {
 	transform: rotateZ(5deg) scale(1.2);
 }
+
+.mention {
+	color: rgb(0, 110, 255);
+	text-decoration: none;
+}
+
+.mention:hover {
+	color: rgb(46, 137, 255);
+}

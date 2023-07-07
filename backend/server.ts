@@ -1,6 +1,8 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+// @([a-z\d_\.-]+) get mention
+
 const database_guild = "1123623839037919304";
 const database_channel = "1123624150225920060";
 import express from "express";

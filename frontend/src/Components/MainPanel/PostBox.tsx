@@ -116,9 +116,15 @@ function PostBox({
 					<p className="post-date">
 						@{handle}
 					</p>
-					<p className="post-content">
-						{content}
-					</p>
+					<p
+						dangerouslySetInnerHTML={{
+							__html: content.replace(
+								/@([a-z\d_\.-]+)/gi,
+								`<a class="mention" href="/profile/$1">@$1</a>`
+							),
+						}}
+						className="post-content"
+					></p>
 				</div>
 				<div className="buttons">
 					<div ref={html_replies}>
