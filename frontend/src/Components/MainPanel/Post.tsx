@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, UIEvent } from "react";
 import "./Post.css";
 import UserType from "../../interfaces/UserType";
 import GetUserData from "../../api/GetUserData";
@@ -24,6 +24,7 @@ function Post() {
 	const [isEmojiPickerShown, setEmojiShown] = useState(false);
 	const [posts, setPosts] = useState([] as PostBoxType[]);
 	const [showPosts, setShowPosts] = useState(false);
+	const [postsOffset, setPostsOffset] = useState(0);
 
 	let postCheck = 0;
 	socket.on("post", async (post: PostBoxType) => {
@@ -62,14 +63,16 @@ function Post() {
 			VerifyBadge(username.current!, user);
 			CutLong(user.displayName, 10);
 
-			axios.get(`${api_url}/api/explore-posts`).then(
-				async res => {
-					setPosts(
-						res.data
-							.posts as PostBoxType[]
-					);
-				}
-			);
+			axios.get(
+				`${api_url}/api/explore-posts/${postsOffset}`
+			).then(async res => {
+				setPosts(
+					res.data
+						.posts as PostBoxType[]
+				);
+
+				setPostsOffset(res.data.latestIndex);
+			});
 		})();
 	}, []);
 
@@ -96,8 +99,37 @@ function Post() {
 		});
 	};
 
+	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
+		const element = event.target! as HTMLDivElement;
+		if (
+			element.scrollHeight - element.scrollTop ===
+			element.clientHeight
+		) {
+			axios.get(
+				`${api_url}/api/explore-posts/${
+					postsOffset + 1
+				}`
+			).then(async res => {
+				setPosts(
+					posts.concat(
+						res.data
+							.posts as PostBoxType[]
+					)
+				);
+
+				setPostsOffset(res.data.latestIndex);
+				console.log(
+					`Offset: ${res.data.latestIndex}`
+				);
+			});
+		}
+	};
+
 	return (
-		<div className="navigation-panel main-panel make-post">
+		<div
+			className="navigation-panel main-panel make-post"
+			onScroll={detectScrolling}
+		>
 			<div
 				onClick={redirectToUserProfile}
 				className="post-text-user"
@@ -156,7 +188,7 @@ function Post() {
 								Theme.DARK
 							}
 							emojiStyle={
-								EmojiStyle.APPLE
+								EmojiStyle.TWITTER
 							}
 						/>
 					</div>

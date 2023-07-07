@@ -401,10 +401,12 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 	);
 });
 
-app.get("/api/explore-posts", async (req: express.Request, res: express.Response) => {
-	const posts = (await fetchGlobalPosts()).reverse();
+app.get("/api/explore-posts/:offset", async (req: express.Request, res: express.Response) => {
+	const { offset } = req.params;
+	const posts = await fetchGlobalPosts(parseInt(offset));
 	return res.json({
-		posts,
+		posts: posts.data,
+		latestIndex: posts.latestIndex,
 	});
 });
 
