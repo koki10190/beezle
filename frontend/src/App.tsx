@@ -10,6 +10,7 @@ import Followers from "./Components/MainPanel/Followers";
 import HomeFollowers from "./Home/HomeFollowers";
 import HomeFollowing from "./Home/HomeFollowing";
 import HomeBookmarks from "./Home/HomeBookmarks";
+import HomePostPage from "./Home/HomePostPage";
 
 function App() {
 	socket.connect();
@@ -52,6 +53,12 @@ function App() {
 					path="/bookmarks"
 					element={
 						<HomeBookmarks />
+					}
+				/>
+				<Route
+					path="/post/:postID"
+					element={
+						<HomePostPage />
 					}
 				/>
 			</Routes>

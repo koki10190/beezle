@@ -35,6 +35,7 @@ function Post() {
 		if (postCheck > 0) {
 			if (postCheck >= 4) postCheck = 0;
 		}
+		if (post.data.reply_type) return;
 		posts.unshift(post);
 		setPosts([...posts]);
 		postCheck++;

@@ -12,7 +12,9 @@ interface PostType {
 	op: string;
 	likes: string[];
 	reposts: string[];
-	replies: string[];
+	reply_type: boolean;
+	replyingTo: string;
+	replies: number;
 }
 
 interface PostBoxType {

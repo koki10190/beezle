@@ -12,7 +12,7 @@ function VerifyBadgeBool(element: HTMLElement, displayName: string, badgeType: B
 
 	switch (badgeType) {
 		case BadgeType.OWNER:
-			element.innerHTML += ` <i style="color: yellow" class="fa-solid fa-crown"></i>`;
+			element.innerHTML += ` <i style="color: lime" class="fa-solid fa-gear-complex-code"></i>`;
 			break;
 		case BadgeType.MODERATOR:
 			element.innerHTML += ` <i style="color: yellow" class="fa-solid fa-shield-check"></i>`;

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { trusted } from "mongoose";
 
 const schema = new mongoose.Schema({
 	postID: {
@@ -35,12 +35,9 @@ const schema = new mongoose.Schema({
 			required: true,
 		},
 	],
-	replies: [
-		{
-			type: String,
-			required: false,
-		},
-	],
+	replies: { type: Number, default: 0 },
+	replyingTo: { type: String, required: true, default: "" },
+	reply_type: { type: Boolean, required: true, default: false },
 });
 
 export default mongoose.model("Post", schema);

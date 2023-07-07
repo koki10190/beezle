@@ -25,12 +25,12 @@ const schema = new mongoose.Schema({
 	avatar: {
 		type: String,
 		required: true,
-		default: "https://cdn.discordapp.com/attachments/1123624150225920060/1123624173076488212/icon.png",
+		default: "https://cdn.discordapp.com/attachments/1123624150225920060/1126940032289218691/icon.png",
 	},
 	banner: {
 		type: String,
 		required: true,
-		default: "https://cdn.discordapp.com/attachments/1123624150225920060/1123624173076488212/icon.png",
+		default: "https://cdn.discordapp.com/attachments/1123624150225920060/1126940032289218691/icon.png",
 	},
 	verified: {
 		type: Boolean,

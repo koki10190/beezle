@@ -2,12 +2,15 @@ import sanitize from "sanitize-html";
 import { PostBoxType, PostType } from "../interfaces/PostType";
 import Post from "../models/Post";
 import GetUserByHandle from "../searches/GetUserByHandle";
+import User from "../models/User";
+import UserType from "../interfaces/UserType";
 
 async function fetchGlobalPosts(
 	offset: number
 ): Promise<{ data: PostBoxType[]; latestIndex: number }> {
 	const posts = (await Post.find({
 		__v: { $gte: 0 },
+		reply_type: { $ne: true },
 	})
 		.sort({ $natural: -1 })
 		.skip(offset)
@@ -17,6 +20,40 @@ async function fetchGlobalPosts(
 			data: posts[i],
 			op: await GetUserByHandle(posts[i].op),
 		};
+		const count = await Post.count({
+			replyingTo: posts[i].data.postID,
+		});
+
+		posts[i].data.replies = count;
+		posts[i].data.content = sanitize(posts[i].data.content);
+	}
+
+	return { data: posts, latestIndex: offset + posts.length - 1 };
+}
+
+async function fetchReplies(
+	postID: string,
+	offset: number
+): Promise<{ data: PostBoxType[]; latestIndex: number }> {
+	const posts = (await Post.find({
+		__v: { $gte: 0 },
+		replyingTo: postID,
+		reply_type: true,
+	})
+		.sort({ $natural: -1 })
+		.skip(offset)
+		.limit(10)) as any[];
+
+	for (let i = 0; i < posts.length; i++) {
+		posts[i] = {
+			data: posts[i],
+			op: await GetUserByHandle(posts[i].op),
+		};
+		const count = await Post.count({
+			replyingTo: posts[i].data.postID,
+		});
+
+		posts[i].data.replies = count;
 		posts[i].data.content = sanitize(posts[i].data.content);
 	}
 
@@ -26,6 +63,7 @@ async function fetchGlobalPosts(
 async function fetchUserPosts(handle: string) {
 	const posts = await Post.find({
 		op: handle,
+		reply_type: { $ne: true },
 	});
 
 	return posts;
@@ -39,6 +77,7 @@ async function fetchPostsFollowing(
 	for (const follow of following_handles) {
 		const m_posts = await Post.find({
 			handle: follow,
+			reply_type: { $ne: true },
 		})
 			.sort({ $natural: -1 })
 			.skip(offset)
@@ -64,9 +103,37 @@ async function fetchBookmarks(
 			data: bookmarks[i],
 			op: await GetUserByHandle(bookmarks[i].op),
 		};
+
+		const count = await Post.count({
+			replyingTo: bookmarks[i].data.postID,
+		});
+
+		bookmarks[i].data.replies = count;
 	}
 	console.log(bookmarks);
 	return { bookmarks, offset: offset + bookmarks.length - 1 };
 }
 
-export { fetchGlobalPosts, fetchPostsFollowing, fetchUserPosts, fetchBookmarks };
+async function fetchPostByID(postID: string): Promise<PostBoxType> {
+	const post = await Post.find({ postID }).limit(1);
+	const count = await Post.count({
+		replyingTo: post[0].postID,
+	});
+
+	(post[0] as any).replies = count;
+	return {
+		data: post[0] as any as PostType,
+		op: (
+			await User.find({ handle: post[0].op }).limit(1)
+		)[0] as any as UserType,
+	};
+}
+
+export {
+	fetchGlobalPosts,
+	fetchReplies,
+	fetchPostsFollowing,
+	fetchUserPosts,
+	fetchBookmarks,
+	fetchPostByID,
+};

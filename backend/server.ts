@@ -32,7 +32,9 @@ import usernameOrEmailTaken from "./functions/usernameOrEmailTaken";
 import {
 	fetchBookmarks,
 	fetchGlobalPosts,
+	fetchPostByID,
 	fetchPostsFollowing,
+	fetchReplies,
 	fetchUserPosts,
 } from "./functions/fetchPosts";
 import { Socket, Server as ioServer } from "socket.io";
@@ -395,6 +397,12 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 
 	if (content === "") return;
 
+	const length = 650;
+	const trimmedString =
+		content.length > length
+			? content.substring(0, length - 3) + "..."
+			: content;
+
 	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
 		if (err) return res.json({ error: true });
 
@@ -403,11 +411,25 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 			handle: user.handle,
 		});
 
-		const post = await Post.create({
-			postID: uuid4(),
-			content,
-			op: m_user?.handle,
-		});
+		let post;
+		if (req.body.reply_type) {
+			post = await Post.create({
+				postID: uuid4(),
+				content: trimmedString,
+				op: m_user?.handle,
+				reply_type: true,
+				replyingTo: req.body.replyingTo,
+			});
+			console.log(post);
+		} else {
+			post = await Post.create({
+				postID: uuid4(),
+				content: trimmedString,
+				op: m_user?.handle,
+				reply_type: false,
+				replyingTo: "",
+			});
+		}
 
 		const box_type = {
 			op: await User.findOne({
@@ -701,4 +723,17 @@ app.post("/api/upload-file", upload.single("file"), async (req, res) => {
 		});
 		return res.json({ img: attachment });
 	});
+});
+
+app.get("/api/get-post/:postID", async (req: express.Request, res: express.Response) => {
+	const { postID } = req.params;
+
+	const post = await fetchPostByID(postID);
+	return res.json(post);
+});
+
+app.get("/api/get-replies/:postID/:offset", async (req: express.Request, res: express.Response) => {
+	const { postID, offset } = req.params;
+	const replies = await fetchReplies(postID, parseInt(offset));
+	return res.json({ data: replies.data, offset: replies.latestIndex });
 });
