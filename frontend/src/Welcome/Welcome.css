@@ -35,10 +35,11 @@ nav {
 nav > .icon {
 	width: 70px;
 	height: 70px;
+	left: 0;
 	background-position: center;
 	background-repeat: no-repeat;
 	background-size: cover;
-	background-image: url(/icon.png);
+	background-image: none;
 }
 
 .icon {
@@ -171,9 +172,52 @@ textarea {
 	cursor: pointer;
 }
 
+@media screen and (max-width: 400px) {
+	header > h1 {
+		font-size: 85px;
+	}
+}
+
 @media screen and (max-width: 1200px) {
 	.info-panel {
 		display: none;
+	}
+
+	header {
+		width: 100%;
+		height: 550px;
+		display: block;
+		margin-top: -250px;
+		box-sizing: border-box;
+		text-align: left;
+		margin-left: 30px;
+		padding: 15px;
+		margin-bottom: 350px;
+	}
+
+	.other-side {
+		padding: 15px;
+		box-sizing: border-box;
+		text-align: left;
+		background-color: transparent;
+		width: 90%;
+		margin-left: 30px;
+		margin-top: -600px;
+		display: block;
+	}
+
+	.welcome-form-registration {
+		margin-left: auto;
+		margin-right: auto;
+		width: 100%;
+		min-height: 50%;
+		border-radius: 30px;
+		margin-top: 170px;
+		background-color: rgb(53, 43, 24);
+		border: solid 5px rgb(192, 147, 0);
+		border: solid 1px rgb(192, 147, 0);
+		box-sizing: border-box;
+		padding: 50px;
 	}
 }
 

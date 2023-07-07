@@ -1,3 +1,4 @@
+import sanitize from "sanitize-html";
 import { PostBoxType, PostType } from "../interfaces/PostType";
 import Post from "../models/Post";
 import GetUserByHandle from "../searches/GetUserByHandle";
@@ -16,6 +17,7 @@ async function fetchGlobalPosts(
 			data: posts[i],
 			op: await GetUserByHandle(posts[i].op),
 		};
+		posts[i].data.content = sanitize(posts[i].data.content);
 	}
 
 	return { data: posts, latestIndex: offset + posts.length - 1 };

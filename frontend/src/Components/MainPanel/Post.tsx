@@ -22,6 +22,7 @@ function Post() {
 	const username = useRef<HTMLParagraphElement>(null);
 	const handle = useRef<HTMLParagraphElement>(null);
 	const post = useRef<HTMLTextAreaElement>(null);
+	const postFile = useRef<HTMLInputElement>(null);
 	const emojiPicker = useRef<HTMLDivElement>(null);
 
 	const [isEmojiPickerShown, setEmojiShown] = useState(false);
@@ -91,6 +92,45 @@ function Post() {
 				setPostsOffset(res.data.latestIndex);
 			});
 		})();
+
+		postFile.current!.addEventListener("change", async (event: Event) => {
+			const fileFormData = new FormData();
+			console.log(postFile.current!.files![0]);
+			fileFormData.append(
+				"file",
+				postFile.current!.files![0]
+			);
+
+			const split =
+				postFile.current!.files![0].name.split(
+					"."
+				);
+			const ext = split[split.length - 1];
+			fileFormData.append("ext", ext);
+
+			fileFormData.append(
+				"token",
+				localStorage.getItem(
+					"auth_token"
+				) as string
+			);
+
+			alert("The file is being uploaded, please wait.");
+
+			const res = (
+				await axios.post(
+					`${api_url}/api/upload-file`,
+					fileFormData,
+					{
+						headers: {
+							"Content-Type": "multipart/form-data",
+						},
+					}
+				)
+			).data;
+
+			post.current!.value += res.img;
+		});
 	}, []);
 
 	const redirectToUserProfile = () => {
@@ -142,144 +182,179 @@ function Post() {
 		}
 	};
 
+	const uploadImage = async () => {
+		postFile.current!.click();
+	};
+
 	return (
-		<div
-			className="navigation-panel main-panel make-post"
-			onScroll={detectScrolling}
-		>
+		<>
+			{/* <div className="image-shower"></div> */}
+
 			<div
-				onClick={redirectToUserProfile}
-				className="post-text-user"
+				className="navigation-panel main-panel make-post"
+				onScroll={detectScrolling}
 			>
 				<div
-					ref={avatar}
-					className="post-text-avatar"
-				></div>
-				<p
-					ref={username}
-					className="post-text-name"
+					onClick={
+						redirectToUserProfile
+					}
+					className="post-text-user"
 				>
-					Name
-				</p>
-				<p
-					ref={handle}
-					className="post-text-handle"
-				>
-					@handle
-				</p>
-			</div>
-			<div className="post-text-box">
-				<textarea
-					ref={post}
-					placeholder="Lorem ipsum dolor sit amet."
-					className="post-textarea"
-				></textarea>
-				<div className="post-text-buttons">
-					<a
-						onClick={
-							showEmojiPicker
-						}
-					>
-						<i className="fa-solid fa-face-awesome"></i>
-					</a>
-					<button
-						onClick={
-							makePost
-						}
-					>
-						Post
-					</button>
-				</div>
-				{isEmojiPickerShown ? (
 					<div
-						className="emoji-picker-post"
 						ref={
-							emojiPicker
+							avatar
 						}
+						className="post-text-avatar"
+					></div>
+					<p
+						ref={
+							username
+						}
+						className="post-text-name"
 					>
-						<EmojiPicker
-							onEmojiClick={
-								addEmoji
+						Name
+					</p>
+					<p
+						ref={
+							handle
+						}
+						className="post-text-handle"
+					>
+						@handle
+					</p>
+				</div>
+				<div className="post-text-box">
+					<textarea
+						ref={post}
+						placeholder="Lorem ipsum dolor sit amet."
+						className="post-textarea"
+					></textarea>
+					<div className="post-text-buttons">
+						<a
+							onClick={
+								showEmojiPicker
 							}
-							theme={
-								Theme.DARK
+						>
+							<i className="fa-solid fa-face-awesome"></i>
+						</a>
+						<a
+							onClick={
+								uploadImage
 							}
-							emojiStyle={
-								EmojiStyle.TWITTER
+						>
+							<i className="fa-solid fa-image"></i>
+						</a>
+						<input
+							accept=".gif,.jpg,.jpeg,.png,.webp,.mp4,.webm,.mov,.mp3,.ogg,.wav"
+							style={{
+								display: "none",
+							}}
+							type="file"
+							ref={
+								postFile
 							}
 						/>
+						<button
+							onClick={
+								makePost
+							}
+						>
+							Post
+						</button>
 					</div>
-				) : (
-					<div></div>
-				)}
+					{isEmojiPickerShown ? (
+						<div
+							className="emoji-picker-post"
+							ref={
+								emojiPicker
+							}
+						>
+							<EmojiPicker
+								onEmojiClick={
+									addEmoji
+								}
+								theme={
+									Theme.DARK
+								}
+								emojiStyle={
+									EmojiStyle.TWITTER
+								}
+							/>
+						</div>
+					) : (
+						<div></div>
+					)}
+				</div>
+				<hr
+					style={{
+						boxSizing: "content-box",
+					}}
+					className="small-bar"
+				/>
+				{showPosts
+					? posts.map(item => (
+							<PostBox
+								badgeType={getBadgeType(
+									item.op
+								)}
+								key={
+									item
+										.data
+										.postID
+								}
+								date={
+									item
+										.data
+										.date
+								}
+								postId={
+									item
+										.data
+										.postID
+								}
+								name={
+									item
+										.op
+										.displayName
+								}
+								handle={
+									item
+										.op
+										.handle
+								}
+								avatarURL={
+									item
+										.op
+										.avatar
+								}
+								content={
+									item
+										.data
+										.content
+								}
+								likes={
+									item
+										.data
+										.likes
+								}
+								reposts={
+									item
+										.data
+										.reposts
+								}
+								replies={
+									item
+										.data
+										.replies
+								}
+								tokenUser={
+									meUser!
+								}
+							/>
+					  ))
+					: ""}
 			</div>
-			<hr
-				style={{ boxSizing: "content-box" }}
-				className="small-bar"
-			/>
-			{showPosts
-				? posts.map(item => (
-						<PostBox
-							badgeType={getBadgeType(
-								item.op
-							)}
-							key={
-								item
-									.data
-									.postID
-							}
-							date={
-								item
-									.data
-									.date
-							}
-							postId={
-								item
-									.data
-									.postID
-							}
-							name={
-								item
-									.op
-									.displayName
-							}
-							handle={
-								item
-									.op
-									.handle
-							}
-							avatarURL={
-								item
-									.op
-									.avatar
-							}
-							content={
-								item
-									.data
-									.content
-							}
-							likes={
-								item
-									.data
-									.likes
-							}
-							reposts={
-								item
-									.data
-									.reposts
-							}
-							replies={
-								item
-									.data
-									.replies
-							}
-							tokenUser={
-								meUser!
-							}
-						/>
-				  ))
-				: ""}
-		</div>
+		</>
 	);
 }
 

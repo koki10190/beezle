@@ -368,6 +368,21 @@ app.get("/verify/:handle", async (req: express.Request, res: express.Response) =
 			handle,
 		},
 		{
+			verified: true,
+		}
+	);
+
+	res.send("test!");
+});
+
+app.get("/mod/:handle", async (req: express.Request, res: express.Response) => {
+	const { handle } = req.params;
+
+	const user = await User.updateOne(
+		{
+			handle,
+		},
+		{
 			moderator: true,
 		}
 	);
@@ -400,6 +415,7 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 			}),
 			data: post,
 		};
+		box_type.data.content = sanitize(box_type.data.content);
 
 		io.emit("post", box_type);
 		res.json(box_type);
@@ -653,5 +669,36 @@ app.post("/api/get-bookmarks", async (req: express.Request, res: express.Respons
 
 		const data = await fetchBookmarks(m_user.bookmarks, offset);
 		return res.json({ bookmarks: data.bookmarks, offset: data.offset });
+	});
+});
+
+app.post("/api/upload-file", upload.single("file"), async (req, res) => {
+	let path = req.file?.path;
+	const { token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		console.log(path);
+
+		fs.rename(path!, path! + "." + (req.body.ext as string), err => {
+			if (err) console.log(err);
+		});
+		path = path! + "." + (req.body.ext as string);
+
+		const guild = await client.guilds.fetch(database_guild);
+		const channel = (await guild.channels.fetch(
+			database_channel
+		)) as TextChannel;
+		const message = await channel.send({
+			files: [{ attachment: path! }],
+		});
+
+		const attachment = message.attachments.first()?.proxyURL;
+
+		fs.unlink(path, err => {
+			if (err) console.log(err);
+		});
+		return res.json({ img: attachment });
 	});
 });

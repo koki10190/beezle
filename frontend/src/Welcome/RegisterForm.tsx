@@ -68,6 +68,8 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 
 			register_error.current!.innerText =
 				"Thank you for registering! Redirecting...";
+
+			window.location.href = "/home";
 		});
 	};
 
@@ -94,6 +96,7 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 			<input
 				name="email"
 				ref={email}
+				type="email"
 				placeholder="E-Mail Address"
 				required
 				className="form-control"

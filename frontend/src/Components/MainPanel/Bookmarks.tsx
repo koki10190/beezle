@@ -73,39 +73,64 @@ function Bookmarks() {
 			<h1>Bookmarks</h1>
 			<hr className="small-bar" />
 
-			{bookmarks.map(item => (
-				<PostBox
-					badgeType={getBadgeType(
-						item.op
-					)}
-					key={uuid4()}
-					postId={item.data.postID}
-					date={item.data.date}
-					name={
-						item.op
-							.displayName
-					}
-					handle={item.op.handle}
-					avatarURL={
-						item.op
-							.avatar
-					}
-					content={
-						item.data
-							.content
-					}
-					likes={item.data.likes}
-					reposts={
-						item.data
-							.reposts
-					}
-					replies={
-						item.data
-							.replies
-					}
-					tokenUser={user!}
-				/>
-			))}
+			{bookmarks.length <= 0
+				? "You do not have any posts bookmarked."
+				: bookmarks.map(item => (
+						<PostBox
+							badgeType={getBadgeType(
+								item.op
+							)}
+							key={uuid4()}
+							postId={
+								item
+									.data
+									.postID
+							}
+							date={
+								item
+									.data
+									.date
+							}
+							name={
+								item
+									.op
+									.displayName
+							}
+							handle={
+								item
+									.op
+									.handle
+							}
+							avatarURL={
+								item
+									.op
+									.avatar
+							}
+							content={
+								item
+									.data
+									.content
+							}
+							likes={
+								item
+									.data
+									.likes
+							}
+							reposts={
+								item
+									.data
+									.reposts
+							}
+							replies={
+								item
+									.data
+									.replies
+							}
+							tokenUser={
+								user!
+							}
+						/>
+				  ))}
 		</div>
 	);
 }
