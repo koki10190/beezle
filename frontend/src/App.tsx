@@ -9,6 +9,7 @@ import socket from "./io/socket";
 import Followers from "./Components/MainPanel/Followers";
 import HomeFollowers from "./Home/HomeFollowers";
 import HomeFollowing from "./Home/HomeFollowing";
+import HomeBookmarks from "./Home/HomeBookmarks";
 
 function App() {
 	socket.connect();
@@ -46,6 +47,12 @@ function App() {
 				<Route
 					path="/post"
 					element={<HomePost />}
+				/>
+				<Route
+					path="/bookmarks"
+					element={
+						<HomeBookmarks />
+					}
 				/>
 			</Routes>
 		</BrowserRouter>

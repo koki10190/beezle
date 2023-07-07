@@ -4,7 +4,10 @@ var io: ioServer;
 
 function handleConnections() {
 	io.on("connection", (socket: Socket) => {
-		console.log("User connected: " + socket.id);
+		// const ip =
+		// 	socket.handshake.headers["x-forwarded-for"] ||
+		// 	socket.conn.remoteAddress.split(":")[3];
+		console.log("User connected, ID: " + socket.id);
 
 		socket.on("disconnect", () => {
 			console.log("User Disconnected " + socket.id);

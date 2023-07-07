@@ -20,6 +20,7 @@ function EditProfile() {
 	const bannerInput = useRef<HTMLInputElement>(null);
 	const aboutMe = useRef<HTMLTextAreaElement>(null);
 	const displayName = useRef<HTMLInputElement>(null);
+	const saveChangesButton = useRef<HTMLButtonElement>(null);
 
 	const formDataAvatar = new FormData();
 	const formDataBanner = new FormData();
@@ -112,11 +113,14 @@ function EditProfile() {
 
 	const saveChanges = (event: FormEvent) => {
 		event.preventDefault();
+		saveChangesButton.current!.disabled = true;
 		axios.post(`${api_url}/api/upload-banner`, formDataBanner, {
 			headers: {
 				"Content-Type": "multipart/form-data",
 			},
-		});
+		})
+			.then(res => console.log(res.status))
+			.catch(err => console.log(err));
 
 		axios.post(`${api_url}/api/upload-avatar`, formDataAvatar, {
 			headers: {
@@ -197,6 +201,7 @@ function EditProfile() {
 				<button
 					type="submit"
 					className="button"
+					ref={saveChangesButton}
 				>
 					Save Changes
 				</button>

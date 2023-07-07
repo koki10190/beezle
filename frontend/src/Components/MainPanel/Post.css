@@ -68,6 +68,13 @@
 	color: gray;
 }
 
+.user-stuff > .user-desc > .post-date-time {
+	margin-top: -57px;
+	margin-left: 100px;
+	float: right;
+	color: gray;
+}
+
 .user-desc {
 	cursor: pointer;
 }

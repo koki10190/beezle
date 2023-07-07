@@ -29,16 +29,42 @@ async function fetchUserPosts(handle: string) {
 	return posts;
 }
 
-async function fetchPostsFollowing(following_handles: string[]): Promise<PostType[]> {
+async function fetchPostsFollowing(
+	following_handles: string[],
+	offset: number
+): Promise<PostType[]> {
 	let posts: PostType[] = [];
 	for (const follow of following_handles) {
 		const m_posts = await Post.find({
 			handle: follow,
-		});
+		})
+			.sort({ $natural: -1 })
+			.skip(offset)
+			.limit(6);
 		posts = posts.concat(m_posts as any);
 	}
 
 	return posts;
 }
+async function fetchBookmarks(
+	ids: string[],
+	offset: number
+): Promise<{ bookmarks: PostBoxType[]; offset: number }> {
+	const bookmarks = (await Post.find({
+		postID: { $in: ids },
+	})
+		.sort({ $natural: -1 })
+		.skip(offset)
+		.limit(10)) as any;
 
-export { fetchGlobalPosts, fetchPostsFollowing, fetchUserPosts };
+	for (let i = 0; i < bookmarks.length; i++) {
+		bookmarks[i] = {
+			data: bookmarks[i],
+			op: await GetUserByHandle(bookmarks[i].op),
+		};
+	}
+	console.log(bookmarks);
+	return { bookmarks, offset: offset + bookmarks.length - 1 };
+}
+
+export { fetchGlobalPosts, fetchPostsFollowing, fetchUserPosts, fetchBookmarks };

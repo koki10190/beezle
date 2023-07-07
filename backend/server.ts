@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // @([a-z\d_\.-]+) get mention
-
+const jwt_secret = process.env.TOKEN_SECRET as string;
 const database_guild = "1123623839037919304";
 const database_channel = "1123624150225920060";
 import express from "express";
@@ -29,7 +29,12 @@ import Mail from "nodemailer/lib/mailer";
 import Post from "./models/Post";
 import uuid4 from "uuid4";
 import usernameOrEmailTaken from "./functions/usernameOrEmailTaken";
-import { fetchGlobalPosts, fetchPostsFollowing, fetchUserPosts } from "./functions/fetchPosts";
+import {
+	fetchBookmarks,
+	fetchGlobalPosts,
+	fetchPostsFollowing,
+	fetchUserPosts,
+} from "./functions/fetchPosts";
 import { Socket, Server as ioServer } from "socket.io";
 import { initSocket } from "./io/socket";
 import smtpTransport from "nodemailer-smtp-transport";
@@ -65,7 +70,8 @@ const limiter = rateLimit({
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-const upload = multer({ dest: "uploads" });
+const max_size = 7 * 1024 * 1024; // 8mb
+const upload = multer({ dest: "uploads", limits: { fileSize: max_size } });
 
 mongoose.connect(process.env.MONGO_URI as string).then(() =>
 	console.log("[BEEZLE] Connected to the Mongoose Database")
@@ -149,7 +155,7 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 		password: hashed,
 	});
 
-	const token = jwt.sign(user.toJSON(), process.env.TOKEN_SECRET as string);
+	const token = jwt.sign(user.toJSON(), jwt_secret);
 	// sendEmail(
 	// 	email,
 	// 	"Thank you for registering on Beezle!",
@@ -177,26 +183,26 @@ app.post("/api/login", async (req: express.Request, res: express.Response) => {
 		});
 	}
 
-	const token = jwt.sign(user.toJSON(), process.env.TOKEN_SECRET as string);
+	const token = jwt.sign(user.toJSON(), jwt_secret);
 	return res.json({ token, error: "", was_error: false });
 });
 
 app.post("/api/verify-token", async (req: express.Request, res: express.Response) => {
 	const { token } = req.body;
-	jwt.verify(
-		token,
-		process.env.TOKEN_SECRET as string,
-		async (err: any, user: any) => {
-			if (err) return res.json({ error: true });
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
 
-			const m_user = await User.findOne({
-				email: user.email,
-				handle: user.handle,
-			});
+		const m_user = await User.findOne({
+			email: user.email,
+			handle: user.handle,
+		});
 
-			res.json({ user: m_user, error: false });
-		}
-	);
+		m_user!.displayName = sanitize(m_user!.displayName, {
+			allowedTags: [],
+		});
+
+		res.json({ user: m_user, error: false });
+	});
 });
 
 app.post("/api/get-user", async (req: express.Request, res: express.Response) => {
@@ -206,6 +212,9 @@ app.post("/api/get-user", async (req: express.Request, res: express.Response) =>
 	if (!user) return res.json({ error: "Couldn't find user!", was_error: true });
 	const userData = user!.toJSON() as any;
 	delete userData["password"];
+	userData.displayName = sanitize(userData.displayName, {
+		allowedTags: [],
+	});
 	return res.json({ user: userData, was_error: false, error: "" });
 });
 
@@ -213,144 +222,142 @@ app.post("/api/upload-avatar", upload.single("avatar"), async (req, res) => {
 	let path = req.file?.path;
 	const { token } = req.body;
 
-	jwt.verify(
-		token,
-		process.env.TOKEN_SECRET as string,
-		async (err: any, user: any) => {
-			if (err) return res.json({ error: true });
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
 
-			res.json({ user, error: false });
-			console.log(path);
+		res.json({ user, error: false });
+		console.log(path);
 
-			fs.rename(
-				path!,
-				path! + "." + (req.body.ext as string),
-				err => {
-					if (err)
-						console.log(
-							err
-						);
-				}
-			);
-			path = path! + "." + (req.body.ext as string);
+		fs.rename(path!, path! + "." + (req.body.ext as string), err => {
+			if (err) console.log(err);
+		});
+		path = path! + "." + (req.body.ext as string);
 
-			const guild = await client.guilds.fetch(
-				database_guild
-			);
-			const channel = (await guild.channels.fetch(
-				database_channel
-			)) as TextChannel;
-			const message = await channel.send({
-				files: [{ attachment: path! }],
-			});
+		const guild = await client.guilds.fetch(database_guild);
+		const channel = (await guild.channels.fetch(
+			database_channel
+		)) as TextChannel;
+		const message = await channel.send({
+			files: [{ attachment: path! }],
+		});
 
-			const attachment =
-				message.attachments.first()?.proxyURL;
-			console.log(attachment);
+		const attachment = message.attachments.first()?.proxyURL;
+		console.log(attachment);
 
-			const m_user = await User.updateOne(
-				{
-					email: user.email,
-					handle: user.handle,
-				},
-				{
-					avatar: attachment,
-				}
-			);
+		const m_user = await User.updateOne(
+			{
+				email: user.email,
+				handle: user.handle,
+			},
+			{
+				avatar: attachment,
+			}
+		);
 
-			fs.unlink(path, err => {
-				if (err) console.log(err);
-			});
-		}
-	);
+		fs.unlink(path, err => {
+			if (err) console.log(err);
+		});
+	});
 });
 
 app.post("/api/upload-banner", upload.single("banner"), async (req, res) => {
 	let path = req.file?.path;
 	const { token } = req.body;
 
-	jwt.verify(
-		token,
-		process.env.TOKEN_SECRET as string,
-		async (err: any, user: any) => {
-			if (err) return res.json({ error: true });
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
 
-			res.json({ user, error: false });
-			console.log(path);
+		console.log("PATH " + req.file?.path);
 
-			fs.rename(
-				path!,
-				path! +
-					"." +
-					(req.body
-						.ext_banner as string),
-				err => {
-					if (err)
-						console.log(
-							err
-						);
-				}
-			);
-			path = path! + "." + (req.body.ext_banner as string);
-
-			const guild = await client.guilds.fetch(
-				database_guild
-			);
-			const channel = (await guild.channels.fetch(
-				database_channel
-			)) as TextChannel;
-			const message = await channel.send({
-				files: [{ attachment: path! }],
-			});
-
-			const attachment =
-				message.attachments.first()?.proxyURL;
-			console.log(attachment);
-
-			const m_user = await User.updateOne(
-				{
-					email: user.email,
-					handle: user.handle,
-				},
-				{
-					banner: attachment,
-				}
-			);
-
-			fs.unlink(path, err => {
+		fs.rename(
+			path!,
+			path! + "." + (req.body.ext_banner as string),
+			err => {
 				if (err) console.log(err);
-			});
-		}
-	);
+			}
+		);
+		path = path! + "." + (req.body.ext_banner as string);
+
+		const guild = await client.guilds.fetch(database_guild);
+		const channel = (await guild.channels.fetch(
+			database_channel
+		)) as TextChannel;
+		const message = await channel.send({
+			files: [{ attachment: path! }],
+		});
+
+		const attachment = message.attachments.first()?.proxyURL;
+		console.log(attachment);
+
+		const m_user = await User.updateOne(
+			{
+				email: user.email,
+				handle: user.handle,
+			},
+			{
+				banner: attachment,
+			}
+		);
+
+		fs.unlink(path, err => {
+			if (err) console.log(err);
+		});
+
+		res.json({
+			user,
+			error: false,
+		});
+	});
 });
 
 app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
 	const { displayName, token, bio } = req.body;
 	const m_bio = sanitize(marked(bio), {
-		allowedTags: ["img"],
+		allowedTags: [
+			"img",
+			"h1",
+			"h2",
+			"h3",
+			"h4",
+			"h5",
+			"h6",
+			"abbr",
+			"acronym",
+			"b",
+			"blockquote",
+			"br",
+			"code",
+			"div",
+			"em",
+			"i",
+			"li",
+			"ol",
+			"p",
+			"span",
+			"strong",
+			"table",
+			"td",
+			"tr",
+			"ul",
+		],
 	});
 
-	console.log(req.body);
-	jwt.verify(
-		token,
-		process.env.TOKEN_SECRET as string,
-		async (err: any, user: any) => {
-			console.log(err);
-			if (err) return res.json({ error: true });
-			const m_user = await User.updateOne(
-				{
-					email: user.email,
-					handle: user.handle,
-				},
-				{
-					displayName,
-					bio: m_bio,
-				}
-			);
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		console.log(err);
+		if (err) return res.json({ error: true });
+		const m_user = await User.updateOne(
+			{
+				email: user.email,
+				handle: user.handle,
+			},
+			{
+				displayName,
+				bio: m_bio,
+			}
+		);
 
-			res.send({ error: false });
-		}
-	);
+		res.send({ error: false });
+	});
 });
 
 app.get("/verify/:handle", async (req: express.Request, res: express.Response) => {
@@ -373,34 +380,30 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 
 	if (content === "") return;
 
-	jwt.verify(
-		token,
-		process.env.TOKEN_SECRET as string,
-		async (err: any, user: any) => {
-			if (err) return res.json({ error: true });
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
 
-			const m_user = await User.findOne({
-				email: user.email,
-				handle: user.handle,
-			});
+		const m_user = await User.findOne({
+			email: user.email,
+			handle: user.handle,
+		});
 
-			const post = await Post.create({
-				postID: uuid4(),
-				content,
-				op: m_user?.handle,
-			});
+		const post = await Post.create({
+			postID: uuid4(),
+			content,
+			op: m_user?.handle,
+		});
 
-			const box_type = {
-				op: await User.findOne({
-					handle: post.op,
-				}),
-				data: post,
-			};
+		const box_type = {
+			op: await User.findOne({
+				handle: post.op,
+			}),
+			data: post,
+		};
 
-			io.emit("post", box_type);
-			res.json(box_type);
-		}
-	);
+		io.emit("post", box_type);
+		res.json(box_type);
+	});
 });
 
 app.get("/api/explore-posts/:offset", async (req: express.Request, res: express.Response) => {
@@ -421,96 +424,82 @@ app.get("/api/user-posts/:handle", async (req: express.Request, res: express.Res
 });
 
 app.post("/api/follow-posts", async (req: express.Request, res: express.Response) => {
-	const { token } = req.body;
+	const { token, offset } = req.body;
 
-	jwt.verify(
-		token,
-		process.env.TOKEN_SECRET as string,
-		async (err: any, user: any) => {
-			const m_user = (await User.findOne({
-				email: user.email,
-				handle: user.handle,
-			}))!;
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		const m_user = (await User.findOne({
+			email: user.email,
+			handle: user.handle,
+		}))!;
 
-			return res.json({
-				posts: fetchPostsFollowing(
-					m_user.following as string[]
-				),
-			});
-		}
-	);
+		return res.json({
+			posts: fetchPostsFollowing(
+				m_user.following as string[],
+				offset
+			),
+		});
+	});
 });
 
 app.post("/api/like-post", async (req: express.Request, res: express.Response) => {
 	const { token, postId, unlike } = req.body;
 
-	jwt.verify(
-		token,
-		process.env.TOKEN_SECRET as string,
-		async (err: any, user: any) => {
-			const m_user = (await User.findOne({
-				email: user.email,
-				handle: user.handle,
-			}))!;
-			const Unlike = async () => {
-				const post =
-					await Post.findOneAndUpdate(
-						{
-							postID: postId,
-						},
-						{
-							$pull: {
-								likes: m_user.handle,
-							},
-						}
-					);
-				if (!post)
-					return res.json({
-						error: true,
-					});
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		const m_user = (await User.findOne({
+			email: user.email,
+			handle: user.handle,
+		}))!;
+		const Unlike = async () => {
+			const post = await Post.findOneAndUpdate(
+				{
+					postID: postId,
+				},
+				{
+					$pull: {
+						likes: m_user.handle,
+					},
+				}
+			);
+			if (!post)
+				return res.json({
+					error: true,
+				});
 
-				const index = m_post?.likes.findIndex(
-					x => x === user.handle
-				);
-				if (index! < 0) return;
-				m_post?.likes.splice(index!, 1);
+			const index = m_post?.likes.findIndex(
+				x => x === user.handle
+			);
+			if (index! < 0) return;
+			m_post?.likes.splice(index!, 1);
 
-				io.emit(
-					"post-like-refresh",
-					postId,
-					m_post?.likes
-				);
-			};
-
-			const m_post = await Post.findOne({ postID: postId });
-			if (m_post?.likes.find(x => x === user.handle))
-				return Unlike();
-
-			if (unlike) {
-				Unlike();
-			} else {
-				const post =
-					await Post.findOneAndUpdate(
-						{
-							postID: postId,
-						},
-						{
-							$push: {
-								likes: m_user.handle,
-							},
-						}
-					);
-				if (!post)
-					return res.json({
-						error: true,
-					});
-				m_post?.likes.push(m_user.handle);
-			}
-
-			res.json({ error: false });
 			io.emit("post-like-refresh", postId, m_post?.likes);
+		};
+
+		const m_post = await Post.findOne({ postID: postId });
+		if (m_post?.likes.find(x => x === user.handle)) return Unlike();
+
+		if (unlike) {
+			Unlike();
+		} else {
+			const post = await Post.findOneAndUpdate(
+				{
+					postID: postId,
+				},
+				{
+					$push: {
+						likes: m_user.handle,
+					},
+				}
+			);
+			if (!post)
+				return res.json({
+					error: true,
+				});
+			m_post?.likes.push(m_user.handle);
 		}
-	);
+
+		res.json({ error: false });
+		io.emit("post-like-refresh", postId, m_post?.likes);
+	});
 });
 
 app.get(
@@ -532,77 +521,137 @@ app.get(
 app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 	const { token, toFollow, unfollow } = req.body;
 
-	jwt.verify(
-		token,
-		process.env.TOKEN_SECRET as string,
-		async (err: any, user: any) => {
-			if (toFollow == user.handle) return;
-			const Unfollow = async () => {
-				const m_user =
-					await User.findOneAndUpdate(
-						{
-							email: user.email,
-							handle: user.handle,
-						},
-						{
-							$pull: {
-								following: toFollow,
-							},
-						}
-					);
-
-				const m_user_follow =
-					await User.findOneAndUpdate(
-						{
-							handle: toFollow,
-						},
-						{
-							$pull: {
-								followers: user.handle,
-							},
-						}
-					);
-			};
-
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (toFollow == user.handle) return;
+		const Unfollow = async () => {
 			const m_user = await User.findOneAndUpdate(
 				{
 					email: user.email,
 					handle: user.handle,
 				},
 				{
-					$push: {
+					$pull: {
 						following: toFollow,
 					},
 				}
 			);
-			const userToFollow = await User.findOne({
-				handle: toFollow,
-			});
 
-			if (
-				userToFollow?.followers.find(
-					x => x == user.handle
-				)
-			) {
-				Unfollow();
-			}
+			const m_user_follow = await User.findOneAndUpdate(
+				{
+					handle: toFollow,
+				},
+				{
+					$pull: {
+						followers: user.handle,
+					},
+				}
+			);
+		};
 
-			if (!unfollow) {
-				const m_user_follow =
-					await User.findOneAndUpdate(
-						{
-							handle: toFollow,
-						},
-						{
-							$push: {
-								followers: user.handle,
-							},
-						}
-					);
-			} else {
-				Unfollow();
+		const m_user = await User.findOneAndUpdate(
+			{
+				email: user.email,
+				handle: user.handle,
+			},
+			{
+				$push: {
+					following: toFollow,
+				},
 			}
+		);
+		const userToFollow = await User.findOne({
+			handle: toFollow,
+		});
+
+		if (userToFollow?.followers.find(x => x == user.handle)) {
+			Unfollow();
 		}
-	);
+
+		if (!unfollow) {
+			const m_user_follow = await User.findOneAndUpdate(
+				{
+					handle: toFollow,
+				},
+				{
+					$push: {
+						followers: user.handle,
+					},
+				}
+			);
+		} else {
+			Unfollow();
+		}
+	});
 	res.json({ followed: true });
+});
+
+app.post("/api/delete-post", async (req: express.Request, res: express.Response) => {
+	const { token, postId } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		const m_user = (
+			await User.find({
+				handle: user.handle,
+				email: user.email,
+			}).limit(1)
+		)[0];
+
+		const post = await Post.deleteOne({
+			op: m_user.handle,
+			postID: postId,
+		});
+
+		io.emit("post-deleted", postId);
+		return res.json({ error: false });
+	});
+});
+
+app.post("/api/bookmark", async (req: express.Request, res: express.Response) => {
+	const { token, postID, unbookmark } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (unbookmark) {
+			const m_user = await User.updateOne(
+				{
+					handle: user.handle,
+					email: user.email,
+				},
+				{
+					$pull: {
+						bookmarks: postID,
+					},
+				}
+			);
+		} else {
+			const m_user = await User.updateOne(
+				{
+					handle: user.handle,
+					email: user.email,
+				},
+				{
+					$push: {
+						bookmarks: postID,
+					},
+				}
+			);
+		}
+
+		return res.json({ error: false });
+	});
+});
+
+app.post("/api/get-bookmarks", async (req: express.Request, res: express.Response) => {
+	const { token, offset } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		const m_user = (
+			await User.find({
+				handle: user.handle,
+				email: user.email,
+			}).limit(1)
+		)[0];
+
+		const data = await fetchBookmarks(m_user.bookmarks, offset);
+		return res.json({ bookmarks: data.bookmarks, offset: data.offset });
+	});
 });

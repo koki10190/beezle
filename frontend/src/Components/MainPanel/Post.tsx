@@ -12,9 +12,11 @@ import GetOtherUser from "../../api/GetOtherUser";
 import socket from "../../io/socket";
 import uuid4 from "uuid4";
 import { api_url } from "../../constants/ApiURL";
+import { BadgeType } from "../../functions/VerifyBadgeBool";
 
 function Post() {
 	let user: UserType;
+	const [meUser, setMe] = useState<UserType>();
 	const avatar = useRef<HTMLDivElement>(null);
 	const username = useRef<HTMLParagraphElement>(null);
 	const handle = useRef<HTMLParagraphElement>(null);
@@ -35,6 +37,20 @@ function Post() {
 		setPosts([...posts]);
 		postCheck++;
 	});
+
+	let postDeleteCheck = 0;
+	socket.on("post-deleted", async (postId: string) => {
+		if (postDeleteCheck > 0) {
+			if (postDeleteCheck >= 4) postDeleteCheck = 0;
+		}
+		posts.splice(
+			posts.findIndex(x => x.data.postID == postId),
+			1
+		);
+		setPosts([...posts]);
+		postDeleteCheck++;
+	});
+
 	let postLikesCheck = 0;
 	socket.on("post-like-refresh", async (postId: string, liked: string[]) => {
 		if (postLikesCheck > 0) {
@@ -50,6 +66,7 @@ function Post() {
 	useEffect(() => {
 		(async () => {
 			user = (await GetUserData()).user;
+			setMe(user);
 			setShowPosts(true);
 			localStorage.setItem("handle", user.handle);
 
@@ -122,6 +139,13 @@ function Post() {
 				);
 			});
 		}
+	};
+
+	const getBadgeType = (user: UserType): BadgeType => {
+		if (user.owner) return BadgeType.OWNER;
+		if (user.moderator) return BadgeType.MODERATOR;
+		if (user.verified) return BadgeType.VERIFIED;
+		else return BadgeType.NONE;
 	};
 
 	return (
@@ -202,10 +226,18 @@ function Post() {
 			{showPosts
 				? posts.map(item => (
 						<PostBox
+							badgeType={getBadgeType(
+								item.op
+							)}
 							key={
 								item
 									.data
 									.postID
+							}
+							date={
+								item
+									.data
+									.date
 							}
 							postId={
 								item
@@ -248,7 +280,7 @@ function Post() {
 									.replies
 							}
 							tokenUser={
-								user
+								meUser!
 							}
 						/>
 				  ))

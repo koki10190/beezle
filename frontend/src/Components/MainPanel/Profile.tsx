@@ -10,6 +10,7 @@ import PostBox from "./PostBox";
 import { api_url } from "../../constants/ApiURL";
 import GetUserData from "../../api/GetUserData";
 import socket from "../../io/socket";
+import { BadgeType } from "../../functions/VerifyBadgeBool";
 
 function Profile() {
 	let user: UserType;
@@ -152,6 +153,13 @@ function Profile() {
 		}
 	};
 
+	const getBadgeType = (user: UserType): BadgeType => {
+		if (user.owner) return BadgeType.OWNER;
+		if (user.moderator) return BadgeType.MODERATOR;
+		if (user.verified) return BadgeType.VERIFIED;
+		else return BadgeType.NONE;
+	};
+
 	return (
 		<div
 			onScroll={detectScrolling}
@@ -226,6 +234,9 @@ function Profile() {
 			<div className="profile-posts">
 				{posts.map(item => (
 					<PostBox
+						badgeType={getBadgeType(
+							item.op
+						)}
 						key={
 							item
 								.data
@@ -235,6 +246,11 @@ function Profile() {
 							item
 								.data
 								.postID
+						}
+						date={
+							item
+								.data
+								.date
 						}
 						name={
 							item
