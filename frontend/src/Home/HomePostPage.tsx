@@ -108,7 +108,7 @@ function HomePostPage() {
 				)
 			).data;
 			setReplies(replies.data);
-
+			// TODO: IF YOU ALREADY LIKED IT, MAKE IT LIKED! SAME WITH BOOKMARKS
 			interval = setInterval(() => {
 				if (postFile.current) {
 					postFile.current.addEventListener(
@@ -171,6 +171,26 @@ function HomePostPage() {
 								res.img;
 						}
 					);
+
+					if (
+						post.data.likes.find(
+							x =>
+								x ===
+								me?.handle
+						)
+					) {
+						console.log(
+							"wtf!"
+						);
+						html_likes.current!.style.color =
+							"#ff4281";
+						setLiked(
+							true
+						);
+					} else {
+						html_likes.current!.style.color =
+							"rgba(255, 255, 255, 0.377)";
+					}
 					clearInterval(interval);
 				}
 			}, 100);

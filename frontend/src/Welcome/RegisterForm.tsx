@@ -89,8 +89,9 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 				className="form-control"
 			/>
 			<p className="username-field-text">
-				Only letters, numbers, dots, dashes, and
-				underscores are allowed.
+				Only letters, numbers, dots, dashes,
+				underscores and lower case letters are
+				allowed.
 			</p>
 
 			<input
