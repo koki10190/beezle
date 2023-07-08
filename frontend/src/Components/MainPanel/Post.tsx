@@ -14,6 +14,7 @@ import uuid4 from "uuid4";
 import { api_url } from "../../constants/ApiURL";
 import { BadgeType } from "../../functions/VerifyBadgeBool";
 import getBadgeType from "../../functions/getBadgeType";
+import { Icons, toast } from "react-toastify";
 
 function Post() {
 	let user: UserType;
@@ -31,16 +32,16 @@ function Post() {
 	const [postsOffset, setPostsOffset] = useState(0);
 
 	let postCheck = 0;
-	socket.on("post", async (post: PostBoxType) => {
-		if (postCheck > 0) {
-			if (postCheck >= 4) postCheck = 0;
-		}
-		if (post.data.reply_type) return;
-		if (posts.find(x => x.data.postID == post.data.postID)) return;
-		posts.unshift(post);
-		setPosts([...posts]);
-		postCheck++;
-	});
+	// socket.on("post", async (post: PostBoxType) => {
+	// 	if (postCheck > 0) {
+	// 		if (postCheck >= 4) postCheck = 0;
+	// 	}
+	// 	if (post.data.reply_type) return;
+	// 	if (posts.find(x => x.data.postID == post.data.postID)) return;
+	// 	posts.unshift(post);
+	// 	setPosts([...posts]);
+	// 	postCheck++;
+	// });
 
 	let postDeleteCheck = 0;
 	socket.on("post-deleted", async (postId: string) => {
@@ -71,6 +72,7 @@ function Post() {
 		(async () => {
 			user = (await GetUserData()).user;
 			setMe(user);
+			console.log("hm");
 			setShowPosts(true);
 			localStorage.setItem("handle", user.handle);
 
@@ -83,13 +85,8 @@ function Post() {
 			VerifyBadge(username.current!, user);
 			CutLong(user.displayName, 10);
 
-			axios.get(
-				`${api_url}/api/explore-posts/${postsOffset}`
-			).then(async res => {
-				setPosts(
-					res.data
-						.posts as PostBoxType[]
-				);
+			axios.get(`${api_url}/api/explore-posts/${postsOffset}`).then(async res => {
+				setPosts(res.data.posts as PostBoxType[]);
 
 				setPostsOffset(res.data.latestIndex);
 			});
@@ -98,37 +95,22 @@ function Post() {
 		postFile.current!.addEventListener("change", async (event: Event) => {
 			const fileFormData = new FormData();
 			console.log(postFile.current!.files![0]);
-			fileFormData.append(
-				"file",
-				postFile.current!.files![0]
-			);
+			fileFormData.append("file", postFile.current!.files![0]);
 
-			const split =
-				postFile.current!.files![0].name.split(
-					"."
-				);
+			const split = postFile.current!.files![0].name.split(".");
 			const ext = split[split.length - 1];
 			fileFormData.append("ext", ext);
 
-			fileFormData.append(
-				"token",
-				localStorage.getItem(
-					"auth_token"
-				) as string
-			);
+			fileFormData.append("token", localStorage.getItem("auth_token") as string);
 
 			alert("The file is being uploaded, please wait.");
 
 			const res = (
-				await axios.post(
-					`${api_url}/api/upload-file`,
-					fileFormData,
-					{
-						headers: {
-							"Content-Type": "multipart/form-data",
-						},
-					}
-				)
+				await axios.post(`${api_url}/api/upload-file`, fileFormData, {
+					headers: {
+						"Content-Type": "multipart/form-data",
+					},
+				})
 			).data;
 
 			post.current!.value += res.img;
@@ -137,8 +119,7 @@ function Post() {
 
 	const redirectToUserProfile = () => {
 		console.log(user);
-		window.location.href = ("/profile/" +
-			localStorage.getItem("handle")) as string;
+		window.location.href = ("/profile/" + localStorage.getItem("handle")) as string;
 	};
 
 	const addEmoji = (emoji: EmojiClickData) => {
@@ -153,63 +134,75 @@ function Post() {
 		axios.post(`${api_url}/api/post`, {
 			token: localStorage.getItem("auth_token")!,
 			content: post.current!.value,
+			socketID: socket.id,
 		}).then(res => {
+			posts.unshift(res.data);
+			setPosts([...posts]);
 			post.current!.value = "";
 		});
 	};
 
 	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
 		const element = event.target! as HTMLDivElement;
-		if (
-			element.scrollHeight - element.scrollTop ===
-			element.clientHeight
-		) {
-			axios.get(
-				`${api_url}/api/explore-posts/${
-					postsOffset + 1
-				}`
-			).then(async res => {
-				let found = false;
-				for (const reply of res.data
-					.posts as PostBoxType[]) {
-					console.log(
-						reply.data
-							.content
-					);
-					if (
-						posts.findIndex(
-							x =>
-								x
-									.data
-									.postID ===
-								reply
-									.data
-									.postID
-						) > -1
-					) {
-						found =
-							true;
-						break;
-					}
-				}
-				if (found) return;
-				setPosts(
-					posts.concat(
-						res.data
-							.posts as PostBoxType[]
-					)
-				);
+		if (element.scrollHeight - element.scrollTop === element.clientHeight) {
+			axios.get(`${api_url}/api/explore-posts/${postsOffset + 1}`).then(async res => {
+				// let found = false;
+				// for (const reply of res.data
+				// 	.posts as PostBoxType[]) {
+				// 	console.log(
+				// 		reply.data
+				// 			.content
+				// 	);
+				// 	if (
+				// 		posts.findIndex(
+				// 			x =>
+				// 				x
+				// 					.data
+				// 					.postID ===
+				// 				reply
+				// 					.data
+				// 					.postID
+				// 		) > -1
+				// 	) {
+				// 		found =
+				// 			true;
+				// 		break;
+				// 	}
+				// }
+				// if (found) return;
+				setPosts(posts.concat(res.data.posts as PostBoxType[]));
 
 				setPostsOffset(res.data.latestIndex);
-				console.log(
-					`Offset: ${res.data.latestIndex}`
-				);
+				console.log(`Offset: ${res.data.latestIndex}`);
 			});
 		}
 	};
 
 	const uploadImage = async () => {
 		postFile.current!.click();
+	};
+
+	const refresh = async () => {
+		const tst = toast("Refreshing posts", {
+			icon: Icons.spinner,
+			progressStyle: {
+				backgroundColor: "yellow",
+			},
+			theme: "dark",
+			hideProgressBar: true,
+		});
+		axios.get(`${api_url}/api/explore-posts/0`).then(async res => {
+			setPosts(res.data.posts as PostBoxType[]);
+			setPostsOffset(res.data.latestIndex);
+			toast("Refreshed the posts", {
+				icon: Icons.success,
+				progressStyle: {
+					backgroundColor: "yellow",
+				},
+				theme: "dark",
+			});
+			toast.dismiss(tst);
+		});
 	};
 
 	return (
@@ -220,30 +213,28 @@ function Post() {
 				className="navigation-panel main-panel make-post"
 				onScroll={detectScrolling}
 			>
+				<p
+					onClick={refresh}
+					className="refresh"
+				>
+					<i className="fa-solid fa-arrows-rotate"></i> Refresh Posts
+				</p>
 				<div
-					onClick={
-						redirectToUserProfile
-					}
+					onClick={redirectToUserProfile}
 					className="post-text-user"
 				>
 					<div
-						ref={
-							avatar
-						}
+						ref={avatar}
 						className="post-text-avatar"
 					></div>
 					<p
-						ref={
-							username
-						}
+						ref={username}
 						className="post-text-name"
 					>
 						Name
 					</p>
 					<p
-						ref={
-							handle
-						}
+						ref={handle}
 						className="post-text-handle"
 					>
 						@handle
@@ -256,18 +247,10 @@ function Post() {
 						className="post-textarea"
 					></textarea>
 					<div className="post-text-buttons">
-						<a
-							onClick={
-								showEmojiPicker
-							}
-						>
+						<a onClick={showEmojiPicker}>
 							<i className="fa-solid fa-face-awesome"></i>
 						</a>
-						<a
-							onClick={
-								uploadImage
-							}
-						>
+						<a onClick={uploadImage}>
 							<i className="fa-solid fa-image"></i>
 						</a>
 						<input
@@ -276,35 +259,19 @@ function Post() {
 								display: "none",
 							}}
 							type="file"
-							ref={
-								postFile
-							}
+							ref={postFile}
 						/>
-						<button
-							onClick={
-								makePost
-							}
-						>
-							Post
-						</button>
+						<button onClick={makePost}>Post</button>
 					</div>
 					{isEmojiPickerShown ? (
 						<div
 							className="emoji-picker-post"
-							ref={
-								emojiPicker
-							}
+							ref={emojiPicker}
 						>
 							<EmojiPicker
-								onEmojiClick={
-									addEmoji
-								}
-								theme={
-									Theme.DARK
-								}
-								emojiStyle={
-									EmojiStyle.TWITTER
-								}
+								onEmojiClick={addEmoji}
+								theme={Theme.DARK}
+								emojiStyle={EmojiStyle.TWITTER}
 							/>
 						</div>
 					) : (
@@ -320,62 +287,20 @@ function Post() {
 				{showPosts
 					? posts.map(item => (
 							<PostBox
-								badgeType={getBadgeType(
-									item.op
-								)}
-								key={
-									item
-										.data
-										.postID
-								}
-								date={
-									item
-										.data
-										.date
-								}
-								postId={
-									item
-										.data
-										.postID
-								}
-								name={
-									item
-										.op
-										.displayName
-								}
-								handle={
-									item
-										.op
-										.handle
-								}
-								avatarURL={
-									item
-										.op
-										.avatar
-								}
-								content={
-									item
-										.data
-										.content
-								}
-								likes={
-									item
-										.data
-										.likes
-								}
-								reposts={
-									item
-										.data
-										.reposts
-								}
-								replies={
-									item
-										.data
-										.replies
-								}
-								tokenUser={
-									meUser!
-								}
+								badgeType={getBadgeType(item.op)}
+								reply_type={item.data.reply_type}
+								replyingTo={item.data.replyingTo}
+								key={item.data.postID}
+								date={item.data.date}
+								postId={item.data.postID}
+								name={item.op.displayName}
+								handle={item.op.handle}
+								avatarURL={item.op.avatar}
+								content={item.data.content}
+								likes={item.data.likes}
+								reposts={item.data.reposts}
+								replies={item.data.replies}
+								tokenUser={meUser!}
 							/>
 					  ))
 					: ""}

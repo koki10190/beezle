@@ -63,6 +63,7 @@ const schema = new mongoose.Schema({
 			type: String,
 		},
 	],
+	notifications: [{ type: String }],
 	// token: {
 	// 	type: String,
 	// 	required: true,

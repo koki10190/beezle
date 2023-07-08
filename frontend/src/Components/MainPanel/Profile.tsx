@@ -31,17 +31,6 @@ function Profile() {
 	const [posts, setPosts] = useState([] as PostBoxType[]);
 	const [offset, setOffset] = useState(0);
 
-	let postCheck = 0;
-	socket.on("post", async (post: PostBoxType) => {
-		if (postCheck > 0) {
-			if (postCheck >= 4) postCheck = 0;
-		}
-		if (post.op.handle !== user?.handle) return;
-		posts.unshift(post);
-		setPosts([...posts]);
-		postCheck++;
-	});
-
 	let postLikesCheck = 0;
 	socket.on("post-like-refresh", async (postId: string, liked: string[]) => {
 		if (postLikesCheck > 0) {
@@ -58,11 +47,7 @@ function Profile() {
 		axios.post(`${api_url}/api/follow`, {
 			token: localStorage.getItem("auth_token") as string,
 			toFollow: handle,
-			unfollow:
-				followBtn.current!.innerText ===
-				"Unfollow"
-					? true
-					: false,
+			unfollow: followBtn.current!.innerText === "Unfollow" ? true : false,
 		}).then(res => window.location.reload());
 	};
 
@@ -82,22 +67,12 @@ function Profile() {
 			bio.current!.innerHTML = user.bio;
 			avatar.current!.style.backgroundImage = `url("${user.avatar}")`;
 			banner.current!.style.backgroundImage = `url("${user.banner}")`;
-			following.current!.innerText =
-				user.following.length.toString();
-			followers.current!.innerText =
-				user.followers.length.toString();
+			following.current!.innerText = user.following.length.toString();
+			followers.current!.innerText = user.followers.length.toString();
 
-			followBtn.current!.innerText = user.followers.find(
-				x => x === usrData.user.handle
-			)
-				? "Unfollow"
-				: "Follow";
+			followBtn.current!.innerText = user.followers.find(x => x === usrData.user.handle) ? "Unfollow" : "Follow";
 
-			const posts = (
-				await axios.get(
-					`${api_url}/api/get-user-posts/${handle}/${offset}`
-				)
-			).data;
+			const posts = (await axios.get(`${api_url}/api/get-user-posts/${handle}/${offset}`)).data;
 			const actualPosts: PostBoxType[] = [];
 			(posts.posts as PostType[]).forEach(post =>
 				actualPosts.push({
@@ -124,32 +99,20 @@ function Profile() {
 
 	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
 		const element = event.target! as HTMLDivElement;
-		if (
-			element.scrollHeight - element.scrollTop ===
-			element.clientHeight
-		) {
-			axios.get(
-				`${api_url}/api/get-user-posts/${handle}/${
-					offset + 1
-				}`
-			).then(async res => {
+		if (element.scrollHeight - element.scrollTop === element.clientHeight) {
+			axios.get(`${api_url}/api/get-user-posts/${handle}/${offset + 1}`).then(async res => {
 				const actualPosts: PostBoxType[] = [];
-				(res.data.posts as PostType[]).forEach(
-					post =>
-						actualPosts.push(
-							{
-								data: post,
-								op: user,
-							}
-						)
+				(res.data.posts as PostType[]).forEach(post =>
+					actualPosts.push({
+						data: post,
+						op: user,
+					})
 				);
 
 				setPosts(posts.concat(actualPosts));
 
 				setOffset(res.data.latestIndex);
-				console.log(
-					`Offset: ${res.data.latestIndex}`
-				);
+				console.log(`Offset: ${res.data.latestIndex}`);
 			});
 		}
 	};
@@ -159,36 +122,44 @@ function Profile() {
 			onScroll={detectScrolling}
 			className="navigation-panel main-panel profile-panel"
 		>
-			<div ref={banner} className="banner"></div>
-			<div ref={avatar} className="avatar"></div>
+			<div
+				ref={banner}
+				className="banner"
+			></div>
+			<div
+				ref={avatar}
+				className="avatar"
+			></div>
 			<div>
 				{m_user?.handle == handle ? (
 					<button
-						onClick={
-							editProf
-						}
+						onClick={editProf}
 						className="edit-prof-btn"
 					>
-						Edit
-						Profile
+						Edit Profile
 					</button>
 				) : (
 					<button
-						ref={
-							followBtn
-						}
-						onClick={
-							follow
-						}
+						ref={followBtn}
+						onClick={follow}
 						className="edit-prof-btn"
 					>
 						Follow
 					</button>
 				)}
 			</div>
-			<h1 ref={username} className="profile-name"></h1>
-			<h3 ref={tag} className="profile-handle"></h3>
-			<p ref={bio} className="profile-bio"></p>
+			<h1
+				ref={username}
+				className="profile-name"
+			></h1>
+			<h3
+				ref={tag}
+				className="profile-handle"
+			></h3>
+			<p
+				ref={bio}
+				className="profile-bio"
+			></p>
 			<div className="profile-follower-box">
 				<p
 					style={{
@@ -197,9 +168,7 @@ function Profile() {
 					onClick={followingPage}
 				>
 					<span
-						ref={
-							following
-						}
+						ref={following}
 						className="hlnum"
 					>
 						0
@@ -213,9 +182,7 @@ function Profile() {
 					onClick={followersPage}
 				>
 					<span
-						ref={
-							followers
-						}
+						ref={followers}
 						className="hlnum"
 					>
 						0
@@ -228,62 +195,20 @@ function Profile() {
 			<div className="profile-posts">
 				{posts.map(item => (
 					<PostBox
-						badgeType={getBadgeType(
-							item.op
-						)}
-						key={
-							item
-								.data
-								.postID
-						}
-						postId={
-							item
-								.data
-								.postID
-						}
-						date={
-							item
-								.data
-								.date
-						}
-						name={
-							item
-								.op
-								.displayName
-						}
-						handle={
-							item
-								.op
-								.handle
-						}
-						avatarURL={
-							item
-								.op
-								.avatar
-						}
-						content={
-							item
-								.data
-								.content
-						}
-						likes={
-							item
-								.data
-								.likes
-						}
-						reposts={
-							item
-								.data
-								.reposts
-						}
-						replies={
-							item
-								.data
-								.replies
-						}
-						tokenUser={
-							user
-						}
+						reply_type={item.data.reply_type}
+						replyingTo={item.data.replyingTo}
+						badgeType={getBadgeType(item.op)}
+						key={item.data.postID}
+						postId={item.data.postID}
+						date={item.data.date}
+						name={item.op.displayName}
+						handle={item.op.handle}
+						avatarURL={item.op.avatar}
+						content={item.data.content}
+						likes={item.data.likes}
+						reposts={item.data.reposts}
+						replies={item.data.replies}
+						tokenUser={user}
 					/>
 				))}
 			</div>

@@ -17,18 +17,22 @@ import displayContent from "../functions/displayContent";
 import socket from "../io/socket";
 import PostBox from "../Components/MainPanel/PostBox";
 import getBadgeType from "../functions/getBadgeType";
+import { Icons, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 function HomePostPage() {
 	const { postID } = useParams();
-	const [me, setMe] = useState<UserType>();
-	const [user, setUser] = useState<UserType>();
-	const [post, setPost] = useState<PostBoxType>();
+	const [me, setMe] = useState<UserType>({} as UserType);
+	const [user, setUser] = useState<UserType>({} as UserType);
+	const [post, setPost] = useState<PostBoxType>({} as PostBoxType);
 	const [render, setRender] = useState<boolean>(false);
 	const [isLiked, setLiked] = useState<boolean>(false);
 	const [replies, setReplies] = useState<PostBoxType[]>([]);
 	const [offset, setOffset] = useState<number>(0);
 	const [replyParent, setReplyParent] = useState<PostBoxType>({} as PostBoxType);
+	const [isBookmarked, setBookmarked] = useState<boolean>(false);
 	const html_likes = useRef<HTMLParagraphElement>(null);
+	const html_bookmarks = useRef<HTMLParagraphElement>(null);
 	const postFile = useRef<HTMLInputElement>(null);
 	const postText = useRef<HTMLTextAreaElement>(null);
 
@@ -45,19 +49,18 @@ function HomePostPage() {
 		}
 	});
 
-	let postCheck = 0;
-	socket.on("post", async (post: PostBoxType) => {
-		if (postCheck > 0) {
-			if (postCheck >= 4) postCheck = 0;
-		}
-		if (!post.data.reply_type || post.data.replyingTo !== postID) return;
-		if (replies.findIndex(x => x.data.postID === post.data.postID) > -1)
-			return;
-		replies.unshift(post);
+	// let postCheck = 0;
+	// socket.on("post", async (post: PostBoxType) => {
+	// 	if (postCheck > 0) {
+	// 		if (postCheck >= 4) postCheck = 0;
+	// 	}
+	// 	if (!post.data.reply_type || post.data.replyingTo !== postID) return;
+	// 	if (replies.findIndex(x => x.data.postID === post.data.postID) > -1) return;
+	// 	replies.unshift(post);
 
-		setReplies([...replies]);
-		postCheck++;
-	});
+	// 	setReplies([...replies]);
+	// 	postCheck++;
+	// });
 
 	let postDeleteCheck = 0;
 	socket.on("post-deleted", async (postId: string) => {
@@ -75,6 +78,8 @@ function HomePostPage() {
 	useEffect(() => {
 		(async () => {
 			let interval: NodeJS.Timer;
+			let interval_likes: NodeJS.Timer;
+			let interval_bookmarks: NodeJS.Timer;
 			const data = await GetUserData();
 			if (data.error) {
 				window.location.href = "/";
@@ -82,131 +87,105 @@ function HomePostPage() {
 				setMe(data.user);
 			}
 
-			const post = (
-				await axios.get(
-					`${api_url}/api/get-post/${postID}`
-				)
-			).data as PostBoxType;
+			const post = (await axios.get(`${api_url}/api/get-post/${postID}`)).data as PostBoxType;
 
 			if (post.data.reply_type) {
-				setReplyParent(
-					(
-						await axios.get(
-							`${api_url}/api/get-post/${post.data.replyingTo}`
-						)
-					).data as PostBoxType
-				);
+				setReplyParent((await axios.get(`${api_url}/api/get-post/${post.data.replyingTo}`)).data as PostBoxType);
 			}
 
 			setPost(post);
 			setUser(post.op);
 			setRender(true);
+			setMe(data.user);
 
-			const replies = (
-				await axios.get(
-					`${api_url}/api/get-replies/${postID}/${offset}`
-				)
-			).data;
+			const replies = (await axios.get(`${api_url}/api/get-replies/${postID}/${offset}`)).data;
 			setReplies(replies.data);
-			// TODO: IF YOU ALREADY LIKED IT, MAKE IT LIKED! SAME WITH BOOKMARKS
+
 			interval = setInterval(() => {
-				if (postFile.current) {
-					postFile.current.addEventListener(
-						"change",
-						async (
-							event: Event
-						) => {
-							const fileFormData =
-								new FormData();
-							console.log(
-								postFile.current!
-									.files![0]
-							);
-							fileFormData.append(
-								"file",
-								postFile.current!
-									.files![0]
-							);
+				if (postFile.current && html_likes.current && html_bookmarks.current) {
+					postFile.current.addEventListener("change", async (event: Event) => {
+						const fileFormData = new FormData();
+						console.log(postFile.current!.files![0]);
+						fileFormData.append("file", postFile.current!.files![0]);
 
-							const split =
-								postFile.current!.files![0].name.split(
-									"."
-								);
-							const ext =
-								split[
-									split.length -
-										1
-								];
-							fileFormData.append(
-								"ext",
-								ext
-							);
+						const split = postFile.current!.files![0].name.split(".");
+						const ext = split[split.length - 1];
+						fileFormData.append("ext", ext);
 
-							fileFormData.append(
-								"token",
-								localStorage.getItem(
-									"auth_token"
-								) as string
-							);
+						fileFormData.append("token", localStorage.getItem("auth_token") as string);
 
-							alert(
-								"The file is being uploaded, please wait."
-							);
+						alert("The file is being uploaded, please wait.");
 
-							const res =
-								(
-									await axios.post(
-										`${api_url}/api/upload-file`,
-										fileFormData,
-										{
-											headers: {
-												"Content-Type": "multipart/form-data",
-											},
-										}
-									)
-								)
-									.data;
+						const res = (
+							await axios.post(
+								`${api_url}/api/upload-file`,
+								fileFormData,
+								{
+									headers: {
+										"Content-Type": "multipart/form-data",
+									},
+								}
+							)
+						).data;
 
-							postText.current!.value +=
-								res.img;
-						}
-					);
+						postText.current!.value += res.img;
+					});
 
-					if (
-						post.data.likes.find(
-							x =>
-								x ===
-								me?.handle
-						)
-					) {
-						console.log(
-							"wtf!"
-						);
-						html_likes.current!.style.color =
-							"#ff4281";
-						setLiked(
-							true
-						);
+					if (post.data.likes.find(x => x === data.user.handle)) {
+						setLiked(true);
+						html_likes.current!.style.color = "#ff4281";
 					} else {
-						html_likes.current!.style.color =
-							"rgba(255, 255, 255, 0.377)";
+						setLiked(false);
+						html_likes.current!.style.color = "rgba(255, 255, 255, 0.377)";
 					}
+
+					if (html_bookmarks.current) {
+						if (data.user.bookmarks.find(x => x === post.data.postID)) {
+							setBookmarked(true);
+							html_bookmarks.current!.style.color = "#349beb";
+						} else {
+							setBookmarked(false);
+							html_bookmarks.current!.style.color =
+								"rgba(255, 255, 255, 0.377)";
+						}
+					}
+
 					clearInterval(interval);
 				}
 			}, 100);
 		})();
 	}, []);
 
+	const bookmark = () => {
+		if (isBookmarked) {
+			setBookmarked(false);
+
+			html_bookmarks.current!.style.color = "rgba(255, 255, 255, 0.377)";
+
+			axios.post(`${api_url}/api/bookmark`, {
+				token: localStorage.getItem("auth_token") as string,
+				postID,
+				unbookmark: true,
+			});
+		} else {
+			html_bookmarks.current!.style.color = "#349beb";
+			setBookmarked(true);
+
+			axios.post(`${api_url}/api/bookmark`, {
+				token: localStorage.getItem("auth_token") as string,
+				postID,
+				unbookmark: false,
+			});
+		}
+	};
+
 	const likePost = () => {
 		if (isLiked) {
 			setLiked(false);
-			html_likes.current!.style.color =
-				"rgba(255, 255, 255, 0.377)";
+			html_likes.current!.style.color = "rgba(255, 255, 255, 0.377)";
 
 			axios.post(`${api_url}/api/like-post`, {
-				token: localStorage.getItem(
-					"auth_token"
-				) as string,
+				token: localStorage.getItem("auth_token") as string,
 				postId: postID,
 				unlike: true,
 			});
@@ -214,9 +193,7 @@ function HomePostPage() {
 			setLiked(true);
 			html_likes.current!.style.color = "#ff4281";
 			axios.post(`${api_url}/api/like-post`, {
-				token: localStorage.getItem(
-					"auth_token"
-				) as string,
+				token: localStorage.getItem("auth_token") as string,
 				postId: postID,
 				unlike: false,
 			});
@@ -232,8 +209,11 @@ function HomePostPage() {
 			content: content,
 			reply_type: true,
 			replyingTo: postID,
+			socketID: socket.id,
 		}).then(res => {
 			postText.current!.value = "";
+			replies.unshift(res.data);
+			setReplies([...replies]);
 		});
 	};
 
@@ -246,43 +226,47 @@ function HomePostPage() {
 
 	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
 		const element = event.target! as HTMLDivElement;
-		if (
-			element.scrollHeight - element.scrollTop ===
-			element.clientHeight
-		) {
-			axios.get(
-				`${api_url}/api/get-replies/${postID}/${
-					offset + 1
-				}`
-			).then(async res => {
+		if (element.scrollHeight - element.scrollTop === element.clientHeight) {
+			axios.get(`${api_url}/api/get-replies/${postID}/${offset + 1}`).then(async res => {
 				let uniquePosts: PostBoxType[] = [];
-				res.data.data.forEach(
-					(c: PostBoxType) => {
-						if (
-							!replies.find(
-								x =>
-									x
-										.data
-										.postID ===
-									c
-										.data
-										.postID
-							)
-						) {
-							uniquePosts.push(
-								c
-							);
-						}
+				res.data.data.forEach((c: PostBoxType) => {
+					if (!replies.find(x => x.data.postID === c.data.postID)) {
+						uniquePosts.push(c);
 					}
-				);
-				console.log(uniquePosts);
+				});
 
 				setReplies(replies.concat(uniquePosts));
 
 				setOffset(res.data.offset);
-				console.log(
-					`Offset: ${res.data.offset}`
-				);
+				console.log(`Offset: ${res.data.offset}`);
+			});
+		}
+	};
+
+	const report = async () => {
+		const result = (
+			await axios.post(`${api_url}/api/report`, {
+				postID,
+				token: localStorage.getItem("auth_token"),
+			})
+		).data;
+
+		if (result.error) {
+			toast("An erorr has occured when trying to report the post.", {
+				icon: Icons.error,
+				theme: "dark",
+				progressStyle: {
+					backgroundColor: "red",
+				},
+				position: "top-right",
+			});
+		} else {
+			toast(result.status, {
+				icon: Icons.success,
+				progressStyle: {
+					backgroundColor: "yellow",
+				},
+				theme: "dark",
 			});
 		}
 	};
@@ -292,16 +276,12 @@ function HomePostPage() {
 			<div className="main-pages">
 				<InfoPanel />
 				<div
-					onScroll={
-						detectScrolling
-					}
+					onScroll={detectScrolling}
 					className="navigation-panel main-panel page-panel"
 				>
 					{render ? (
 						<>
-							{post
-								?.data
-								.reply_type ? (
+							{post?.data.reply_type ? (
 								<p
 									onClick={() =>
 										(window.location.href =
@@ -318,8 +298,7 @@ function HomePostPage() {
 										}}
 										className="fa-solid fa-reply"
 									></i>{" "}
-									Replying
-									to{" "}
+									Replying to{" "}
 									<span
 										style={{
 											color: "rgba(255,255,255,0.6)",
@@ -350,41 +329,48 @@ function HomePostPage() {
 							)}
 
 							<div
-								style={{
-									backgroundImage: `url("${
-										post!
-											.op
-											.avatar
-									}")`,
-								}}
-								className="page-avatar"
-							></div>
-							<p
-								dangerouslySetInnerHTML={{
-									__html: VerifyBadgeText(
-										user!
-									),
-								}}
-								className="page-name"
-							></p>
-							<p className="page-handle">
-								@
-								{
-									user?.handle
+								style={{ cursor: "pointer" }}
+								onClick={() =>
+									(window.location.href = `/profile/${post.op.handle}`)
 								}
-							</p>
+							>
+								<div
+									style={{
+										backgroundImage: `url("${
+											post!
+												.op
+												.avatar
+										}")`,
+									}}
+									className="page-avatar"
+								></div>
+								<p
+									dangerouslySetInnerHTML={{
+										__html: VerifyBadgeText(
+											user!
+										),
+									}}
+									className="page-name"
+								></p>
+								<p className="page-handle">
+									@{user?.handle}
+								</p>
+							</div>
 							<p className="page-date">
-								{moment(
-									post
-										?.data
-										.date
-								).fromNow()}
+								{moment(post?.data.date)
+									.fromNow(true)
+									.replace("minutes", "m")
+									.replace(" ", "")
+									.replace("hours", "h")
+									.replace("afew seconds", "1s")
+									.replace("aminute", "1m")
+									.replace("ahour", "1h")
+									.replace("anhour", "1h")}
 							</p>
 							<p
 								dangerouslySetInnerHTML={{
 									__html: displayContent(
-										post!
-											.data
+										post!.data
 											.content
 									),
 								}}
@@ -413,12 +399,8 @@ function HomePostPage() {
 									</span>
 								</div>
 								<div
-									ref={
-										html_likes
-									}
-									onClick={
-										likePost
-									}
+									ref={html_likes}
+									onClick={likePost}
 								>
 									<i className="fa-solid fa-heart"></i>{" "}
 									<span>
@@ -431,31 +413,19 @@ function HomePostPage() {
 									</span>
 								</div>
 								<div
-								// onClick={
-								// 	bookmark
-								// }
-								// ref={
-								// 	html_bookmarks
-								// }
+									onClick={bookmark}
+									ref={html_bookmarks}
 								>
 									<i className="fa-solid fa-bookmark"></i>
 								</div>
 
-								<div>
+								<div onClick={report}>
 									<i className="fa-solid fa-flag"></i>
 								</div>
 
-								{localStorage.getItem(
-									"handle"
-								) ===
-								post
-									?.op
-									.handle ? (
-									<div
-										onClick={
-											deletePost
-										}
-									>
+								{localStorage.getItem("handle") ===
+								post?.op.handle ? (
+									<div onClick={deletePost}>
 										<i className="fa-solid fa-trash"></i>
 									</div>
 								) : (
@@ -488,18 +458,12 @@ function HomePostPage() {
 									className="post-text-name"
 								></p>
 								<p className="post-text-handle">
-									@
-									{
-										me!
-											.handle
-									}
+									@{me!.handle}
 								</p>
 							</div>
 							<div className="post-text-box">
 								<textarea
-									ref={
-										postText
-									}
+									ref={postText}
 									style={{
 										fontSize: "20px",
 										minHeight: "70px",
@@ -531,81 +495,33 @@ function HomePostPage() {
 										}}
 										id="post-file"
 										type="file"
-										ref={
-											postFile
-										}
+										ref={postFile}
 									/>
-									<button
-										onClick={
-											reply
-										}
-									>
+									<button onClick={reply}>
 										Reply
 									</button>
 								</div>
 							</div>
-							{replies.map(
-								item => (
-									<PostBox
-										badgeType={getBadgeType(
-											item.op
-										)}
-										key={
-											item
-												.data
-												.postID
-										}
-										date={
-											item
-												.data
-												.date
-										}
-										postId={
-											item
-												.data
-												.postID
-										}
-										name={
-											item
-												.op
-												.displayName
-										}
-										handle={
-											item
-												.op
-												.handle
-										}
-										avatarURL={
-											item
-												.op
-												.avatar
-										}
-										content={
-											item
-												.data
-												.content
-										}
-										likes={
-											item
-												.data
-												.likes
-										}
-										reposts={
-											item
-												.data
-												.reposts
-										}
-										replies={
-											item
-												.data
-												.replies
-										}
-										tokenUser={
-											me!
-										}
-									/>
-								)
-							)}
+							{replies.map(item => (
+								<PostBox
+									reply_type={false}
+									replyingTo=""
+									badgeType={getBadgeType(
+										item.op
+									)}
+									key={item.data.postID}
+									date={item.data.date}
+									postId={item.data.postID}
+									name={item.op.displayName}
+									handle={item.op.handle}
+									avatarURL={item.op.avatar}
+									content={item.data.content}
+									likes={item.data.likes}
+									reposts={item.data.reposts}
+									replies={item.data.replies}
+									tokenUser={me!}
+								/>
+							))}
 						</>
 					) : (
 						""

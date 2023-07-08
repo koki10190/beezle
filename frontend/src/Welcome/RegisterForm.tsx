@@ -22,14 +22,9 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 		register_error.current!.style.color = "white";
 		register_error.current!.innerText = "Registering, please wait...";
 
-		if (
-			!email.current!.value.match(
-				/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g
-			)
-		) {
+		if (!email.current!.value.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g)) {
 			register_error.current!.style.color = "red";
-			register_error.current!.innerText =
-				"Invalid email address!";
+			register_error.current!.innerText = "Invalid email address!";
 			btn.current!.disabled = false;
 			return;
 		}
@@ -43,8 +38,7 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 		}
 		if (password.current!.value != confirm_password.current!.value) {
 			register_error.current!.style.color = "red";
-			register_error.current!.innerText =
-				"The passwords do not match!";
+			register_error.current!.innerText = "The passwords do not match!";
 			btn.current!.disabled = false;
 			return;
 		}
@@ -55,19 +49,16 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 		}).then(res => {
 			const data = res.data as RegisterTokenData;
 			if (data.was_error) {
-				register_error.current!.innerText =
-					data.error;
+				register_error.current!.innerText = data.error;
 
-				register_error.current!.style.color =
-					"red";
+				register_error.current!.style.color = "red";
 				btn.current!.disabled = false;
 				return;
 			}
 			console.log(data);
 			localStorage.setItem("auth_token", data.token);
 
-			register_error.current!.innerText =
-				"Thank you for registering! Redirecting...";
+			register_error.current!.innerText = "Thank you for registering! Redirecting...";
 
 			window.location.href = "/home";
 		});
@@ -76,22 +67,10 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 	const state_stuff = () => state_change(false);
 
 	return (
-		<form
-			onSubmit={register}
-			ref={register_form}
-			className="welcome-form-registration form-group"
-		>
-			<input
-				name="name"
-				placeholder="Username"
-				ref={username}
-				required
-				className="form-control"
-			/>
+		<form onSubmit={register} ref={register_form} className="welcome-form-registration form-group">
+			<input name="name" placeholder="Username" ref={username} required className="form-control" />
 			<p className="username-field-text">
-				Only letters, numbers, dots, dashes,
-				underscores and lower case letters are
-				allowed.
+				Only letters, numbers, dots, dashes, underscores and lower case letters are allowed.
 			</p>
 
 			<input
@@ -122,11 +101,7 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 				Register
 			</button>
 			<p ref={register_error} className="register-error"></p>
-			<a
-				type="button"
-				onClick={state_stuff}
-				className="centered-text-form"
-			>
+			<a type="button" onClick={state_stuff} className="centered-text-form">
 				Login Instead
 			</a>
 		</form>

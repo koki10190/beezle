@@ -2,6 +2,14 @@
 	padding: 20px;
 }
 
+:root {
+	--toastify-icon-color-default: yellow;
+}
+
+.Toastify__toast--warning {
+	background: #f1c40f;
+}
+
 .page-avatar {
 	width: 65px;
 	height: 65px;

@@ -3,11 +3,13 @@ import GetUserData from "../api/GetUserData";
 import RegisterForm from "./RegisterForm";
 import { useState } from "react";
 import LoginForm from "./LoginForm";
+import socket from "../io/socket";
 function Welcome() {
 	if (localStorage.getItem("auth_token")) {
 		(async () => {
 			const data = await GetUserData();
 			if (data) {
+				// socket.emit("get-handle", data.user.handle);
 				window.location.href = "/home";
 			}
 		})();
@@ -29,27 +31,13 @@ function Welcome() {
 			<div>
 				<header>
 					<h1>Beezle</h1>
-					<h3>
-						An
-						upcoming
-						social
-						media
-						platform
-					</h3>
+					<h3>An upcoming social media platform</h3>
 				</header>
 				<div className="other-side">
 					{isRegisterForm ? (
-						<RegisterForm
-							state_change={
-								handleStateChange
-							}
-						/>
+						<RegisterForm state_change={handleStateChange} />
 					) : (
-						<LoginForm
-							state_change={
-								handleStateChange
-							}
-						/>
+						<LoginForm state_change={handleStateChange} />
 					)}
 				</div>
 			</div>

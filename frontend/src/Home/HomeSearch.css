@@ -1,0 +1,26 @@
+.search-panel {
+	padding: 20px;
+}
+
+.search-panel > .post-text-buttons > button {
+	float: right;
+	font-size: 20px;
+	box-sizing: border-box;
+	padding: 5px 25px 5px 25px;
+	border-radius: 15px;
+	border: none;
+	font-family: "Open Sans";
+	cursor: pointer;
+	transition: ease-in-out 150ms;
+	background-color: yellow;
+}
+
+.search-panel > .post-text-buttons > button:hover {
+	transform: rotate(0deg) scale(1);
+	background-color: rgb(209, 209, 0);
+}
+
+.searching {
+	color: rgba(255, 255, 255, 0.366);
+	pointer-events: none;
+}

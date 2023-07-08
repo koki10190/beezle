@@ -15,6 +15,7 @@
 
 :root {
 	font-family: "Open Sans", sans-serif;
+	--toastify-color-progress-warning: red;
 }
 
 body {

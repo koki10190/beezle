@@ -1,3 +1,4 @@
+import FollowerBox from "./MainPanel/FollowerBox";
 import "./navigation.css";
 
 function InfoPanel() {
@@ -5,17 +6,13 @@ function InfoPanel() {
 		<div className="navigation-panel info-panel">
 			<div className="info-div">
 				<h1>
-					<span className="gradient">
-						Beezle
-					</span>{" "}
-					ALPHA v0.2
+					<span className="gradient">Beezle</span> ALPHA v0.3
 				</h1>
 				<h2>
 					This is an alpha release!
 					<br />
 					<br />
-					If you find any bugs,
-					please create an issue{" "}
+					If you find any bugs, please create an issue{" "}
 					<a
 						className="link"
 						target="_blank"
@@ -24,6 +21,10 @@ function InfoPanel() {
 						here
 					</a>
 				</h2>
+				<br></br>
+				<h1>Who to follow</h1>
+				<FollowerBox handle="koki" />
+				<FollowerBox handle="beezle" />
 			</div>
 		</div>
 	);

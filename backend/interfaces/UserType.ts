@@ -13,6 +13,7 @@ interface UserType {
 	followers: string[];
 	following: string[];
 	bookmarks: string[];
+	notifications: string[];
 }
 
 export default UserType;

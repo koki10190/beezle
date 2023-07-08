@@ -6,6 +6,7 @@ import InfoPanel from "../Components/InfoPanel";
 import Profile from "../Components/MainPanel/Profile";
 import EditProfile from "../Components/MainPanel/EditProfile";
 import Post from "../Components/MainPanel/Post";
+import socket from "../io/socket";
 
 function HomePost() {
 	let user;

@@ -26,6 +26,8 @@ interface PostBoxInterface {
 	tokenUser: UserType;
 	date: Date;
 	badgeType: BadgeType;
+	replyingTo: string;
+	reply_type: boolean;
 	// me: UserType;
 }
 
@@ -42,6 +44,8 @@ function PostBox({
 	// me,
 	badgeType,
 	date,
+	replyingTo,
+	reply_type,
 }: PostBoxInterface) {
 	let user: UserType;
 	// const [meUser, setMe] = useState({} as any as UserType);
@@ -62,21 +66,11 @@ function PostBox({
 			// user = (await GetOtherUser(handle)).user;
 			VerifyBadgeBool(username.current!, name, badgeType);
 
-			if (
-				likes.find(
-					x =>
-						x ===
-						localStorage.getItem(
-							"handle"
-						)
-				)
-			) {
-				html_likes.current!.style.color =
-					"#ff4281";
+			if (likes.find(x => x === localStorage.getItem("handle"))) {
+				html_likes.current!.style.color = "#ff4281";
 				setLiked(true);
 			} else {
-				html_likes.current!.style.color =
-					"rgba(255, 255, 255, 0.377)";
+				html_likes.current!.style.color = "rgba(255, 255, 255, 0.377)";
 			}
 		})();
 	}, [likes]);
@@ -84,8 +78,7 @@ function PostBox({
 	useEffect(() => {
 		if (tokenUser) {
 			if (tokenUser.bookmarks.find(x => x == postId)) {
-				html_bookmarks.current!.style.color =
-					"#349beb";
+				html_bookmarks.current!.style.color = "#349beb";
 				setBookmarked(true);
 			}
 		}
@@ -95,13 +88,10 @@ function PostBox({
 		if (isBookmarked) {
 			setBookmarked(false);
 
-			html_bookmarks.current!.style.color =
-				"rgba(255, 255, 255, 0.377)";
+			html_bookmarks.current!.style.color = "rgba(255, 255, 255, 0.377)";
 
 			axios.post(`${api_url}/api/bookmark`, {
-				token: localStorage.getItem(
-					"auth_token"
-				) as string,
+				token: localStorage.getItem("auth_token") as string,
 				postID: postId,
 				unbookmark: true,
 			});
@@ -110,9 +100,7 @@ function PostBox({
 			setBookmarked(true);
 
 			axios.post(`${api_url}/api/bookmark`, {
-				token: localStorage.getItem(
-					"auth_token"
-				) as string,
+				token: localStorage.getItem("auth_token") as string,
 				postID: postId,
 				unbookmark: false,
 			});
@@ -122,13 +110,10 @@ function PostBox({
 	const likePost = () => {
 		if (isLiked) {
 			setLiked(false);
-			html_likes.current!.style.color =
-				"rgba(255, 255, 255, 0.377)";
+			html_likes.current!.style.color = "rgba(255, 255, 255, 0.377)";
 
 			axios.post(`${api_url}/api/like-post`, {
-				token: localStorage.getItem(
-					"auth_token"
-				) as string,
+				token: localStorage.getItem("auth_token") as string,
 				postId,
 				unlike: true,
 			});
@@ -136,9 +121,7 @@ function PostBox({
 			setLiked(true);
 			html_likes.current!.style.color = "#ff4281";
 			axios.post(`${api_url}/api/like-post`, {
-				token: localStorage.getItem(
-					"auth_token"
-				) as string,
+				token: localStorage.getItem("auth_token") as string,
 				postId,
 				unlike: false,
 			});
@@ -159,10 +142,18 @@ function PostBox({
 	return (
 		<div className="post-box">
 			<div className="user-stuff">
+				{reply_type ? (
+					<p
+						onClick={() => (window.location.href = `/post/${replyingTo}`)}
+						className="post-box-replying"
+					>
+						<i className="fa-solid fa-reply"></i> Replying to a post
+					</p>
+				) : (
+					""
+				)}
 				<div
-					onClick={
-						redirectToProfile
-					}
+					onClick={redirectToProfile}
 					className="user-desc"
 				>
 					<div
@@ -172,36 +163,32 @@ function PostBox({
 						className="post-avatar"
 					></div>
 					<p
-						ref={
-							username
-						}
+						ref={username}
 						className="post-name"
 					>
 						{name}
 					</p>
-					<p className="post-date">
-						@{handle}
-					</p>
+					<p className="post-date">@{handle}</p>
 					<p className="post-date-time">
-						{moment(
-							date
-						).fromNow()}
+						{moment(date)
+							.fromNow(true)
+							.replace("minutes", "m")
+							.replace(" ", "")
+							.replace("hours", "h")
+							.replace("afew seconds", "1s")
+							.replace("aminute", "1m")
+							.replace("ahour", "1h")
+							.replace("anhour", "1h")}
 					</p>
 				</div>
 				<p
-					onClick={() =>
-						(window.location.href =
-							"/post/" +
-							postId)
-					}
+					onClick={() => (window.location.href = "/post/" + postId)}
 					style={{
 						cursor: "pointer",
 						width: "100%",
 					}}
 					dangerouslySetInnerHTML={{
-						__html: displayContent(
-							content
-						),
+						__html: displayContent(content),
 					}}
 					className="post-content"
 				></p>
@@ -210,50 +197,24 @@ function PostBox({
 					className="buttons"
 				>
 					<div
-						onClick={
-							reply
-						}
-						ref={
-							html_replies
-						}
+						onClick={reply}
+						ref={html_replies}
 					>
-						<i className="fa-solid fa-comment"></i>{" "}
-						<span>
-							{millify(
-								replies
-							)}
-						</span>
+						<i className="fa-solid fa-comment"></i> <span>{millify(replies)}</span>
 					</div>
 					<div ref={html_reposts}>
 						<i className="fa-solid fa-repeat"></i>{" "}
-						<span>
-							{millify(
-								reposts.length
-							)}
-						</span>
+						<span>{millify(reposts.length)}</span>
 					</div>
 					<div
-						ref={
-							html_likes
-						}
-						onClick={
-							likePost
-						}
+						ref={html_likes}
+						onClick={likePost}
 					>
-						<i className="fa-solid fa-heart"></i>{" "}
-						<span>
-							{millify(
-								likes.length
-							)}
-						</span>
+						<i className="fa-solid fa-heart"></i> <span>{millify(likes.length)}</span>
 					</div>
 					<div
-						onClick={
-							bookmark
-						}
-						ref={
-							html_bookmarks
-						}
+						onClick={bookmark}
+						ref={html_bookmarks}
 					>
 						<i className="fa-solid fa-bookmark"></i>
 					</div>

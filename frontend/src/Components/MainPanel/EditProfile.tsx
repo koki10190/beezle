@@ -34,27 +34,14 @@ function EditProfile() {
 		})();
 
 		avatarInput.current!.addEventListener("change", (event: Event) => {
-			const link = window.URL.createObjectURL(
-				avatarInput.current!.files![0]
-			);
+			const link = window.URL.createObjectURL(avatarInput.current!.files![0]);
 			avatar.current!.style.backgroundImage = `url("${link}")`;
-			formDataAvatar.append(
-				"avatar",
-				avatarInput.current!.files![0]
-			);
+			formDataAvatar.append("avatar", avatarInput.current!.files![0]);
 
-			const split =
-				avatarInput.current!.files![0].name.split(
-					"."
-				);
+			const split = avatarInput.current!.files![0].name.split(".");
 			const ext = split[split.length - 1];
 			formDataAvatar.append("ext", ext);
-			formDataAvatar.append(
-				"token",
-				localStorage.getItem(
-					"auth_token"
-				) as string
-			);
+			formDataAvatar.append("token", localStorage.getItem("auth_token") as string);
 			// axios.post(
 			// 	"${api_url}/api/upload-avatar",
 			// 	formData,
@@ -67,28 +54,15 @@ function EditProfile() {
 		});
 
 		bannerInput.current!.addEventListener("change", (event: Event) => {
-			const link = window.URL.createObjectURL(
-				bannerInput.current!.files![0]
-			);
+			const link = window.URL.createObjectURL(bannerInput.current!.files![0]);
 			banner.current!.style.backgroundImage = `url("${link}")`;
 
-			formDataBanner.append(
-				"banner",
-				bannerInput.current!.files![0]
-			);
+			formDataBanner.append("banner", bannerInput.current!.files![0]);
 
-			const split =
-				bannerInput.current!.files![0].name.split(
-					"."
-				);
+			const split = bannerInput.current!.files![0].name.split(".");
 			const ext = split[split.length - 1];
 			formDataBanner.append("ext_banner", ext);
-			formDataBanner.append(
-				"token",
-				localStorage.getItem(
-					"auth_token"
-				) as string
-			);
+			formDataBanner.append("token", localStorage.getItem("auth_token") as string);
 			// axios.post(
 			// 	"${api_url}/api/upload-banner",
 			// 	formData,

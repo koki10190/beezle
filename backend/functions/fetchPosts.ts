@@ -5,9 +5,7 @@ import GetUserByHandle from "../searches/GetUserByHandle";
 import User from "../models/User";
 import UserType from "../interfaces/UserType";
 
-async function fetchGlobalPosts(
-	offset: number
-): Promise<{ data: PostBoxType[]; latestIndex: number }> {
+async function fetchGlobalPosts(offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
 	const posts = (await Post.find({
 		__v: { $gte: 0 },
 		reply_type: { $ne: true },
@@ -31,10 +29,7 @@ async function fetchGlobalPosts(
 	return { data: posts, latestIndex: offset + posts.length - 1 };
 }
 
-async function fetchReplies(
-	postID: string,
-	offset: number
-): Promise<{ data: PostBoxType[]; latestIndex: number }> {
+async function fetchReplies(postID: string, offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
 	const posts = (await Post.find({
 		__v: { $gte: 0 },
 		replyingTo: postID,
@@ -61,18 +56,15 @@ async function fetchReplies(
 }
 
 async function fetchUserPosts(handle: string) {
-	const posts = await Post.find({
+	const posts = (await Post.find({
 		op: handle,
 		reply_type: { $ne: true },
-	});
+	})) as any[];
 
 	return posts;
 }
 
-async function fetchPostsFollowing(
-	following_handles: string[],
-	offset: number
-): Promise<PostType[]> {
+async function fetchPostsFollowing(following_handles: string[], offset: number): Promise<PostType[]> {
 	let posts: PostType[] = [];
 	for (const follow of following_handles) {
 		const m_posts = await Post.find({
@@ -87,10 +79,7 @@ async function fetchPostsFollowing(
 
 	return posts;
 }
-async function fetchBookmarks(
-	ids: string[],
-	offset: number
-): Promise<{ bookmarks: PostBoxType[]; offset: number }> {
+async function fetchBookmarks(ids: string[], offset: number): Promise<{ bookmarks: PostBoxType[]; offset: number }> {
 	const bookmarks = (await Post.find({
 		postID: { $in: ids },
 	})
@@ -123,17 +112,8 @@ async function fetchPostByID(postID: string): Promise<any> {
 	(post[0] as any).replies = count;
 	return {
 		data: post[0] as any as PostType,
-		op: (
-			await User.find({ handle: post[0].op }).limit(1)
-		)[0] as any as UserType,
+		op: (await User.find({ handle: post[0].op }).limit(1))[0] as any as UserType,
 	};
 }
 
-export {
-	fetchGlobalPosts,
-	fetchReplies,
-	fetchPostsFollowing,
-	fetchUserPosts,
-	fetchBookmarks,
-	fetchPostByID,
-};
+export { fetchGlobalPosts, fetchReplies, fetchPostsFollowing, fetchUserPosts, fetchBookmarks, fetchPostByID };

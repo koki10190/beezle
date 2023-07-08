@@ -253,3 +253,29 @@
 audio::-webkit-media-controls-panel {
 	background-color: #ffee56;
 }
+
+.post-box-replying {
+	color: rgba(255, 255, 255, 0.4);
+	margin-top: 0px;
+
+	transition: ease-in-out 100ms;
+	width: 100%;
+	cursor: pointer;
+}
+
+.post-box-replying:hover {
+	color: white;
+}
+
+.refresh {
+	font-size: 20px;
+	margin-top: 0px;
+	color: rgba(255, 255, 255, 0.4);
+	cursor: pointer;
+	width: fit-content;
+	transition: ease-in-out 150ms;
+}
+
+.refresh:hover {
+	color: rgba(255, 255, 255, 0.6);
+}

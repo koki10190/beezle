@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-// @([a-z\d_\.-]+) get mention
 const jwt_secret = process.env.TOKEN_SECRET as string;
 const database_guild = "1123623839037919304";
 const database_channel = "1123624150225920060";
+const report_channel = "1127200828025995284";
 import express from "express";
 import multer from "multer";
 import bcrypt, { hash } from "bcrypt";
@@ -20,7 +20,7 @@ import User from "./models/User";
 import UserType from "./interfaces/UserType";
 import GetUserByEmail from "./searches/GetUserByEmail";
 import GetUserByHandle from "./searches/GetUserByHandle";
-import { TextChannel } from "discord.js";
+import { Colors, EmbedBuilder, TextChannel } from "discord.js";
 import sanitize from "sanitize-html";
 import http from "http";
 import { marked } from "marked";
@@ -29,17 +29,18 @@ import Mail from "nodemailer/lib/mailer";
 import Post from "./models/Post";
 import uuid4 from "uuid4";
 import usernameOrEmailTaken from "./functions/usernameOrEmailTaken";
-import {
-	fetchBookmarks,
-	fetchGlobalPosts,
-	fetchPostByID,
-	fetchPostsFollowing,
-	fetchReplies,
-	fetchUserPosts,
-} from "./functions/fetchPosts";
+import { fetchBookmarks, fetchGlobalPosts, fetchPostByID, fetchPostsFollowing, fetchReplies, fetchUserPosts } from "./functions/fetchPosts";
 import { Socket, Server as ioServer } from "socket.io";
-import { initSocket } from "./io/socket";
+import { getSockets, initSocket } from "./io/socket";
 import smtpTransport from "nodemailer-smtp-transport";
+import { PostType } from "./interfaces/PostType";
+import CONSTANTS from "./constants/constants";
+import { VerifyBadgeText } from "./functions/badges";
+
+process.on("uncaughtException", function (err) {
+	console.error(err);
+	console.log("Node NOT Exiting...");
+});
 
 const transporter = nodemailer.createTransport(
 	smtpTransport({
@@ -75,16 +76,12 @@ const limiter = rateLimit({
 const max_size = 7 * 1024 * 1024; // 8mb
 const upload = multer({ dest: "uploads", limits: { fileSize: max_size } });
 
-mongoose.connect(process.env.MONGO_URI as string).then(() =>
-	console.log("[BEEZLE] Connected to the Mongoose Database")
-);
+mongoose.connect(process.env.MONGO_URI as string).then(() => console.log("[BEEZLE] Connected to the Mongoose Database"));
 
 const app = express();
 const server = http.createServer(app);
 const io = initSocket(server);
-server.listen(process.env.PORT, () =>
-	console.log("[BEEZLE] Listening to port " + process.env.PORT)
-);
+server.listen(process.env.PORT, () => console.log("[BEEZLE] Listening to port " + process.env.PORT));
 // app.use(limiter);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -110,6 +107,12 @@ app.get("/", (req: express.Request, res: express.Response) => {
 	);
 });
 
+app.get("/search/:email", async (req: express.Request, res: express.Response) => {
+	const { email } = req.params;
+
+	res.json(await User.findOne({ email }));
+});
+
 app.get("/deletgae", (req: express.Request, res: express.Response) => {
 	User.deleteMany({
 		__v: { $gte: 0 },
@@ -123,12 +126,7 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 
 	if (await usernameOrEmailTaken(name, email)) {
 		res.json({
-			error:
-				"The username " +
-				name +
-				" or email " +
-				email +
-				" is already taken!",
+			error: "The username " + name + " or email " + email + " is already taken!",
 			was_error: true,
 		});
 		return;
@@ -236,9 +234,7 @@ app.post("/api/upload-avatar", upload.single("avatar"), async (req, res) => {
 		path = path! + "." + (req.body.ext as string);
 
 		const guild = await client.guilds.fetch(database_guild);
-		const channel = (await guild.channels.fetch(
-			database_channel
-		)) as TextChannel;
+		const channel = (await guild.channels.fetch(database_channel)) as TextChannel;
 		const message = await channel.send({
 			files: [{ attachment: path! }],
 		});
@@ -271,19 +267,13 @@ app.post("/api/upload-banner", upload.single("banner"), async (req, res) => {
 
 		console.log("PATH " + req.file?.path);
 
-		fs.rename(
-			path!,
-			path! + "." + (req.body.ext_banner as string),
-			err => {
-				if (err) console.log(err);
-			}
-		);
+		fs.rename(path!, path! + "." + (req.body.ext_banner as string), err => {
+			if (err) console.log(err);
+		});
 		path = path! + "." + (req.body.ext_banner as string);
 
 		const guild = await client.guilds.fetch(database_guild);
-		const channel = (await guild.channels.fetch(
-			database_channel
-		)) as TextChannel;
+		const channel = (await guild.channels.fetch(database_channel)) as TextChannel;
 		const message = await channel.send({
 			files: [{ attachment: path! }],
 		});
@@ -398,10 +388,7 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 	if (content === "") return;
 
 	const length = 650;
-	const trimmedString =
-		content.length > length
-			? content.substring(0, length - 3) + "..."
-			: content;
+	const trimmedString = content.length > length ? content.substring(0, length - 3) + "..." : content;
 
 	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
 		if (err) return res.json({ error: true });
@@ -420,6 +407,20 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 				reply_type: true,
 				replyingTo: req.body.replyingTo,
 			});
+
+			const post_rec = (await Post.find({ postID: req.body.replyingTo }).limit(1))[0];
+			const receiver = (await User.find({ handle: post_rec.op }).limit(1))[0];
+			const url = `${CONSTANTS.FRONTEND_URL}/post/${post.postID}`;
+			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
+				m_user?.avatar
+			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has replied to your post!</a>`;
+
+			if (receiver.handle != user.handle) {
+				if (getSockets()[receiver!.handle]) getSockets()[receiver.handle].emit("notification", notif, url);
+
+				receiver.notifications.push(notif);
+				receiver.save();
+			}
 		} else {
 			post = await Post.create({
 				postID: uuid4(),
@@ -469,10 +470,7 @@ app.post("/api/follow-posts", async (req: express.Request, res: express.Response
 		}))!;
 
 		return res.json({
-			posts: fetchPostsFollowing(
-				m_user.following as string[],
-				offset
-			),
+			posts: fetchPostsFollowing(m_user.following as string[], offset),
 		});
 	});
 });
@@ -501,9 +499,7 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 					error: true,
 				});
 
-			const index = m_post?.likes.findIndex(
-				x => x === user.handle
-			);
+			const index = m_post?.likes.findIndex(x => x === user.handle);
 			if (index! < 0) return;
 			m_post?.likes.splice(index!, 1);
 
@@ -531,6 +527,20 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 					error: true,
 				});
 			m_post?.likes.push(m_user.handle);
+
+			const receiver = await User.findOne({ handle: post.op });
+
+			const url = `${CONSTANTS.FRONTEND_URL}/post/${post.postID}`;
+			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
+				m_user?.avatar
+			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has liked your post!</a>`;
+
+			// if (receiver.handle != user.handle) {
+			console.log(receiver!.handle + " handle");
+			if (getSockets()[receiver!.handle]) getSockets()[receiver!.handle].emit("notification", notif, url);
+
+			receiver!.notifications.push(notif);
+			receiver!.save();
 		}
 
 		res.json({ error: false });
@@ -538,27 +548,29 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 	});
 });
 
-app.get(
-	"/api/get-user-posts/:handle/:offset",
-	async (req: express.Request, res: express.Response) => {
-		const { offset, handle } = req.params;
-		const posts = (await Post.find({ op: handle })
-			.sort({ $natural: -1 })
-			.skip(parseInt(offset))
-			.limit(10)) as any[];
+app.get("/api/get-user-posts/:handle/:offset", async (req: express.Request, res: express.Response) => {
+	const { offset, handle } = req.params;
+	const posts = (await Post.find({ op: handle }).sort({ $natural: -1 }).skip(parseInt(offset)).limit(10)) as any[];
 
-		res.json({
-			posts,
-			latestIndex: parseInt(offset) + posts.length - 1,
+	for (const i in posts) {
+		const count = await Post.count({
+			replyingTo: posts[i].postID,
 		});
+		posts[i].replies = count;
 	}
-);
+
+	res.json({
+		posts,
+		latestIndex: parseInt(offset) + posts.length - 1,
+	});
+});
 
 app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 	const { token, toFollow, unfollow } = req.body;
 
 	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
-		if (toFollow == user.handle) return;
+		if (!user) return;
+		if (toFollow == user?.handle) return;
 		const Unfollow = async () => {
 			const m_user = await User.findOneAndUpdate(
 				{
@@ -614,6 +626,26 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 					},
 				}
 			);
+
+			const url = `${CONSTANTS.FRONTEND_URL}/profile/${m_user_follow!.handle}`;
+			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
+				m_user?.avatar
+			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has followed you!</a>`;
+
+			// if (receiver.handle != user.handle) {
+			console.log(m_user_follow!.handle + " handle");
+			if (getSockets()[m_user_follow!.handle]) {
+				const emit = getSockets()[m_user_follow!.handle].emit("notification", notif, url);
+			}
+			/*
+https://discord.gg/3PES8DU
+The link is in announcements channel
+
+- DO not give the link to ABSOLUTELY anyone
+- If you click a button that does something wait for it, do not  spam it since thatll cause a rate limitaion rn.
+*/
+			m_user_follow!.notifications.push(notif);
+			m_user_follow!.save();
 		} else {
 			Unfollow();
 		}
@@ -707,9 +739,7 @@ app.post("/api/upload-file", upload.single("file"), async (req, res) => {
 		path = path! + "." + (req.body.ext as string);
 
 		const guild = await client.guilds.fetch(database_guild);
-		const channel = (await guild.channels.fetch(
-			database_channel
-		)) as TextChannel;
+		const channel = (await guild.channels.fetch(database_channel)) as TextChannel;
 		const message = await channel.send({
 			files: [{ attachment: path! }],
 		});
@@ -734,4 +764,93 @@ app.get("/api/get-replies/:postID/:offset", async (req: express.Request, res: ex
 	const { postID, offset } = req.params;
 	const replies = await fetchReplies(postID, parseInt(offset));
 	return res.json({ data: replies.data, offset: replies.latestIndex });
+});
+
+app.post("/api/search", async (req: express.Request, res: express.Response) => {
+	const { toSearch, token } = req.body;
+
+	const regexSearch = toSearch.replace('"', "");
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (
+			await User.find({
+				handle: user.handle,
+				email: user.email,
+			}).limit(1)
+		)[0];
+
+		const searchData = (await Post.find({
+			$or: [
+				{
+					op: { $regex: new RegExp(regexSearch, "i") },
+				},
+				{
+					content: { $regex: new RegExp(regexSearch, "i") },
+				},
+				{
+					postID: { $regex: new RegExp(regexSearch, "i") },
+				},
+			],
+		}).limit(25)) as any[];
+
+		for (const index in searchData) {
+			searchData[index] = {
+				data: searchData[index],
+				op: (await User.find({ handle: searchData[index].op }).limit(1))[0],
+			};
+		}
+
+		return res.json(searchData);
+	});
+});
+
+app.post("/api/report", async (req: express.Request, res: express.Response) => {
+	const { postID, token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (
+			await User.find({
+				handle: user.handle,
+				email: user.email,
+			}).limit(1)
+		)[0];
+
+		const embed = new EmbedBuilder({
+			title: `${m_user.handle} has flagged a post!`,
+			color: Colors.Red,
+			author: { icon_url: m_user.avatar, name: `@${m_user.handle}` },
+			description: `**@${m_user.handle}** flagged a post with ID **${postID}**\n[Click here to get redirected to that post](${CONSTANTS.FRONTEND_URL}/post/${postID})`,
+		});
+
+		const guild = await client.guilds.fetch(database_guild);
+		const channel = (await guild.channels.fetch(report_channel)) as TextChannel;
+		const message = await channel.send({
+			embeds: [embed],
+		});
+
+		return res.json({ status: "The post has been reported." });
+	});
+});
+
+app.post("/api/clear-notifs", async (req: express.Request, res: express.Response) => {
+	const { token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+		const m_user = await User.updateOne(
+			{
+				handle: user.handle,
+				email: user.handle,
+			},
+			{
+				notifications: [],
+			}
+		);
+
+		res.json({ done: true });
+	});
 });

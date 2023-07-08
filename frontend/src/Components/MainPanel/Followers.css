@@ -20,6 +20,8 @@
 	/* border: solid 5px rgb(192, 147, 0); */
 	/* border: solid 1px rgb(192, 147, 0); */
 	padding: 15px;
+	overflow-x: hidden;
+	word-wrap: break-word;
 }
 
 .follower-avatar {

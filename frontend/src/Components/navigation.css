@@ -81,9 +81,27 @@
 	transition: ease-in-out 150ms;
 }
 
+.followbox {
+	cursor: pointer;
+	margin-top: -60px;
+	border-radius: 30px;
+	font-size: 20px;
+	padding: 8px 20px 8px 20px;
+	outline: none;
+	border: none;
+	margin-right: 10px;
+	background-color: yellow;
+	font-family: "Open Sans";
+	transition: ease-in 100ms;
+}
+
 .edit-prof-btn:hover {
 	transform: rotateZ(-5deg) scale(1.1);
 	background-color: rgb(212, 212, 0);
+}
+
+.followbox:hover {
+	/* background-color: rgb(212, 212, 0); */
 }
 
 .info-div {
