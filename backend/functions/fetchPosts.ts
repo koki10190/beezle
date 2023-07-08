@@ -110,12 +110,12 @@ async function fetchBookmarks(
 
 		bookmarks[i].data.replies = count;
 	}
-	console.log(bookmarks);
 	return { bookmarks, offset: offset + bookmarks.length - 1 };
 }
 
-async function fetchPostByID(postID: string): Promise<PostBoxType> {
+async function fetchPostByID(postID: string): Promise<any> {
 	const post = await Post.find({ postID }).limit(1);
+	if (post.length <= 0) return;
 	const count = await Post.count({
 		replyingTo: post[0].postID,
 	});

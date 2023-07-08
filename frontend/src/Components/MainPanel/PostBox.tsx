@@ -196,6 +196,7 @@ function PostBox({
 					}
 					style={{
 						cursor: "pointer",
+						width: "100%",
 					}}
 					dangerouslySetInnerHTML={{
 						__html: displayContent(
@@ -257,7 +258,7 @@ function PostBox({
 						<i className="fa-solid fa-bookmark"></i>
 					</div>
 
-					<div>
+					{/* <div>
 						<i className="fa-solid fa-flag"></i>
 					</div>
 
@@ -273,7 +274,7 @@ function PostBox({
 						</div>
 					) : (
 						""
-					)}
+					)} */}
 				</div>
 			</div>
 		</div>

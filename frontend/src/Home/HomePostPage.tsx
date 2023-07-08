@@ -51,7 +51,10 @@ function HomePostPage() {
 			if (postCheck >= 4) postCheck = 0;
 		}
 		if (!post.data.reply_type || post.data.replyingTo !== postID) return;
+		if (replies.findIndex(x => x.data.postID === post.data.postID) > -1)
+			return;
 		replies.unshift(post);
+
 		setReplies([...replies]);
 		postCheck++;
 	});
@@ -214,6 +217,13 @@ function HomePostPage() {
 		});
 	};
 
+	const deletePost = async () => {
+		axios.post(`${api_url}/api/delete-post`, {
+			postId: postID,
+			token: localStorage.getItem("auth_token"),
+		}).then(res => (window.location.href = "/"));
+	};
+
 	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
 		const element = event.target! as HTMLDivElement;
 		if (
@@ -225,12 +235,29 @@ function HomePostPage() {
 					offset + 1
 				}`
 			).then(async res => {
-				setReplies(
-					replies.concat(
-						res.data
-							.data as PostBoxType[]
-					)
+				let uniquePosts: PostBoxType[] = [];
+				res.data.data.forEach(
+					(c: PostBoxType) => {
+						if (
+							!replies.find(
+								x =>
+									x
+										.data
+										.postID ===
+									c
+										.data
+										.postID
+							)
+						) {
+							uniquePosts.push(
+								c
+							);
+						}
+					}
 				);
+				console.log(uniquePosts);
+
+				setReplies(replies.concat(uniquePosts));
 
 				setOffset(res.data.offset);
 				console.log(
@@ -276,13 +303,14 @@ function HomePostPage() {
 									<span
 										style={{
 											color: "rgba(255,255,255,0.6)",
+											wordWrap: "break-word",
 										}}
 									>
 										{replyParent
 											.data
 											.content
 											.length >
-										20
+										14
 											? replyParent.data.content.substring(
 													0,
 													replyParent
@@ -404,9 +432,9 @@ function HomePostPage() {
 									?.op
 									.handle ? (
 									<div
-									// onClick={
-									// 	deletePost
-									// }
+										onClick={
+											deletePost
+										}
 									>
 										<i className="fa-solid fa-trash"></i>
 									</div>
@@ -456,7 +484,7 @@ function HomePostPage() {
 										fontSize: "20px",
 										minHeight: "70px",
 									}}
-									placeholder="Lorem ipsum dolor sit amet."
+									placeholder={`Reply to ${post?.op.displayName}!`}
 									className="post-textarea"
 								></textarea>
 								<hr

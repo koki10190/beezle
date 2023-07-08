@@ -36,7 +36,7 @@ const schema = new mongoose.Schema({
 		},
 	],
 	replies: { type: Number, default: 0 },
-	replyingTo: { type: String, required: true, default: "" },
+	replyingTo: { type: String, default: "" },
 	reply_type: { type: Boolean, required: true, default: false },
 });
 

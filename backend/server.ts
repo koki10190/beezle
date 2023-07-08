@@ -415,19 +415,17 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 		if (req.body.reply_type) {
 			post = await Post.create({
 				postID: uuid4(),
-				content: trimmedString,
+				content: sanitize(trimmedString),
 				op: m_user?.handle,
 				reply_type: true,
 				replyingTo: req.body.replyingTo,
 			});
-			console.log(post);
 		} else {
 			post = await Post.create({
 				postID: uuid4(),
-				content: trimmedString,
+				content: sanitize(trimmedString),
 				op: m_user?.handle,
 				reply_type: false,
-				replyingTo: "",
 			});
 		}
 

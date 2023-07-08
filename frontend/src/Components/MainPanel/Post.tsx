@@ -36,6 +36,7 @@ function Post() {
 			if (postCheck >= 4) postCheck = 0;
 		}
 		if (post.data.reply_type) return;
+		if (posts.find(x => x.data.postID == post.data.postID)) return;
 		posts.unshift(post);
 		setPosts([...posts]);
 		postCheck++;
@@ -168,6 +169,30 @@ function Post() {
 					postsOffset + 1
 				}`
 			).then(async res => {
+				let found = false;
+				for (const reply of res.data
+					.posts as PostBoxType[]) {
+					console.log(
+						reply.data
+							.content
+					);
+					if (
+						posts.findIndex(
+							x =>
+								x
+									.data
+									.postID ===
+								reply
+									.data
+									.postID
+						) > -1
+					) {
+						found =
+							true;
+						break;
+					}
+				}
+				if (found) return;
 				setPosts(
 					posts.concat(
 						res.data
@@ -227,7 +252,7 @@ function Post() {
 				<div className="post-text-box">
 					<textarea
 						ref={post}
-						placeholder="Lorem ipsum dolor sit amet."
+						placeholder="Press here to type your post."
 						className="post-textarea"
 					></textarea>
 					<div className="post-text-buttons">
