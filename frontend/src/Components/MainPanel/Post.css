@@ -61,7 +61,7 @@
 	background-position: center;
 	background-size: cover;
 	background-repeat: no-repeat;
-	background-color: grey;
+	/* background-color: grey; */
 }
 
 .user-stuff > .user-desc > .post-name {

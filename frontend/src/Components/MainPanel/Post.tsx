@@ -74,7 +74,9 @@ function Post() {
 			setMe(user);
 			console.log("hm");
 			setShowPosts(true);
+			localStorage.setItem("notifs", JSON.stringify(user.notifications));
 			localStorage.setItem("handle", user.handle);
+			window.dispatchEvent(new Event("update-notif-counter"));
 
 			avatar.current!.style.backgroundImage = `url("${user.avatar}")`;
 			username.current!.innerText = user.displayName;

@@ -841,10 +841,10 @@ app.post("/api/clear-notifs", async (req: express.Request, res: express.Response
 
 	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
 		if (err) return res.json({ error: true });
-		const m_user = await User.updateOne(
+		const m_user = await User.findOneAndUpdate(
 			{
 				handle: user.handle,
-				email: user.handle,
+				email: user.email,
 			},
 			{
 				notifications: [],

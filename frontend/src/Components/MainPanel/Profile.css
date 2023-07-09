@@ -20,7 +20,7 @@
 .avatar {
 	border-radius: 100%;
 	border: solid 6px black;
-	background-color: rgb(50, 50, 50);
+	background-color: black;
 	width: 150px;
 	height: 150px;
 	margin-top: -80px;

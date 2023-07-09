@@ -55,7 +55,7 @@ function HomeNotification() {
 							axios
 								.post(`${api_url}/api/clear-notifs`, {
 									token: localStorage.getItem(
-										"token"
+										"auth_token"
 									),
 								})
 								.then(res => {

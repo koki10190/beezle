@@ -54,8 +54,16 @@ function NavigationPanel() {
 		localStorage.setItem("navigation_panel", `${isOpen}`);
 	}, [isOpen]);
 
+	window.addEventListener("update-notif-counter", () => {
+		const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]");
+
+		setCounter(notifs.length);
+		window.document.title = notifs.length > 0 ? `Beezle | (${notifs.length})` : "Beezle";
+	});
+
 	useEffect(() => {
 		if (counter <= 0) notifCounter.current!.innerText = ``;
+
 		socket.on("notification", async (notif: string, url: string) => {
 			const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]") as string[];
 			notifs.unshift(notif);
@@ -63,6 +71,7 @@ function NavigationPanel() {
 			localStorage.setItem("notifs", JSON.stringify(notifs));
 			window.dispatchEvent(new Event("notif-update"));
 			setCounter(notifs.length);
+			window.dispatchEvent(new Event("update-notif-counter"));
 
 			// toast("You've receieved a new notification", {
 			// 	autoClose: 3000,
