@@ -89,7 +89,8 @@ function Profile() {
 
 			VerifyBadge(username.current!, user);
 			tag.current!.textContent = "@" + user.handle;
-			bio.current!.innerHTML = user.bio;
+			const biolimit = 2000;
+			bio.current!.innerHTML = user.bio.length > biolimit ? user.bio.substring(0, biolimit - 3) + "..." : user.bio;
 			avatar.current!.style.backgroundImage = `url("${user.avatar}")`;
 			banner.current!.style.backgroundImage = `url("${user.banner}")`;
 			following.current!.innerText = user.following.length.toString();
