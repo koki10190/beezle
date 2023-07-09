@@ -44,10 +44,11 @@ function Post() {
 	// });
 
 	let postDeleteCheck = 0;
-	socket.on("post-deleted", async (postId: string) => {
+	socket.on("post-deleted", async (postId: string, isrepost: boolean) => {
 		if (postDeleteCheck > 0) {
 			if (postDeleteCheck >= 4) postDeleteCheck = 0;
 		}
+		if (isrepost) return;
 		posts.splice(
 			posts.findIndex(x => x.data.postID == postId),
 			1
@@ -66,6 +67,18 @@ function Post() {
 		posts[post].data.likes = liked;
 		setPosts([...posts]);
 		postLikesCheck++;
+	});
+
+	let postRepostCheck = 0;
+	socket.on("post-repost-refresh", async (postId: string, reposts: string[]) => {
+		if (postRepostCheck > 0) {
+			if (postRepostCheck >= 4) postRepostCheck = 0;
+		}
+		const post = posts.findIndex(m_post => m_post.data.postID == postId);
+		if (post < 0) return;
+		posts[post].data.reposts = reposts;
+		setPosts([...posts]);
+		postRepostCheck++;
 	});
 
 	useEffect(() => {
@@ -287,24 +300,48 @@ function Post() {
 					className="small-bar"
 				/>
 				{showPosts
-					? posts.map(item => (
-							<PostBox
-								badgeType={getBadgeType(item.op)}
-								reply_type={item.data.reply_type}
-								replyingTo={item.data.replyingTo}
-								key={item.data.postID}
-								date={item.data.date}
-								postId={item.data.postID}
-								name={item.op.displayName}
-								handle={item.op.handle}
-								avatarURL={item.op.avatar}
-								content={item.data.content}
-								likes={item.data.likes}
-								reposts={item.data.reposts}
-								replies={item.data.replies}
-								tokenUser={meUser!}
-							/>
-					  ))
+					? posts.map(item =>
+							!item.data.repost_type ? (
+								<PostBox
+									repost_type={
+										item.data
+											.repost_type
+									}
+									repost_id={
+										item.data
+											.repost_id
+									}
+									repost_op={
+										item.data
+											.repost_op
+									}
+									badgeType={getBadgeType(
+										item.op
+									)}
+									reply_type={
+										item.data
+											.reply_type
+									}
+									replyingTo={
+										item.data
+											.replyingTo
+									}
+									key={item.data.postID}
+									date={item.data.date}
+									postId={item.data.postID}
+									name={item.op.displayName}
+									handle={item.op.handle}
+									avatarURL={item.op.avatar}
+									content={item.data.content}
+									likes={item.data.likes}
+									reposts={item.data.reposts}
+									replies={item.data.replies}
+									tokenUser={meUser!}
+								/>
+							) : (
+								""
+							)
+					  )
 					: ""}
 			</div>
 		</>

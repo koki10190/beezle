@@ -8,6 +8,7 @@ import UserType from "../interfaces/UserType";
 async function fetchGlobalPosts(offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
 	const posts = (await Post.find({
 		__v: { $gte: 0 },
+		repost_type: { $ne: true },
 		reply_type: { $ne: true },
 	})
 		.sort({ $natural: -1 })
@@ -32,6 +33,7 @@ async function fetchGlobalPosts(offset: number): Promise<{ data: PostBoxType[]; 
 async function fetchReplies(postID: string, offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
 	const posts = (await Post.find({
 		__v: { $gte: 0 },
+		repost_type: { $ne: true },
 		replyingTo: postID,
 		reply_type: true,
 	})

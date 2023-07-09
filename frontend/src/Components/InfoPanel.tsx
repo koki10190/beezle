@@ -6,7 +6,7 @@ function InfoPanel() {
 		<div className="navigation-panel info-panel">
 			<div className="info-div">
 				<h1>
-					<span className="gradient">Beezle</span> ALPHA v0.3
+					<span className="gradient">Beezle</span> ALPHA v0.4
 				</h1>
 				<h2>
 					This is an alpha release!

@@ -31,6 +31,19 @@ function Profile() {
 	const [posts, setPosts] = useState([] as PostBoxType[]);
 	const [offset, setOffset] = useState(0);
 
+	let postDeleteCheck = 0;
+	socket.on("post-deleted", async (postId: string, isrepost) => {
+		if (postDeleteCheck > 0) {
+			if (postDeleteCheck >= 4) postDeleteCheck = 0;
+		}
+		posts.splice(
+			posts.findIndex(x => (isrepost ? x.data.repost_id == postId : x.data.postID == postId)),
+			1
+		);
+		setPosts([...posts]);
+		postDeleteCheck++;
+	});
+
 	let postLikesCheck = 0;
 	socket.on("post-like-refresh", async (postId: string, liked: string[]) => {
 		if (postLikesCheck > 0) {
@@ -41,6 +54,18 @@ function Profile() {
 		posts[post].data.likes = liked;
 		setPosts([...posts]);
 		postLikesCheck++;
+	});
+
+	let postRepostCheck = 0;
+	socket.on("post-repost-refresh", async (postId: string, reposts: string[]) => {
+		if (postRepostCheck > 0) {
+			if (postRepostCheck >= 4) postRepostCheck = 0;
+		}
+		const post = posts.findIndex(m_post => m_post.data.postID == postId);
+		if (post < 0) return;
+		posts[post].data.reposts = reposts;
+		setPosts([...posts]);
+		postRepostCheck++;
 	});
 
 	const follow = () => {
@@ -195,6 +220,9 @@ function Profile() {
 			<div className="profile-posts">
 				{posts.map(item => (
 					<PostBox
+						repost_id={item.data.repost_id}
+						repost_type={item.data.repost_type}
+						repost_op={item.data.repost_op}
 						reply_type={item.data.reply_type}
 						replyingTo={item.data.replyingTo}
 						badgeType={getBadgeType(item.op)}

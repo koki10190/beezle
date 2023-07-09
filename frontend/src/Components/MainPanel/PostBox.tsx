@@ -13,6 +13,7 @@ import { text } from "express";
 import uuid4 from "uuid4";
 import millify from "millify";
 import displayContent from "../../functions/displayContent";
+import { PostType } from "../../interfaces/PostType";
 
 interface PostBoxInterface {
 	name: string;
@@ -28,6 +29,9 @@ interface PostBoxInterface {
 	badgeType: BadgeType;
 	replyingTo: string;
 	reply_type: boolean;
+	repost_type: boolean;
+	repost_id: string;
+	repost_op: string;
 	// me: UserType;
 }
 
@@ -46,6 +50,9 @@ function PostBox({
 	date,
 	replyingTo,
 	reply_type,
+	repost_type,
+	repost_id,
+	repost_op,
 }: PostBoxInterface) {
 	let user: UserType;
 	// const [meUser, setMe] = useState({} as any as UserType);
@@ -55,7 +62,11 @@ function PostBox({
 	const html_reposts = useRef<HTMLDivElement>(null);
 	const html_replies = useRef<HTMLDivElement>(null);
 	const [isLiked, setLiked] = useState(false);
+	const [isReposted, setReposted] = useState(false);
 	const [isBookmarked, setBookmarked] = useState(false);
+	const [isRepost, setIsRepost] = useState(false);
+	const [repostData, setRepostData] = useState<PostType>({} as PostType);
+	const [repostOp, setRepostOp] = useState<UserType>({} as UserType);
 
 	(async () => {
 		// setMe(me);
@@ -72,10 +83,33 @@ function PostBox({
 			} else {
 				html_likes.current!.style.color = "rgba(255, 255, 255, 0.377)";
 			}
+
+			if (reposts.find(x => x === localStorage.getItem("handle"))) {
+				html_reposts.current!.style.color = "#66f542";
+				setReposted(true);
+			} else {
+				html_reposts.current!.style.color = "rgba(255, 255, 255, 0.377)";
+			}
 		})();
 	}, [likes]);
 
 	useEffect(() => {
+		(async () => {
+			if (repost_type) {
+				const repostData = await axios.get(`${api_url}/api/get-post/${repost_id}`);
+				setRepostData(repostData.data.data);
+
+				const repostOp = await GetOtherUser(repost_op);
+				setRepostOp(repostOp.user);
+				setIsRepost(repost_type);
+
+				if (handle === localStorage.getItem("handle")) {
+					html_reposts.current!.style.color = "#66f542";
+				}
+
+				setReposted(true);
+			}
+		})();
 		if (tokenUser) {
 			if (tokenUser.bookmarks.find(x => x == postId)) {
 				html_bookmarks.current!.style.color = "#349beb";
@@ -128,6 +162,29 @@ function PostBox({
 		}
 	};
 
+	const repost = () => {
+		if (isReposted) {
+			setReposted(false);
+			html_reposts.current!.style.color = "rgba(255, 255, 255, 0.377)";
+
+			axios.post(`${api_url}/api/repost`, {
+				token: localStorage.getItem("auth_token") as string,
+				postID: isRepost ? repost_id : postId,
+				unrepost: true,
+			});
+			console.log("uh huh");
+		} else {
+			setReposted(true);
+			html_reposts.current!.style.color = "#66f542";
+
+			axios.post(`${api_url}/api/repost`, {
+				token: localStorage.getItem("auth_token") as string,
+				postID: isRepost ? repost_id : postId,
+				unrepost: false,
+			});
+		}
+	};
+
 	const redirectToProfile = () => (window.location.href = "/profile/" + handle);
 
 	const deletePost = async () => {
@@ -142,6 +199,16 @@ function PostBox({
 	return (
 		<div className="post-box">
 			<div className="user-stuff">
+				{isRepost ? (
+					<p
+						onClick={() => (window.location.href = `/post/${repost_id}`)}
+						className="post-box-replying"
+					>
+						<i className="fa-solid fa-repeat"></i> Repost
+					</p>
+				) : (
+					""
+				)}
 				{reply_type ? (
 					<p
 						onClick={() => (window.location.href = `/post/${replyingTo}`)}
@@ -158,7 +225,9 @@ function PostBox({
 				>
 					<div
 						style={{
-							backgroundImage: `url("${avatarURL}")`,
+							backgroundImage: `url("${
+								isRepost ? repostOp.avatar : avatarURL
+							}")`,
 						}}
 						className="post-avatar"
 					></div>
@@ -166,11 +235,11 @@ function PostBox({
 						ref={username}
 						className="post-name"
 					>
-						{name}
+						{isRepost ? repostOp.displayName : name}
 					</p>
-					<p className="post-date">@{handle}</p>
+					<p className="post-date">@{isRepost ? repostOp.handle : handle}</p>
 					<p className="post-date-time">
-						{moment(date)
+						{moment(isRepost ? repostData.date : date)
 							.fromNow(true)
 							.replace("minutes", "m")
 							.replace(" ", "")
@@ -185,13 +254,13 @@ function PostBox({
 					</p>
 				</div>
 				<p
-					onClick={() => (window.location.href = "/post/" + postId)}
+					onClick={() => (window.location.href = "/post/" + (isRepost ? repost_id : postId))}
 					style={{
 						cursor: "pointer",
 						width: "100%",
 					}}
 					dangerouslySetInnerHTML={{
-						__html: displayContent(content),
+						__html: displayContent(isRepost ? repostData.content : content),
 					}}
 					className="post-content"
 				></p>
@@ -205,15 +274,25 @@ function PostBox({
 					>
 						<i className="fa-solid fa-comment"></i> <span>{millify(replies)}</span>
 					</div>
-					<div ref={html_reposts}>
+					<div
+						onClick={repost}
+						ref={html_reposts}
+					>
 						<i className="fa-solid fa-repeat"></i>{" "}
-						<span>{millify(reposts.length)}</span>
+						<span>
+							{millify(
+								isRepost
+									? repostData.reposts.length
+									: reposts.length
+							)}
+						</span>
 					</div>
 					<div
 						ref={html_likes}
 						onClick={likePost}
 					>
-						<i className="fa-solid fa-heart"></i> <span>{millify(likes.length)}</span>
+						<i className="fa-solid fa-heart"></i>{" "}
+						<span>{millify(isRepost ? repostData.likes.length : likes.length)}</span>
 					</div>
 					<div
 						onClick={bookmark}

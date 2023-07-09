@@ -49,6 +49,19 @@ function HomePostPage() {
 		}
 	});
 
+	let postRepostCheck = 0;
+	socket.on("post-repost-refresh", async (postId: string, reposts: string[]) => {
+		if (postLikesCheck > 0) {
+			if (postLikesCheck >= 4) postLikesCheck = 0;
+		}
+		if (postId !== postID) return;
+
+		if (post) {
+			post.data.reposts = reposts;
+			setPost(structuredClone(post));
+		}
+	});
+
 	// let postCheck = 0;
 	// socket.on("post", async (post: PostBoxType) => {
 	// 	if (postCheck > 0) {
@@ -63,10 +76,11 @@ function HomePostPage() {
 	// });
 
 	let postDeleteCheck = 0;
-	socket.on("post-deleted", async (postId: string) => {
+	socket.on("post-deleted", async (postId: string, isrepost: boolean) => {
 		if (postDeleteCheck > 0) {
 			if (postDeleteCheck >= 4) postDeleteCheck = 0;
 		}
+		if (isrepost) return;
 		replies.splice(
 			replies.findIndex(x => x.data.postID == postId),
 			1
@@ -504,6 +518,18 @@ function HomePostPage() {
 							</div>
 							{replies.map(item => (
 								<PostBox
+									repost_type={
+										item.data
+											.repost_type
+									}
+									repost_id={
+										item.data
+											.repost_id
+									}
+									repost_op={
+										item.data
+											.repost_op
+									}
 									reply_type={false}
 									replyingTo=""
 									badgeType={getBadgeType(

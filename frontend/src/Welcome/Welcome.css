@@ -54,6 +54,10 @@ nav > .icon {
 	margin-left: 120px;
 }
 
+.main-panel {
+	padding-bottom: 60px;
+}
+
 header {
 	width: 50%;
 	height: calc(100vh - 50px);

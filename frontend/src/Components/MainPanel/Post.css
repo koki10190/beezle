@@ -224,7 +224,7 @@
 	border-radius: 15px;
 	background-position: center;
 	background-repeat: no-repeat;
-	background-size: contain;
+	background-size: cover;
 	margin-top: 10px;
 }
 

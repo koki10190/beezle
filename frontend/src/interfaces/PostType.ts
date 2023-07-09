@@ -15,6 +15,9 @@ interface PostType {
 	replies: number;
 	replyingTo: string;
 	reply_type: boolean;
+	repost_type: boolean;
+	repost_op: string;
+	repost_id: string;
 }
 
 interface PostBoxType {

@@ -37,10 +37,10 @@ import { PostType } from "./interfaces/PostType";
 import CONSTANTS from "./constants/constants";
 import { VerifyBadgeText } from "./functions/badges";
 
-process.on("uncaughtException", function (err) {
-	console.error(err);
-	console.log("Node NOT Exiting...");
-});
+// process.on("uncaughtException", function (err) {
+// 	console.error(err);
+// 	console.log("Node NOT Exiting...");
+// });
 
 const transporter = nodemailer.createTransport(
 	smtpTransport({
@@ -96,15 +96,6 @@ app.get("/", (req: express.Request, res: express.Response) => {
 	Post.deleteMany({
 		__v: { $gte: 0 },
 	}).then(() => res.write("Deleted!"));
-
-	User.findOneAndUpdate(
-		{
-			handle: "koki2",
-		},
-		{
-			following: [],
-		}
-	);
 });
 
 app.get("/search/:email", async (req: express.Request, res: express.Response) => {
@@ -148,9 +139,10 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 		return;
 	}
 
+	const length = 24;
 	const user = await User.create({
-		handle: name,
-		displayName: name,
+		handle: name.length > length ? name.substring(0, length - 3) + "" : name,
+		displayName: name.length > length ? name.substring(0, length - 3) + "..." : name,
 		email: email,
 		password: hashed,
 	});
@@ -196,7 +188,7 @@ app.post("/api/verify-token", async (req: express.Request, res: express.Response
 			email: user.email,
 			handle: user.handle,
 		});
-
+		if (!m_user) return res.json({ error: true });
 		m_user!.displayName = sanitize(m_user!.displayName, {
 			allowedTags: [],
 		});
@@ -406,6 +398,9 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 				op: m_user?.handle,
 				reply_type: true,
 				replyingTo: req.body.replyingTo,
+				repost_type: false,
+				repost_op: "",
+				repost_id: "",
 			});
 
 			const post_rec = (await Post.find({ postID: req.body.replyingTo }).limit(1))[0];
@@ -427,6 +422,9 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 				content: sanitize(trimmedString),
 				op: m_user?.handle,
 				reply_type: false,
+				repost_type: false,
+				repost_op: "",
+				repost_id: "",
 			});
 		}
 
@@ -669,7 +667,7 @@ app.post("/api/delete-post", async (req: express.Request, res: express.Response)
 			postID: postId,
 		});
 
-		io.emit("post-deleted", postId);
+		io.emit("post-deleted", postId, false);
 		return res.json({ error: false });
 	});
 });
@@ -852,5 +850,61 @@ app.post("/api/clear-notifs", async (req: express.Request, res: express.Response
 		);
 
 		res.json({ done: true });
+	});
+});
+
+app.post("/api/repost", async (req: express.Request, res: express.Response) => {
+	const { token, postID, unrepost } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle, email: user.email }).limit(1))[0];
+		const post = (await Post.find({ postID }).limit(1))[0];
+		console.log(post);
+		if (unrepost) {
+			console.log("fuck me!");
+			const postFUCK = await Post.findOne({ repost_id: postID });
+			postFUCK?.deleteOne();
+			post.reposts.splice(
+				post.reposts.findIndex(x => x === m_user.handle),
+				1
+			);
+			post.save();
+			io.emit("post-repost-refresh", postID, post.reposts);
+			io.emit("post-deleted", postID, true);
+			return res.json({ done: true });
+		} else {
+			const repost = await Post.create({
+				postID: uuid4(),
+				op: m_user.handle,
+				content: post.content,
+				date: post.date,
+				edited: post.edited,
+				likes: post.likes,
+				reposts: post.reposts,
+				replies: post.replies,
+				replyingTo: post.replyingTo,
+				reply_type: post.reply_type,
+				repost_type: true,
+				repost_op: post.op,
+				repost_id: post.postID,
+			});
+			post.reposts.push(m_user.handle);
+			post.save();
+			io.emit("post-repost-refresh", postID, post.reposts);
+
+			const receiver = (await User.find({ handle: post.op }).limit(1))[0];
+			const url = `${CONSTANTS.FRONTEND_URL}/post/${post.postID}`;
+			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
+				m_user?.avatar
+			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has reposted your post!</a>`;
+			if (getSockets()[receiver!.handle]) {
+				getSockets()[receiver!.handle].emit("notification", notif, url);
+				console.log("notif received");
+			}
+
+			return res.json(repost);
+		}
 	});
 });

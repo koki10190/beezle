@@ -75,6 +75,9 @@ function HomeSearch() {
 
 					{posts.map(item => (
 						<PostBox
+							repost_id={item.data.repost_id}
+							repost_op={item.data.repost_op}
+							repost_type={item.data.repost_type}
 							badgeType={getBadgeType(item.op)}
 							reply_type={item.data.reply_type}
 							replyingTo={item.data.replyingTo}
