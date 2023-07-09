@@ -178,7 +178,10 @@ function PostBox({
 							.replace("afew seconds", "1s")
 							.replace("aminute", "1m")
 							.replace("ahour", "1h")
-							.replace("anhour", "1h")}
+							.replace("anhour", "1h")
+							.replace("aday", "1d")
+							.replace("days", "d")
+							.replace("day", "1d")}
 					</p>
 				</div>
 				<p

@@ -115,7 +115,7 @@ function Post() {
 				})
 			).data;
 
-			post.current!.value += res.img;
+			post.current!.value += " " + res.img;
 		});
 	}, []);
 
