@@ -76,6 +76,11 @@ function HomeNotification() {
 											autoClose: 1000,
 										}
 									);
+									window.dispatchEvent(
+										new Event(
+											"update-notif-counter"
+										)
+									);
 								})
 						}
 						className="refresh"
