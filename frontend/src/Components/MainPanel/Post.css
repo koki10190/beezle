@@ -8,7 +8,7 @@
 }
 
 :root {
-	font-family: "Open Sans", "Noto Color Emoji";
+	font-family: "Open Sans";
 }
 
 .make-post {
@@ -103,7 +103,7 @@
 	height: 40px;
 	color: white;
 	box-sizing: border-box;
-	font-family: "Open Sans", "Noto Color Emoji";
+	font-family: "Open Sans";
 	margin-bottom: 17px;
 	margin-top: 10px;
 }

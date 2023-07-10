@@ -37,6 +37,7 @@ import { PostType } from "./interfaces/PostType";
 import CONSTANTS from "./constants/constants";
 import { VerifyBadgeText } from "./functions/badges";
 import validate from "deep-email-validator";
+import EmailVerification from "./models/EmailVerification";
 
 process.on("uncaughtException", function (err) {
 	console.error(err);
@@ -49,9 +50,7 @@ interface PostLimiter {
 
 const transporter = nodemailer.createTransport(
 	smtpTransport({
-		service: "smtp.gmail.com",
-		secure: false,
-		port: 465,
+		service: "gmail",
 		auth: {
 			user: "beezle.app.lol@gmail.com",
 			pass: process.env.GMAIL_PASS as string,
@@ -101,6 +100,12 @@ app.get("/", (req: express.Request, res: express.Response) => {
 	// Post.deleteMany({
 	// 	__v: { $gte: 0 },
 	// }).then(() => res.write("Deleted!"));
+
+	User.find({ $gte: 0 }).updateMany({
+		active: true,
+	});
+
+	User.updateMany({ $gte: 0 }, { active: true }).then(res => console.log(res));
 });
 
 app.get("/search/:email", async (req: express.Request, res: express.Response) => {
@@ -123,6 +128,7 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 	// 	error: "Registering users is currently unavailable due to an exploit.",
 	// 	was_error: true,
 	// });
+	User.findOneAndDelete({ email: "guitarwithluka@gmail.com" });
 	if (await usernameOrEmailTaken(name, email)) {
 		res.json({
 			error: "The username " + name + " or email " + email + " is already taken!",
@@ -139,7 +145,7 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 		return;
 	}
 
-	if (!name.match(/^[a-z0-9\._-]+$/g)) {
+	if (!name.toLowerCase().match(/^[a-z0-9\._-]+$/g)) {
 		res.json({
 			error: "The username cannot have any special characters except of dots, dashes, underscores and lower case letters!",
 			was_error: true,
@@ -155,21 +161,35 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 		return;
 	}
 
-	const emailCheck = await validate(email);
-	if (!emailCheck.valid) {
-		res.json({
-			error: "Invalid email address!",
-			was_error: true,
-		});
-	}
+	// const emailCheck = await validate(email);
+	// if (!emailCheck.valid) {
+	// 	res.json({
+	// 		error: "Invalid email address!",
+	// 		was_error: true,
+	// 	});
+	// }
 
 	const length = 24;
 	const user = await User.create({
-		handle: name.replace(/(.{16})..+/, "$1"),
-		displayName: name.replace(/(.{16})..+/, "$1…"),
+		handle: name.toLowerCase().replace(/(.{16})..+/, "$1"),
+		displayName: name.toLowerCase().replace(/(.{16})..+/, "$1…"),
 		email: email,
 		password: hashed,
+		active: false,
 	});
+
+	const verify = await EmailVerification.create({
+		auth: uuid4(),
+		for: user.handle,
+	});
+	const ipAddress = req.header("x-forwarded-for") || req.socket.remoteAddress;
+	sendEmail(
+		user.email,
+		"Verify your email address",
+		`Hello ${user.handle}!\nClick the URL to verify your account "@${user.handle}": ${CONSTANTS.SERVER_URL}/verify/${verify.auth}\nDO NOT Click on this link if you didn't register using this email!\nIP Address of the requester: ${ipAddress}`
+	);
+
+	return res.json({ error: "An email has been sent, please verify your account", was_error: true });
 
 	const token = jwt.sign(user.toJSON(), jwt_secret);
 	// sendEmail(
@@ -199,8 +219,46 @@ app.post("/api/login", async (req: express.Request, res: express.Response) => {
 		});
 	}
 
+	if (!user.active) {
+		let verify = await EmailVerification.findOne({ for: user.handle });
+		if (!verify) {
+			verify = await EmailVerification.create({
+				for: user.handle,
+				auth: uuid4(),
+			});
+		}
+
+		const ipAddress = req.header("x-forwarded-for") || req.socket.remoteAddress;
+		sendEmail(
+			user.email,
+			"Verify your email address",
+			`Hello ${user.handle}!\nClick the URL to verify your account "@${user.handle}": ${CONSTANTS.SERVER_URL}/verify/${verify.auth}\n\nDO NOT Click on this link if you didn't login into your account!\nIP Address of the requester: ${ipAddress}`
+		);
+
+		return res.json({ error: "An email has been sent, please verify your account", was_error: true });
+	}
+
 	const token = jwt.sign(user.toJSON(), jwt_secret);
 	return res.json({ token, error: "", was_error: false });
+});
+
+app.post("/api/logout", async (req: express.Request, res: express.Response) => {
+	const { token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = await User.findOneAndUpdate(
+			{
+				email: user.email,
+				handle: user.handle,
+			},
+			{
+				active: false,
+			}
+		);
+		return res.json({ error: false });
+	});
 });
 
 app.post("/api/verify-token", async (req: express.Request, res: express.Response) => {
@@ -374,18 +432,18 @@ app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
 	});
 });
 
-app.get("/verify/:handle", async (req: express.Request, res: express.Response) => {
-	// const { handle } = req.params;
-	// const user = await User.updateOne(
-	// 	{
-	// 		handle,
-	// 	},
-	// 	{
-	// 		verified: true,
-	// 	}
-	// );
-	// res.send("test!");
-});
+// app.get("/verify/:handle", async (req: express.Request, res: express.Response) => {
+// 	// const { handle } = req.params;
+// 	// const user = await User.updateOne(
+// 	// 	{
+// 	// 		handle,
+// 	// 	},
+// 	// 	{
+// 	// 		verified: true,
+// 	// 	}
+// 	// );
+// 	// res.send("test!");
+// });
 
 app.get("/mod/:handle", async (req: express.Request, res: express.Response) => {
 	// const { handle } = req.params;
@@ -952,4 +1010,20 @@ app.get("/hash/:password", async (req: express.Request, res: express.Response) =
 	// const salt = await bcrypt.genSalt(10);
 	// const hashed = await bcrypt.hash(password, salt);
 	// return res.send(hashed);
+});
+
+app.get("/verify/:hashtt", async (req: express.Request, res: express.Response) => {
+	const { hashtt } = req.params;
+	const verify = await EmailVerification.findOne({ auth: hashtt });
+
+	if (!verify) return res.redirect(`${CONSTANTS.FRONTEND_URL}`);
+
+	const user = await User.findOneAndUpdate(
+		{ handle: verify.for },
+		{
+			active: true,
+		}
+	);
+
+	res.send("Success! Your account has been created, you can login now.");
 });

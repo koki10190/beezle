@@ -37,7 +37,7 @@ function App() {
 	}, [gotHandle]);
 
 	useEffect(() => {
-		socket.connect();
+		if (!socket.connected) socket.connect();
 	}, []);
 	if (window.screen.width > 1000) {
 		Notification.requestPermission().then(perm => {

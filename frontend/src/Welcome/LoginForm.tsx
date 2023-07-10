@@ -29,9 +29,10 @@ function LoginForm({ state_change }: LoginFormInterface) {
 
 			if (data.was_error) {
 				login_error.current!.style.color =
-					"red";
-				login_error.current!.innerText =
-					data.error;
+					data.error === "An email has been sent, please verify your account" ? "lime" : "red";
+				login_error.current!.innerText = data.error;
+
+				btn.current!.disabled = false;
 				return;
 			}
 
@@ -63,10 +64,16 @@ function LoginForm({ state_change }: LoginFormInterface) {
 				className="form-control"
 				type="password"
 			/>
-			<button ref={btn} type="submit">
+			<button
+				ref={btn}
+				type="submit"
+			>
 				Login
 			</button>
-			<p ref={login_error} className="register-error"></p>
+			<p
+				ref={login_error}
+				className="register-error"
+			></p>
 			<a
 				onClick={state_stuff}
 				className="centered-text-form"

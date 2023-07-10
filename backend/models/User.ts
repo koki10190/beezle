@@ -63,6 +63,7 @@ const schema = new mongoose.Schema({
 			type: String,
 		},
 	],
+	active: { type: Boolean, default: true },
 	notifications: [{ type: String }],
 	// token: {
 	// 	type: String,

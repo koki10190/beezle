@@ -5,6 +5,8 @@ import socket from "../io/socket";
 import { Icons, toast } from "react-toastify";
 import notifToast from "../functions/notif";
 import sanitize from "sanitize-html";
+import axios from "axios";
+import { api_url } from "../constants/ApiURL";
 
 function NavigationPanel() {
 	if (window.innerWidth <= 1200) {
@@ -17,8 +19,12 @@ function NavigationPanel() {
 	const notifCounter = useRef<HTMLSpanElement>(null);
 
 	const logout = () => {
-		localStorage.removeItem("auth_token");
-		window.location.href = "/";
+		axios.post(`${api_url}/api/logout`, {
+			token: localStorage.getItem("auth_token"),
+		}).then(() => {
+			localStorage.removeItem("auth_token");
+			window.location.href = "/";
+		});
 	};
 
 	const myProfile = async () => {

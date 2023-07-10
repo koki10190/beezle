@@ -45,9 +45,13 @@ function HomePostPage() {
 		if (postLikesCheck > 0) {
 			if (postLikesCheck >= 4) postLikesCheck = 0;
 		}
-		if (postId !== postID) return;
-
-		if (post) {
+		if (postId !== postID) {
+			const post = replies.findIndex(m_post => m_post.data.postID == postId);
+			if (post < 0) return;
+			replies[post].data.likes = liked;
+			setReplies([...replies]);
+			postLikesCheck++;
+		} else if (post) {
 			post.data.likes = liked;
 			setPost(structuredClone(post));
 		}
@@ -55,12 +59,16 @@ function HomePostPage() {
 
 	let postRepostCheck = 0;
 	socket.on("post-repost-refresh", async (postId: string, reposts: string[]) => {
-		if (postLikesCheck > 0) {
-			if (postLikesCheck >= 4) postLikesCheck = 0;
+		if (postRepostCheck > 0) {
+			if (postRepostCheck >= 4) postRepostCheck = 0;
 		}
-		if (postId !== postID) return;
-
-		if (post) {
+		if (postId !== postID) {
+			const post = replies.findIndex(m_post => m_post.data.postID == postId);
+			if (post < 0) return;
+			replies[post].data.reposts = reposts;
+			setReplies([...replies]);
+			postRepostCheck++;
+		} else if (post) {
 			post.data.reposts = reposts;
 			setPost(structuredClone(post));
 		}
