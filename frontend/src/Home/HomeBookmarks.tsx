@@ -3,6 +3,7 @@ import GetUserData from "../api/GetUserData";
 import NavigationPanel from "../Components/NavigationPanel";
 import InfoPanel from "../Components/InfoPanel";
 import Bookmarks from "../Components/MainPanel/Bookmarks";
+import { useNavigate } from "react-router-dom";
 
 function HomeBookmarks() {
 	let user;
@@ -10,7 +11,8 @@ function HomeBookmarks() {
 	(async () => {
 		user = await GetUserData();
 		if (user.error) {
-			window.location.href = "/";
+			const navigate = useNavigate();
+			navigate("/");
 		}
 	})();
 	return (

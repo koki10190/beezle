@@ -4,13 +4,15 @@ import RegisterForm from "./RegisterForm";
 import { useState } from "react";
 import LoginForm from "./LoginForm";
 import socket from "../io/socket";
+import { useNavigate } from "react-router-dom";
 function Welcome() {
 	if (localStorage.getItem("auth_token")) {
 		(async () => {
 			const data = await GetUserData();
 			if (data) {
 				// socket.emit("get-handle", data.user.handle);
-				window.location.href = "/home";
+				const navigate = useNavigate();
+				navigate("/");
 			}
 		})();
 	} else {

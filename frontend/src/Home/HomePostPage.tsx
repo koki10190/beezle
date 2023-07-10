@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, UIEvent } from "react";
+import { useEffect, useRef, useState, UIEvent, ChangeEventHandler } from "react";
 import GetUserData from "../api/GetUserData";
 import NavigationPanel from "../Components/NavigationPanel";
 import MainPanel from "../Components/MainPanel";
 import InfoPanel from "../Components/InfoPanel";
 import UserType from "../interfaces/UserType";
 import GetOtherUser from "../api/GetOtherUser";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import "./HomePostPage.css";
 import { PostBoxType, PostType } from "../interfaces/PostType";
 import axios from "axios";
@@ -23,6 +23,7 @@ import EmojiPicker, { EmojiClickData, EmojiStyle, Theme } from "emoji-picker-rea
 import sanitize from "sanitize-html";
 
 function HomePostPage() {
+	const navigate = useNavigate();
 	const { postID } = useParams();
 	const [me, setMe] = useState<UserType>({} as UserType);
 	const [user, setUser] = useState<UserType>({} as UserType);
@@ -35,10 +36,37 @@ function HomePostPage() {
 	const [isEmojiPickerShown, setEmojiShown] = useState(false);
 	const [replyParent, setReplyParent] = useState<PostBoxType>({} as PostBoxType);
 	const [isBookmarked, setBookmarked] = useState<boolean>(false);
+	const [isReposted, setReposted] = useState<boolean>(false);
+	const [editingPost, setEditing] = useState<boolean>(false);
+	const [edit_content, setContent] = useState<string>("");
 	const html_likes = useRef<HTMLParagraphElement>(null);
 	const html_bookmarks = useRef<HTMLParagraphElement>(null);
+	const html_reposts = useRef<HTMLParagraphElement>(null);
 	const postFile = useRef<HTMLInputElement>(null);
 	const postText = useRef<HTMLTextAreaElement>(null);
+
+	const repost = () => {
+		if (isReposted) {
+			setReposted(false);
+			html_reposts.current!.style.color = "rgba(255, 255, 255, 0.377)";
+
+			axios.post(`${api_url}/api/repost`, {
+				token: localStorage.getItem("auth_token") as string,
+				postID: post.data.postID,
+				unrepost: true,
+			});
+			console.log("uh huh");
+		} else {
+			setReposted(true);
+			html_reposts.current!.style.color = "#66f542";
+
+			axios.post(`${api_url}/api/repost`, {
+				token: localStorage.getItem("auth_token") as string,
+				postID: post.data.postID,
+				unrepost: false,
+			});
+		}
+	};
 
 	let postLikesCheck = 0;
 	socket.on("post-like-refresh", async (postId: string, liked: string[]) => {
@@ -112,7 +140,7 @@ function HomePostPage() {
 			let interval_bookmarks: NodeJS.Timer;
 			const data = await GetUserData();
 			if (data.error) {
-				window.location.href = "/";
+				navigate("/");
 			} else {
 				setMe(data.user);
 			}
@@ -131,8 +159,10 @@ function HomePostPage() {
 			const replies = (await axios.get(`${api_url}/api/get-replies/${postID}/${offset}`)).data;
 			setReplies(replies.data);
 
+			setContent(post.data.content);
+
 			interval = setInterval(() => {
-				if (postFile.current && html_likes.current && html_bookmarks.current) {
+				if (postFile.current && html_likes.current && html_bookmarks.current && html_reposts.current) {
 					postFile.current.addEventListener("change", async (event: Event) => {
 						const fileFormData = new FormData();
 						console.log(postFile.current!.files![0]);
@@ -167,6 +197,14 @@ function HomePostPage() {
 					} else {
 						setLiked(false);
 						html_likes.current!.style.color = "rgba(255, 255, 255, 0.377)";
+					}
+
+					if (post.data.reposts.find(x => x === data.user.handle)) {
+						setLiked(true);
+						html_reposts.current!.style.color = "#66f542";
+					} else {
+						setLiked(false);
+						html_reposts.current!.style.color = "rgba(255, 255, 255, 0.377)";
 					}
 
 					if (html_bookmarks.current) {
@@ -251,7 +289,7 @@ function HomePostPage() {
 		axios.post(`${api_url}/api/delete-post`, {
 			postId: postID,
 			token: localStorage.getItem("auth_token"),
-		}).then(res => (window.location.href = "/"));
+		}).then(res => navigate("/"));
 	};
 
 	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
@@ -301,6 +339,28 @@ function HomePostPage() {
 		}
 	};
 
+	const edit = async () => {
+		setEditing(!editingPost);
+	};
+
+	const editSave = async () => {
+		if (edit_content === "") return;
+
+		const res = await axios.post(`${api_url}/api/edit-post`, {
+			token: localStorage.getItem("auth_token"),
+			content: edit_content,
+			postID,
+		});
+
+		window.location.reload();
+	};
+
+	const set_content = (event: any) => {
+		const target = event.target as HTMLTextAreaElement;
+
+		setContent(target.value);
+	};
+
 	return (
 		<>
 			<div className="main-pages">
@@ -311,14 +371,28 @@ function HomePostPage() {
 				>
 					{render ? (
 						<>
+							{post?.data.edited ? (
+								<p
+									style={{
+										marginTop: "-5px",
+									}}
+									className="page-replying-to"
+								>
+									<i className="fa-solid fa-pen"></i>{" "}
+									Edited{" "}
+								</p>
+							) : (
+								""
+							)}
 							{post?.data.reply_type ? (
 								<p
 									onClick={() =>
-										(window.location.href =
+										navigate(
 											"/post/" +
-											replyParent
-												.data
-												.postID)
+												replyParent
+													.data
+													.postID
+										)
 									}
 									className="page-replying-to"
 								>
@@ -348,7 +422,9 @@ function HomePostPage() {
 							<div
 								style={{ cursor: "pointer" }}
 								onClick={() =>
-									(window.location.href = `/profile/${post.op.handle}`)
+									navigate(
+										`/profile/${post.op.handle}`
+									)
 								}
 							>
 								<div
@@ -389,15 +465,38 @@ function HomePostPage() {
 									.replace("ahour", "1h")
 									.replace("anhour", "1h")}
 							</p>
-							<p
-								dangerouslySetInnerHTML={{
-									__html: displayContent(
-										post!.data
-											.content
-									),
-								}}
-								className="page-content"
-							></p>
+							{editingPost ? (
+								<>
+									<textarea
+										onChange={
+											set_content
+										}
+										className="post-edit-textarea"
+										value={
+											edit_content
+										}
+									></textarea>
+									<button
+										onClick={
+											editSave
+										}
+										className="post-edit-save"
+									>
+										Save Changes
+									</button>
+								</>
+							) : (
+								<p
+									dangerouslySetInnerHTML={{
+										__html: displayContent(
+											post!
+												.data
+												.content
+										),
+									}}
+									className="page-content"
+								></p>
+							)}
 							<hr
 								style={{
 									marginTop: "40px",
@@ -406,9 +505,8 @@ function HomePostPage() {
 							/>
 							<div className="buttons">
 								<div
-								// ref={
-								// html_rereplies
-								// }
+									ref={html_reposts}
+									onClick={repost}
 								>
 									<i className="fa-solid fa-repeat"></i>{" "}
 									<span>
@@ -447,9 +545,22 @@ function HomePostPage() {
 
 								{localStorage.getItem("handle") ===
 								post?.op.handle ? (
-									<div onClick={deletePost}>
-										<i className="fa-solid fa-trash"></i>
-									</div>
+									<>
+										<div
+											onClick={
+												edit
+											}
+										>
+											<i className="fa-solid fa-pen"></i>
+										</div>
+										<div
+											onClick={
+												deletePost
+											}
+										>
+											<i className="fa-solid fa-trash"></i>
+										</div>
+									</>
 								) : (
 									""
 								)}
@@ -554,6 +665,7 @@ function HomePostPage() {
 							</div>
 							{replies.map(item => (
 								<PostBox
+									edited={item.data.edited}
 									repost_type={
 										item.data
 											.repost_type

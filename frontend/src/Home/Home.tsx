@@ -3,8 +3,10 @@ import GetUserData from "../api/GetUserData";
 import NavigationPanel from "../Components/NavigationPanel";
 import MainPanel from "../Components/MainPanel";
 import InfoPanel from "../Components/InfoPanel";
+import { useNavigate } from "react-router-dom";
 
 function Home() {
+	const navigate = useNavigate();
 	let user;
 	const avatar = useRef<HTMLImageElement>(null);
 	const banner = useRef<HTMLImageElement>(null);
@@ -13,7 +15,7 @@ function Home() {
 	(async () => {
 		const data = await GetUserData();
 		if (data.error) {
-			window.location.href = "/";
+			navigate("/");
 		}
 	})();
 

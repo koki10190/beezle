@@ -14,6 +14,7 @@ import uuid4 from "uuid4";
 import millify from "millify";
 import displayContent from "../../functions/displayContent";
 import { PostType } from "../../interfaces/PostType";
+import { useNavigate } from "react-router-dom";
 
 interface PostBoxInterface {
 	name: string;
@@ -32,6 +33,7 @@ interface PostBoxInterface {
 	repost_type: boolean;
 	repost_id: string;
 	repost_op: string;
+	edited: boolean;
 	// me: UserType;
 }
 
@@ -53,7 +55,9 @@ function PostBox({
 	repost_type,
 	repost_id,
 	repost_op,
+	edited,
 }: PostBoxInterface) {
+	const navigate = useNavigate();
 	let user: UserType;
 	// const [meUser, setMe] = useState({} as any as UserType);
 	const default_button_color = "rgba(255, 255, 255, 0.377)";
@@ -197,7 +201,7 @@ function PostBox({
 		}
 	};
 
-	const redirectToProfile = () => (window.location.href = "/profile/" + handle);
+	const redirectToProfile = () => navigate("/profile/" + handle);
 
 	const deletePost = async () => {
 		axios.post(`${api_url}/api/delete-post`, {
@@ -206,14 +210,14 @@ function PostBox({
 		});
 	};
 
-	const reply = () => (window.location.href = "/post/" + postId);
+	const reply = () => navigate("/post/" + postId);
 
 	return (
 		<div className="post-box">
 			<div className="user-stuff">
 				{isRepost ? (
 					<p
-						onClick={() => (window.location.href = `/post/${repost_id}`)}
+						onClick={() => navigate(`/post/${repost_id}`)}
 						className="post-box-replying"
 					>
 						<i className="fa-solid fa-repeat"></i> Repost
@@ -221,9 +225,17 @@ function PostBox({
 				) : (
 					""
 				)}
+
+				{edited ? (
+					<p className="post-box-replying">
+						<i className="fa-solid fa-pen"></i> Edited{" "}
+					</p>
+				) : (
+					""
+				)}
 				{reply_type ? (
 					<p
-						onClick={() => (window.location.href = `/post/${replyingTo}`)}
+						onClick={() => navigate(`/post/${replyingTo}`)}
 						className="post-box-replying"
 					>
 						<i className="fa-solid fa-reply"></i> Replying to a post
@@ -268,7 +280,7 @@ function PostBox({
 					</p>
 				</div>
 				<p
-					onClick={() => (window.location.href = "/post/" + (isRepost ? repost_id : postId))}
+					onClick={() => navigate("/post/" + isRepost ? repost_id : postId)}
 					style={{
 						cursor: "pointer",
 						width: "100%",

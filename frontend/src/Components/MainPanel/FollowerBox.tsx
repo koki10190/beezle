@@ -6,12 +6,14 @@ import VerifyBadge from "../../functions/VerifyBadge";
 import VerifyBadgeText from "../../functions/VerifyBadgeText";
 import { api_url } from "../../constants/ApiURL";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 interface FollowerBoxData {
 	handle: string;
 }
 
 function FollowerBox({ handle }: FollowerBoxData) {
+	const navigate = useNavigate();
 	const [user, setUser] = useState<UserType>({} as UserType);
 	const [isFollowing, setFollowing] = useState<boolean>(false);
 	const followBtn = useRef<HTMLButtonElement>(null);
@@ -45,7 +47,7 @@ function FollowerBox({ handle }: FollowerBoxData) {
 			className="follower-box"
 		>
 			<div
-				onClick={() => (window.location.href = "/profile/" + handle)}
+				onClick={() => navigate("/profile/" + handle)}
 				className="follower-data"
 			>
 				<div

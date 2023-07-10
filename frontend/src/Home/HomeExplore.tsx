@@ -9,7 +9,7 @@ import Post from "../Components/MainPanel/Post";
 import socket from "../io/socket";
 import { useNavigate } from "react-router-dom";
 
-function HomePost() {
+function HomeExplore() {
 	let user;
 	const avatar = useRef<HTMLImageElement>(null);
 	const banner = useRef<HTMLImageElement>(null);
@@ -46,4 +46,4 @@ function HomePost() {
 	);
 }
 
-export default HomePost;
+export default HomeExplore;

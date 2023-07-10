@@ -125,6 +125,7 @@ button {
 	right: 20px;
 	cursor: pointer;
 	text-shadow: black 0px 0px 5px, black 0px 0px 5px, black 0px 0px 5px;
+	z-index: 5;
 }
 
 .main-panel.scale-twice {

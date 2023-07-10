@@ -9,10 +9,7 @@ async function GetOtherUser(handle: string) {
 			handle,
 		})
 	).data as TokenDataType;
-	data.user.displayName =
-		data.user.displayName.length > 10
-			? data.user.displayName.substring(0, 10) + "..."
-			: data.user.displayName;
+	data.user.displayName = data.user.displayName.replace(/(.{16})..+/, "$1");
 	return data;
 }
 

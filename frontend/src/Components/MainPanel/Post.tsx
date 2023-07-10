@@ -7,17 +7,15 @@ import EmojiPicker, { EmojiClickData, EmojiStyle, Theme } from "emoji-picker-rea
 import VerifyBadge from "../../functions/VerifyBadge";
 import CutLong from "../../functions/CutLong";
 import axios from "axios";
-import { PostType, PostBoxType } from "../../interfaces/PostType";
-import GetOtherUser from "../../api/GetOtherUser";
+import { PostBoxType } from "../../interfaces/PostType";
 import socket from "../../io/socket";
-import uuid4 from "uuid4";
 import { api_url } from "../../constants/ApiURL";
-import { BadgeType } from "../../functions/VerifyBadgeBool";
 import getBadgeType from "../../functions/getBadgeType";
 import { Icons, toast } from "react-toastify";
-import Tenor from "react-tenor";
+import { useNavigate } from "react-router-dom";
 
-function Post() {
+function Post({ fetch_method }: { fetch_method: string }) {
+	const navigate = useNavigate();
 	let user: UserType;
 	const [meUser, setMe] = useState<UserType>();
 	const avatar = useRef<HTMLDivElement>(null);
@@ -101,7 +99,7 @@ function Post() {
 			VerifyBadge(username.current!, user);
 			CutLong(user.displayName, 10);
 
-			axios.get(`${api_url}/api/explore-posts/${postsOffset}`).then(async res => {
+			axios.get(`${api_url}/api/${fetch_method}/${postsOffset}`).then(async res => {
 				setPosts(res.data.posts as PostBoxType[]);
 
 				setPostsOffset(res.data.latestIndex);
@@ -135,7 +133,7 @@ function Post() {
 
 	const redirectToUserProfile = () => {
 		console.log(user);
-		window.location.href = ("/profile/" + localStorage.getItem("handle")) as string;
+		navigate("/profile/" + localStorage.getItem("handle"));
 	};
 
 	const addEmoji = (emoji: EmojiClickData) => {
@@ -168,7 +166,7 @@ function Post() {
 	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
 		const element = event.target! as HTMLDivElement;
 		if (element.scrollHeight - element.scrollTop === element.clientHeight) {
-			axios.get(`${api_url}/api/explore-posts/${postsOffset + 1}`).then(async res => {
+			axios.get(`${api_url}/api/${fetch_method}/${postsOffset + 1}`).then(async res => {
 				// let found = false;
 				// for (const reply of res.data
 				// 	.posts as PostBoxType[]) {
@@ -214,7 +212,7 @@ function Post() {
 			theme: "dark",
 			hideProgressBar: true,
 		});
-		axios.get(`${api_url}/api/explore-posts/0`).then(async res => {
+		axios.get(`${api_url}/api/${fetch_method}/0`).then(async res => {
 			setPosts(res.data.posts as PostBoxType[]);
 			setPostsOffset(res.data.latestIndex);
 			toast("Refreshed the posts", {
@@ -311,6 +309,7 @@ function Post() {
 					? posts.map(item =>
 							!item.data.repost_type ? (
 								<PostBox
+									edited={item.data.edited}
 									repost_type={
 										item.data
 											.repost_type

@@ -2,12 +2,14 @@ import axios from "axios";
 import { FormEvent, useRef } from "react";
 import RegisterTokenData from "../interfaces/RegisterTokenData";
 import { api_url } from "../constants/ApiURL";
+import { useNavigate } from "react-router-dom";
 
 interface RegisterFormInterface {
 	state_change: (bool: boolean) => void;
 }
 
 function RegisterForm({ state_change }: RegisterFormInterface) {
+	const navigate = useNavigate();
 	const register_form = useRef<HTMLFormElement>(null);
 	const username = useRef<HTMLInputElement>(null);
 	const email = useRef<HTMLInputElement>(null);
@@ -60,15 +62,25 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 
 			register_error.current!.innerText = "Thank you for registering! Redirecting...";
 
-			window.location.href = "/home";
+			navigate("/home");
 		});
 	};
 
 	const state_stuff = () => state_change(false);
 
 	return (
-		<form onSubmit={register} ref={register_form} className="welcome-form-registration form-group">
-			<input name="name" placeholder="Username" ref={username} required className="form-control" />
+		<form
+			onSubmit={register}
+			ref={register_form}
+			className="welcome-form-registration form-group"
+		>
+			<input
+				name="name"
+				placeholder="Username"
+				ref={username}
+				required
+				className="form-control"
+			/>
 			<p className="username-field-text">
 				Only letters, numbers, dots, dashes, underscores and lower case letters are allowed.
 			</p>
@@ -97,11 +109,21 @@ function RegisterForm({ state_change }: RegisterFormInterface) {
 				className="form-control"
 				type="password"
 			/>
-			<button ref={btn} type="submit">
+			<button
+				ref={btn}
+				type="submit"
+			>
 				Register
 			</button>
-			<p ref={register_error} className="register-error"></p>
-			<a type="button" onClick={state_stuff} className="centered-text-form">
+			<p
+				ref={register_error}
+				className="register-error"
+			></p>
+			<a
+				type="button"
+				onClick={state_stuff}
+				className="centered-text-form"
+			>
 				Login Instead
 			</a>
 		</form>

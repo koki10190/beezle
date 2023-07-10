@@ -17,6 +17,9 @@ import GetUserData from "./api/GetUserData";
 import { useEffect, useState } from "react";
 import HomeNotification from "./Home/HomeNotification";
 import notif from "./functions/notif";
+import HomeRightNow from "./Home/HomeRightNow";
+import HomeExplore from "./Home/HomeExplore";
+import HomeDms from "./DMs/HomeDms";
 
 function iOS() {
 	return (
@@ -95,6 +98,18 @@ function App() {
 					<Route
 						path="/notifications"
 						element={<HomeNotification />}
+					/>
+					<Route
+						path="/now"
+						element={<HomeRightNow />}
+					/>
+					<Route
+						path="/explore"
+						element={<HomeExplore />}
+					/>
+					<Route
+						path="/dms"
+						element={<HomeDms />}
 					/>
 				</Routes>
 			</BrowserRouter>

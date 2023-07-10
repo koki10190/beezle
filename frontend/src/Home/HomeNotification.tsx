@@ -12,6 +12,7 @@ import "./HomeNotification.css";
 import axios from "axios";
 import { api_url } from "../constants/ApiURL";
 import { Icons, toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 function HomeNotification() {
 	let user;
@@ -19,7 +20,8 @@ function HomeNotification() {
 	(async () => {
 		const data = await GetUserData();
 		if (data.error) {
-			window.location.href = "/";
+			const navigate = useNavigate();
+			navigate("/");
 		}
 	})();
 

@@ -2,6 +2,7 @@ import axios from "axios";
 import { FormEvent, useRef } from "react";
 import RegisterTokenData from "../interfaces/RegisterTokenData";
 import { api_url } from "../constants/ApiURL";
+import { useNavigate } from "react-router-dom";
 // import LoginTokenData from "../interfaces/LoginTokenData";
 
 interface LoginFormInterface {
@@ -9,6 +10,7 @@ interface LoginFormInterface {
 }
 
 function LoginForm({ state_change }: LoginFormInterface) {
+	const navigate = useNavigate();
 	const login_form = useRef<HTMLFormElement>(null);
 	const email = useRef<HTMLInputElement>(null);
 	const password = useRef<HTMLInputElement>(null);
@@ -37,7 +39,7 @@ function LoginForm({ state_change }: LoginFormInterface) {
 			}
 
 			localStorage.setItem("auth_token", data.token);
-			window.location.href = "/home";
+			navigate("/home");
 		});
 	};
 

@@ -7,8 +7,10 @@ import notifToast from "../functions/notif";
 import sanitize from "sanitize-html";
 import axios from "axios";
 import { api_url } from "../constants/ApiURL";
+import { useNavigate } from "react-router-dom";
 
 function NavigationPanel() {
+	const navigate = useNavigate();
 	if (window.innerWidth <= 1200) {
 		localStorage.setItem("navigation_panel", "false");
 	}
@@ -23,14 +25,14 @@ function NavigationPanel() {
 			token: localStorage.getItem("auth_token"),
 		}).then(() => {
 			localStorage.removeItem("auth_token");
-			window.location.href = "/";
+			navigate("/");
 		});
 	};
 
 	const myProfile = async () => {
 		const data = (await GetUserData()).user;
 
-		window.location.href = `/profile/${data.handle}`;
+		navigate(`/profile/${data.handle}`);
 	};
 
 	const navigationPanel = () => {
@@ -78,7 +80,7 @@ function NavigationPanel() {
 			notifToast("New notification!", {
 				body: sanitize(notif, { allowedTags: [] }),
 			}).onclick = () => {
-				window.location.href = url;
+				navigate(url);
 				window.focus();
 			};
 
@@ -86,14 +88,6 @@ function NavigationPanel() {
 			window.dispatchEvent(new Event("notif-update"));
 			setCounter(notifs.length);
 			window.dispatchEvent(new Event("update-notif-counter"));
-
-			// toast("You've receieved a new notification", {
-			// 	autoClose: 3000,
-			// 	onClick: () => (window.location.href = "/notifications"),
-			// 	theme: "dark",
-			// 	hideProgressBar: true,
-			// 	icon: Icons.info,
-			// });
 		});
 	}, [true]);
 
@@ -123,20 +117,54 @@ function NavigationPanel() {
 			>
 				<div className="icon"></div>
 				<div className="nav-buttons">
-					<a href="/home">
+					<a
+						onClick={() => {
+							navigate("/home");
+						}}
+					>
 						Home <i className="fa-solid fa-house"></i>
 					</a>
-					<a href="/notifications">
+					<a
+						onClick={() => {
+							navigate("/notifications");
+						}}
+					>
 						<span ref={notifCounter}></span> Notifs{" "}
 						<i className="fa-solid fa-bell"></i>
 					</a>
-					<a href="/explore">
+					<a
+						onClick={() => {
+							navigate("/explore");
+						}}
+					>
 						Explore <i className="fa-solid fa-globe"></i>
 					</a>
-					<a href="/search">
+					<a
+						onClick={() => {
+							navigate("/now");
+						}}
+					>
+						Right Now <i className="fa-solid fa-sparkles"></i>
+					</a>
+					<a
+						onClick={() => {
+							navigate("/dms");
+						}}
+					>
+						DMs <i className="fa-solid fa-messages"></i>
+					</a>
+					<a
+						onClick={() => {
+							navigate("/search");
+						}}
+					>
 						Search <i className="fa-solid fa-magnifying-glass"></i>
 					</a>
-					<a href="/bookmarks">
+					<a
+						onClick={() => {
+							navigate("/bookmarks");
+						}}
+					>
 						Bookmarks <i className="fa-solid fa-bookmark"></i>
 					</a>
 					<a onClick={myProfile}>

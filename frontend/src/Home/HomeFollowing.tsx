@@ -6,6 +6,7 @@ import InfoPanel from "../Components/InfoPanel";
 import Profile from "../Components/MainPanel/Profile";
 import Followers from "../Components/MainPanel/Followers";
 import Following from "../Components/MainPanel/Following";
+import { useNavigate } from "react-router-dom";
 
 function HomeFollowing() {
 	let user;
@@ -13,7 +14,8 @@ function HomeFollowing() {
 	(async () => {
 		const data = await GetUserData();
 		if (data.error) {
-			window.location.href = "/";
+			const navigate = useNavigate();
+			navigate("/");
 		}
 	})();
 

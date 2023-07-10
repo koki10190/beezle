@@ -5,11 +5,52 @@ import GetUserByHandle from "../searches/GetUserByHandle";
 import User from "../models/User";
 import UserType from "../interfaces/UserType";
 
+function shuffle(array: any[]) {
+	let currentIndex = array.length,
+		randomIndex;
+
+	while (currentIndex != 0) {
+		randomIndex = Math.floor(Math.random() * currentIndex);
+		currentIndex--;
+
+		[array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+	}
+
+	return array;
+}
+
 async function fetchGlobalPosts(offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
+	const collection_size = await Post.count({ __v: { $gte: 0 } });
+	const m_posts = (await Post.find({
+		__v: { $gte: 0 },
+	})
+		.sort({ $natural: -1 })
+		.skip(Math.random() * collection_size)
+		.limit(10)) as any[];
+
+	const posts = shuffle(m_posts);
+
+	for (let i = 0; i < posts.length; i++) {
+		posts[i] = {
+			data: posts[i],
+			op: await GetUserByHandle(posts[i].op),
+		};
+		const count = await Post.count({
+			replyingTo: posts[i].data.postID,
+		});
+
+		posts[i].data.replies = count;
+		posts[i].data.content = sanitize(posts[i].data.content);
+	}
+
+	return { data: posts, latestIndex: offset + posts.length - 1 };
+}
+
+async function fetchRightNow(offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
 	const posts = (await Post.find({
 		__v: { $gte: 0 },
-		repost_type: { $ne: true },
-		reply_type: { $ne: true },
+		// repost_type: { $ne: true },
+		// reply_type: { $ne: true },
 	})
 		.sort({ $natural: -1 })
 		.skip(offset)
@@ -118,4 +159,4 @@ async function fetchPostByID(postID: string): Promise<any> {
 	};
 }
 
-export { fetchGlobalPosts, fetchReplies, fetchPostsFollowing, fetchUserPosts, fetchBookmarks, fetchPostByID };
+export { fetchRightNow, fetchGlobalPosts, fetchReplies, fetchPostsFollowing, fetchUserPosts, fetchBookmarks, fetchPostByID };

@@ -75,6 +75,7 @@ function HomeSearch() {
 
 					{posts.map(item => (
 						<PostBox
+							edited={item.data.edited}
 							repost_id={item.data.repost_id}
 							repost_op={item.data.repost_op}
 							repost_type={item.data.repost_type}

@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import GetOtherUser from "../../api/GetOtherUser";
 import { FormEvent, useEffect, useRef } from "react";
 import UserType from "../../interfaces/UserType";
@@ -11,6 +11,7 @@ import { NodeHtmlMarkdown } from "node-html-markdown";
 import { api_url } from "../../constants/ApiURL";
 
 function EditProfile() {
+	const navigate = useNavigate();
 	let user: UserType;
 
 	const avatar = useRef<HTMLDivElement>(null);
@@ -109,7 +110,7 @@ function EditProfile() {
 		}).then(res => {
 			if (!res.data.error) {
 				setTimeout(() => {
-					window.location.href = `/profile/${user.handle}`;
+					navigate(`/profile/${user.handle}`);
 				}, 2500);
 			}
 		});

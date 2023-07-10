@@ -1,0 +1,115 @@
+.dms-side-panel {
+	position: fixed;
+	width: 350px;
+	height: 100vh;
+	background-color: rgba(100, 73, 0, 0.11);
+	border-right: 1px solid rgb(100, 73, 0);
+
+	box-sizing: border-box;
+	padding: 15px;
+
+	overflow-y: auto;
+}
+
+@media screen and (max-width: 1000px) {
+	.dms-side-panel {
+		width: 100%;
+	}
+}
+
+.dm-friend {
+	width: 100%;
+	box-sizing: border-box;
+	padding: 10px;
+	padding-top: 15px;
+	background-color: rgb(53, 43, 24);
+	border-radius: 10px;
+	margin-bottom: 10px;
+	transition: ease-in-out 150ms;
+	cursor: pointer;
+}
+
+.dm-friend:hover {
+	background-color: rgb(36, 29, 16);
+}
+
+.dm-friend-avatar {
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: cover;
+	width: 50px;
+	height: 50px;
+	border-radius: 100%;
+}
+
+.dm-friend-name {
+	margin-top: -45px;
+	margin-left: 60px;
+}
+.dm-friend-handle {
+	margin-top: -20px;
+	font-size: 13px;
+	color: rgba(255, 255, 255, 0.4);
+	margin-left: 60px;
+}
+
+.dms-content {
+	overflow-y: auto;
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	box-sizing: border-box;
+	padding: 20px;
+	width: calc(100% - 350px);
+}
+
+.dms-messages {
+}
+
+.dms-content-full {
+	position: fixed;
+	bottom: 0;
+	right: 0;
+	box-sizing: border-box;
+	padding: 20px;
+	width: 100%;
+}
+
+.dms-field {
+	font-family: "Open Sans";
+	background-color: rgb(53, 43, 24);
+	border: solid 5px rgb(192, 147, 0);
+	border: solid 1px rgb(192, 147, 0);
+	border-radius: 5px;
+	padding: 10px;
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 10px;
+	color: white;
+	transition: border ease-in-out 150ms;
+	outline: none;
+	resize: none;
+	height: auto;
+	z-index: -1;
+}
+
+.dms-field:hover {
+	border: solid 1px rgb(255, 196, 0);
+}
+
+.dm-msg-right {
+	text-align: right;
+}
+
+.dm-msg-right,
+.dm-msg {
+	margin-bottom: 90px;
+	width: 100%;
+	word-wrap: break-word;
+}
+
+.dm-msg-right > .dm-friend-avatar {
+	float: right;
+	margin-left: 10px;
+	margin-top: -7px;
+}

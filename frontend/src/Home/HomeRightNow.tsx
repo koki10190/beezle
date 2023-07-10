@@ -7,9 +7,8 @@ import Profile from "../Components/MainPanel/Profile";
 import EditProfile from "../Components/MainPanel/EditProfile";
 import Post from "../Components/MainPanel/Post";
 import socket from "../io/socket";
-import { useNavigate } from "react-router-dom";
 
-function HomePost() {
+function HomeRightNow() {
 	let user;
 	const avatar = useRef<HTMLImageElement>(null);
 	const banner = useRef<HTMLImageElement>(null);
@@ -18,8 +17,7 @@ function HomePost() {
 	(async () => {
 		const data = await GetUserData();
 		if (data.error) {
-			const navigate = useNavigate();
-			navigate("/");
+			window.location.href = "/";
 		}
 	})();
 
@@ -39,11 +37,11 @@ function HomePost() {
 			<h1 ref={username}></h1> */}
 			<div className="main-pages">
 				<InfoPanel />
-				<Post fetch_method="explore-posts" />
+				<Post fetch_method="right-now" />
 				<NavigationPanel />
 			</div>
 		</>
 	);
 }
 
-export default HomePost;
+export default HomeRightNow;

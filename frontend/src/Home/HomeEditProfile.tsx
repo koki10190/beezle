@@ -5,6 +5,7 @@ import MainPanel from "../Components/MainPanel";
 import InfoPanel from "../Components/InfoPanel";
 import Profile from "../Components/MainPanel/Profile";
 import EditProfile from "../Components/MainPanel/EditProfile";
+import { useNavigate } from "react-router-dom";
 
 function HomeEditProfile() {
 	let user;
@@ -15,7 +16,8 @@ function HomeEditProfile() {
 	(async () => {
 		const data = await GetUserData();
 		if (data.error) {
-			window.location.href = "/";
+			const navigate = useNavigate();
+			navigate("/");
 		}
 	})();
 

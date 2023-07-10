@@ -29,7 +29,7 @@ import Mail from "nodemailer/lib/mailer";
 import Post from "./models/Post";
 import uuid4 from "uuid4";
 import usernameOrEmailTaken from "./functions/usernameOrEmailTaken";
-import { fetchBookmarks, fetchGlobalPosts, fetchPostByID, fetchPostsFollowing, fetchReplies, fetchUserPosts } from "./functions/fetchPosts";
+import { fetchBookmarks, fetchGlobalPosts, fetchRightNow, fetchPostByID, fetchPostsFollowing, fetchReplies, fetchUserPosts } from "./functions/fetchPosts";
 import { Socket, Server as ioServer } from "socket.io";
 import { getSockets, initSocket } from "./io/socket";
 import smtpTransport from "nodemailer-smtp-transport";
@@ -38,6 +38,7 @@ import CONSTANTS from "./constants/constants";
 import { VerifyBadgeText } from "./functions/badges";
 import validate from "deep-email-validator";
 import EmailVerification from "./models/EmailVerification";
+import Message from "./models/Message";
 
 process.on("uncaughtException", function (err) {
 	console.error(err);
@@ -541,6 +542,15 @@ app.get("/api/explore-posts/:offset", async (req: express.Request, res: express.
 	});
 });
 
+app.get("/api/right-now/:offset", async (req: express.Request, res: express.Response) => {
+	const { offset } = req.params;
+	const posts = await fetchRightNow(parseInt(offset));
+	return res.json({
+		posts: posts.data,
+		latestIndex: posts.latestIndex,
+	});
+});
+
 app.get("/api/user-posts/:handle", async (req: express.Request, res: express.Response) => {
 	const { handle } = req.params;
 
@@ -996,6 +1006,25 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 	});
 });
 
+app.post("/api/edit-post", async (req: express.Request, res: express.Response) => {
+	const { token, postID, content } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle, email: user.email }).limit(1))[0];
+		const post = (await Post.find({ postID, op: user.handle }).limit(1))[0];
+		if (!m_user || !post) return res.json({ error: true });
+
+		post.content = content;
+		post.edited = true;
+
+		post.save();
+
+		res.json({ error: false });
+	});
+});
+
 app.get("/mod/ban-user/:handle", async (req: express.Request, res: express.Response) => {
 	const { handle } = req.params;
 	const posts = await Post.find({ op: handle });
@@ -1026,4 +1055,26 @@ app.get("/verify/:hashtt", async (req: express.Request, res: express.Response) =
 	);
 
 	res.send("Success! Your account has been created, you can login now.");
+});
+
+app.post("/api/fetch-messages", async (req: express.Request, res: express.Response) => {
+	const { token, of } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json([]);
+
+		const m_user = (await User.find({ handle: user.handle }).limit(0))[0];
+		const messages = await Message.find({
+			$or: [
+				{
+					channel: `${of}&${m_user.handle}`,
+				},
+				{
+					channel: `${m_user.handle}&${of}`,
+				},
+			],
+		});
+
+		return res.json(messages);
+	});
 });

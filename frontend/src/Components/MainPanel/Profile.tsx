@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import GetOtherUser from "../../api/GetOtherUser";
 import { useEffect, useRef, useState, UIEvent } from "react";
 import UserType from "../../interfaces/UserType";
@@ -14,6 +14,7 @@ import { BadgeType } from "../../functions/VerifyBadgeBool";
 import getBadgeType from "../../functions/getBadgeType";
 
 function Profile() {
+	const navigate = useNavigate();
 	let user: UserType;
 	const { handle } = useParams();
 	const [m_user, setUser] = useState({} as any as UserType);
@@ -112,15 +113,15 @@ function Profile() {
 	}, []);
 
 	const editProf = () => {
-		window.location.href = "/user/edit-profile";
+		navigate("/user/edit-profile");
 	};
 
 	const followersPage = () => {
-		window.location.href = "/followers/" + user.handle;
+		navigate("/followers/" + user.handle);
 	};
 
 	const followingPage = () => {
-		window.location.href = "/following/" + user.handle;
+		navigate("/following/" + user.handle);
 	};
 
 	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
@@ -221,6 +222,7 @@ function Profile() {
 			<div className="profile-posts">
 				{posts.map(item => (
 					<PostBox
+						edited={item.data.edited}
 						repost_id={item.data.repost_id}
 						repost_type={item.data.repost_type}
 						repost_op={item.data.repost_op}

@@ -4,6 +4,7 @@ import NavigationPanel from "../Components/NavigationPanel";
 import MainPanel from "../Components/MainPanel";
 import InfoPanel from "../Components/InfoPanel";
 import Profile from "../Components/MainPanel/Profile";
+import { useNavigate } from "react-router-dom";
 
 function HomeProfile() {
 	let user;
@@ -14,7 +15,8 @@ function HomeProfile() {
 	(async () => {
 		const data = await GetUserData();
 		if (data.error) {
-			window.location.href = "/";
+			const navigate = useNavigate();
+			navigate("/");
 		}
 	})();
 

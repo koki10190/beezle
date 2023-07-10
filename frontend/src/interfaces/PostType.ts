@@ -4,11 +4,7 @@ interface PostType {
 	postID: string;
 	content: string;
 	date: Date;
-	edited: {
-		type: Boolean;
-		required: true;
-		default: false;
-	};
+	edited: boolean;
 	op: string;
 	likes: string[];
 	reposts: string[];
