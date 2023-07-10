@@ -11,6 +11,10 @@
 	font-family: "Open Sans";
 }
 
+button {
+	color: black;
+}
+
 .make-post {
 	position: relative;
 	padding: 25px;

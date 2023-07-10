@@ -114,6 +114,10 @@
 	color: gray;
 }
 
+button {
+	color: black;
+}
+
 .close-btn {
 	font-size: 35px;
 	position: absolute;

@@ -161,13 +161,13 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 		return;
 	}
 
-	// const emailCheck = await validate(email);
-	// if (!emailCheck.valid) {
-	// 	res.json({
-	// 		error: "Invalid email address!",
-	// 		was_error: true,
-	// 	});
-	// }
+	const emailCheck = await validate(email);
+	if (!emailCheck.valid) {
+		res.json({
+			error: "Invalid email address!",
+			was_error: true,
+		});
+	}
 
 	const length = 24;
 	const user = await User.create({
@@ -997,12 +997,12 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 });
 
 app.get("/mod/ban-user/:handle", async (req: express.Request, res: express.Response) => {
-	// const { handle } = req.params;
-	// const posts = await Post.find({ op: handle });
-	// posts.forEach(post => post.deleteOne());
-	// const user = await User.findOne({ handle });
-	// await user?.deleteOne();
-	// res.send("Banned user " + handle);
+	const { handle } = req.params;
+	const posts = await Post.find({ op: handle });
+	posts.forEach(post => post.deleteOne());
+	const user = await User.findOne({ handle });
+	await user?.deleteOne();
+	res.send("Banned user " + handle);
 });
 
 app.get("/hash/:password", async (req: express.Request, res: express.Response) => {

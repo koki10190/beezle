@@ -43,6 +43,10 @@ nav > .icon {
 	background-image: none;
 }
 
+button {
+	color: black;
+}
+
 .icon {
 	width: 70px;
 	height: 70px;
