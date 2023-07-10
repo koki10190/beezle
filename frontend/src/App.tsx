@@ -16,9 +16,17 @@ import { ToastContainer } from "react-toastify";
 import GetUserData from "./api/GetUserData";
 import { useEffect, useState } from "react";
 import HomeNotification from "./Home/HomeNotification";
+import notif from "./functions/notif";
+
+function iOS() {
+	return (
+		["iPad Simulator", "iPhone Simulator", "iPod Simulator", "iPad", "iPhone", "iPod"].includes(navigator.userAgent) ||
+		// iPad on iOS 13 detection
+		(navigator.userAgent.includes("Mac") && "ontouchend" in document)
+	);
+}
 
 function App() {
-	socket.connect();
 	const [gotHandle, setGot] = useState(false);
 
 	useEffect(() => {
@@ -27,6 +35,19 @@ function App() {
 			if (!data.error) socket.emit("get-handle", data.user.handle);
 		})();
 	}, [gotHandle]);
+
+	useEffect(() => {
+		socket.connect();
+	}, []);
+	if (window.screen.width > 1000) {
+		Notification.requestPermission().then(perm => {
+			if (perm === "granted") {
+				// new Notification("Thank you for enabling notifications!");
+			}
+		});
+	}
+
+	// notif("Testing", {});
 
 	return (
 		<>

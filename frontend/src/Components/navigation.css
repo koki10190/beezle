@@ -120,6 +120,7 @@
 	top: 5px;
 	right: 20px;
 	cursor: pointer;
+	text-shadow: black 0px 0px 5px, black 0px 0px 5px, black 0px 0px 5px;
 }
 
 .main-panel.scale-twice {

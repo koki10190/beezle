@@ -15,6 +15,7 @@ import { api_url } from "../../constants/ApiURL";
 import { BadgeType } from "../../functions/VerifyBadgeBool";
 import getBadgeType from "../../functions/getBadgeType";
 import { Icons, toast } from "react-toastify";
+import Tenor from "react-tenor";
 
 function Post() {
 	let user: UserType;
@@ -143,14 +144,21 @@ function Post() {
 
 	const showEmojiPicker = () => setEmojiShown(!isEmojiPickerShown);
 
+	const [limiter, setLimiter] = useState(false);
+
 	const makePost = () => {
+		if (limiter) return;
 		if (post.current!.value == "") return;
+		setLimiter(true);
+
+		setTimeout(() => setLimiter(false), 5000);
 
 		axios.post(`${api_url}/api/post`, {
 			token: localStorage.getItem("auth_token")!,
 			content: post.current!.value,
 			socketID: socket.id,
 		}).then(res => {
+			if (res.data.error) return;
 			posts.unshift(res.data);
 			setPosts([...posts]);
 			post.current!.value = "";

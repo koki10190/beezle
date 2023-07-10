@@ -1,8 +1,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap");
 
+@import url("https://fonts.googleapis.com/css2?family=Noto+Color+Emoji&display=swap");
+
 @font-face {
 	font-family: "AppleMojis";
 	src: url(./AppleColorEmoji.ttf);
+}
+
+:root {
+	font-family: "Open Sans", "Noto Color Emoji";
 }
 
 .make-post {
@@ -97,7 +103,7 @@
 	height: 40px;
 	color: white;
 	box-sizing: border-box;
-	font-family: "Open Sans", "AppleMojis";
+	font-family: "Open Sans", "Noto Color Emoji";
 	margin-bottom: 17px;
 	margin-top: 10px;
 }
@@ -278,4 +284,10 @@ audio::-webkit-media-controls-panel {
 
 .refresh:hover {
 	color: rgba(255, 255, 255, 0.6);
+}
+
+.like-flip {
+	/* background-color: red; */
+	margin-top: -25px;
+	padding-left: 20px;
 }

@@ -22,7 +22,6 @@ function handleConnections() {
 
 		socket.on("get-handle", (handle: string) => {
 			sockets[handle] = socket;
-			console.log(handle);
 		});
 	});
 }

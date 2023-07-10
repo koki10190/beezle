@@ -56,6 +56,7 @@ function PostBox({
 }: PostBoxInterface) {
 	let user: UserType;
 	// const [meUser, setMe] = useState({} as any as UserType);
+	const default_button_color = "rgba(255, 255, 255, 0.377)";
 	const username = useRef<HTMLParagraphElement>(null);
 	const html_likes = useRef<HTMLDivElement>(null);
 	const html_bookmarks = useRef<HTMLDivElement>(null);
@@ -67,6 +68,8 @@ function PostBox({
 	const [isRepost, setIsRepost] = useState(false);
 	const [repostData, setRepostData] = useState<PostType>({} as PostType);
 	const [repostOp, setRepostOp] = useState<UserType>({} as UserType);
+	const [like_color, setLikeColor] = useState<string>(default_button_color);
+	const [repost_color, setRepostColor] = useState<string>(default_button_color);
 
 	(async () => {
 		// setMe(me);
@@ -75,20 +78,23 @@ function PostBox({
 	useEffect(() => {
 		(async () => {
 			// user = (await GetOtherUser(handle)).user;
-			VerifyBadgeBool(username.current!, name, badgeType);
-
+			VerifyBadgeBool(username.current!, name.replace(/(.{16})..+/, "$1…"), badgeType);
 			if (likes.find(x => x === localStorage.getItem("handle"))) {
 				html_likes.current!.style.color = "#ff4281";
+				setLikeColor("#ff4281");
 				setLiked(true);
 			} else {
-				html_likes.current!.style.color = "rgba(255, 255, 255, 0.377)";
+				html_likes.current!.style.color = default_button_color;
+				setLikeColor(default_button_color);
 			}
 
 			if (reposts.find(x => x === localStorage.getItem("handle"))) {
 				html_reposts.current!.style.color = "#66f542";
 				setReposted(true);
+				setRepostColor("#66f54n");
 			} else {
-				html_reposts.current!.style.color = "rgba(255, 255, 255, 0.377)";
+				html_reposts.current!.style.color = default_button_color;
+				setRepostColor(default_button_color);
 			}
 		})();
 	}, [likes]);
@@ -107,6 +113,8 @@ function PostBox({
 					html_reposts.current!.style.color = "#66f542";
 				}
 
+				VerifyBadgeBool(username.current!, repostOp.user.displayName.replace(/(.{16})..+/, "$1…"), badgeType);
+
 				setReposted(true);
 			}
 		})();
@@ -122,7 +130,7 @@ function PostBox({
 		if (isBookmarked) {
 			setBookmarked(false);
 
-			html_bookmarks.current!.style.color = "rgba(255, 255, 255, 0.377)";
+			html_bookmarks.current!.style.color = default_button_color;
 
 			axios.post(`${api_url}/api/bookmark`, {
 				token: localStorage.getItem("auth_token") as string,
@@ -144,7 +152,8 @@ function PostBox({
 	const likePost = () => {
 		if (isLiked) {
 			setLiked(false);
-			html_likes.current!.style.color = "rgba(255, 255, 255, 0.377)";
+			setLikeColor(default_button_color);
+			html_likes.current!.style.color = default_button_color;
 
 			axios.post(`${api_url}/api/like-post`, {
 				token: localStorage.getItem("auth_token") as string,
@@ -154,6 +163,7 @@ function PostBox({
 		} else {
 			setLiked(true);
 			html_likes.current!.style.color = "#ff4281";
+			setLikeColor("#ff4281");
 			axios.post(`${api_url}/api/like-post`, {
 				token: localStorage.getItem("auth_token") as string,
 				postId,
@@ -165,7 +175,8 @@ function PostBox({
 	const repost = () => {
 		if (isReposted) {
 			setReposted(false);
-			html_reposts.current!.style.color = "rgba(255, 255, 255, 0.377)";
+			setRepostColor(default_button_color);
+			html_reposts.current!.style.color = default_button_color;
 
 			axios.post(`${api_url}/api/repost`, {
 				token: localStorage.getItem("auth_token") as string,
@@ -176,6 +187,7 @@ function PostBox({
 		} else {
 			setReposted(true);
 			html_reposts.current!.style.color = "#66f542";
+			setRepostColor("#66f542");
 
 			axios.post(`${api_url}/api/repost`, {
 				token: localStorage.getItem("auth_token") as string,
@@ -235,7 +247,9 @@ function PostBox({
 						ref={username}
 						className="post-name"
 					>
-						{isRepost ? repostOp.displayName : name}
+						{isRepost
+							? repostOp.displayName.replace(/(.{16})..+/, "$1…")
+							: name.replace(/(.{16})..+/, "$1…")}
 					</p>
 					<p className="post-date">@{isRepost ? repostOp.handle : handle}</p>
 					<p className="post-date-time">
@@ -280,11 +294,22 @@ function PostBox({
 					>
 						<i className="fa-solid fa-repeat"></i>{" "}
 						<span>
-							{millify(
-								isRepost
-									? repostData.reposts.length
-									: reposts.length
-							)}
+							<FlipNumbers
+								height={15}
+								width={15}
+								color={repost_color}
+								play
+								nonNumberClassName="like-flip"
+								numberClassName="like-flip"
+								perspective={100}
+								numbers={millify(
+									isRepost
+										? repostData
+												.reposts
+												.length
+										: reposts.length
+								)}
+							/>
 						</span>
 					</div>
 					<div
@@ -292,7 +317,24 @@ function PostBox({
 						onClick={likePost}
 					>
 						<i className="fa-solid fa-heart"></i>{" "}
-						<span>{millify(isRepost ? repostData.likes.length : likes.length)}</span>
+						<span>
+							<FlipNumbers
+								height={15}
+								width={15}
+								color={like_color}
+								play
+								nonNumberClassName="like-flip"
+								numberClassName="like-flip"
+								perspective={100}
+								numbers={millify(
+									isRepost
+										? repostData
+												.likes
+												.length
+										: likes.length
+								)}
+							/>
+						</span>
 					</div>
 					<div
 						onClick={bookmark}

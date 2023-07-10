@@ -14,7 +14,7 @@ import { rateLimit } from "express-rate-limit";
 import jwt from "jsonwebtoken";
 import client from "./discord/bot";
 import cors from "cors";
-import uuid from "uuid4";
+import uuid, { valid } from "uuid4";
 // MongoDB Models
 import User from "./models/User";
 import UserType from "./interfaces/UserType";
@@ -36,11 +36,16 @@ import smtpTransport from "nodemailer-smtp-transport";
 import { PostType } from "./interfaces/PostType";
 import CONSTANTS from "./constants/constants";
 import { VerifyBadgeText } from "./functions/badges";
+import validate from "deep-email-validator";
 
-// process.on("uncaughtException", function (err) {
-// 	console.error(err);
-// 	console.log("Node NOT Exiting...");
-// });
+process.on("uncaughtException", function (err) {
+	console.error(err);
+	console.log("Node NOT Exiting...");
+});
+
+interface PostLimiter {
+	[key: string]: boolean;
+}
 
 const transporter = nodemailer.createTransport(
 	smtpTransport({
@@ -92,10 +97,10 @@ app.use(
 );
 
 app.get("/", (req: express.Request, res: express.Response) => {
-	res.send("Hello, World!");
-	Post.deleteMany({
-		__v: { $gte: 0 },
-	}).then(() => res.write("Deleted!"));
+	// res.send("Hello, World!");
+	// Post.deleteMany({
+	// 	__v: { $gte: 0 },
+	// }).then(() => res.write("Deleted!"));
 });
 
 app.get("/search/:email", async (req: express.Request, res: express.Response) => {
@@ -105,16 +110,19 @@ app.get("/search/:email", async (req: express.Request, res: express.Response) =>
 });
 
 app.get("/deletgae", (req: express.Request, res: express.Response) => {
-	User.deleteMany({
-		__v: { $gte: 0 },
-	}).then(() => res.write("Deleted!"));
+	// User.deleteMany({
+	// 	__v: { $gte: 0 },
+	// }).then(() => res.write("Deleted!"));
 });
 
 app.post("/api/register-user", async (req: express.Request, res: express.Response) => {
 	const { name, email, password } = req.body;
 	const salt = await bcrypt.genSalt(10);
 	const hashed = await bcrypt.hash(password, salt);
-
+	// return res.json({
+	// 	error: "Registering users is currently unavailable due to an exploit.",
+	// 	was_error: true,
+	// });
 	if (await usernameOrEmailTaken(name, email)) {
 		res.json({
 			error: "The username " + name + " or email " + email + " is already taken!",
@@ -133,16 +141,32 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 
 	if (!name.match(/^[a-z0-9\._-]+$/g)) {
 		res.json({
-			error: "The username cannot have any special characters except of dots, dashes and underscores!",
+			error: "The username cannot have any special characters except of dots, dashes, underscores and lower case letters!",
 			was_error: true,
 		});
 		return;
 	}
 
+	if (password.length < 8) {
+		res.json({
+			error: "The password must have atleast 8 characters!",
+			was_error: true,
+		});
+		return;
+	}
+
+	const emailCheck = await validate(email);
+	if (!emailCheck.valid) {
+		res.json({
+			error: "Invalid email address!",
+			was_error: true,
+		});
+	}
+
 	const length = 24;
 	const user = await User.create({
-		handle: name.length > length ? name.substring(0, length - 3) + "" : name,
-		displayName: name.length > length ? name.substring(0, length - 3) + "..." : name,
+		handle: name.replace(/(.{16})..+/, "$1"),
+		displayName: name.replace(/(.{16})..+/, "$1…"),
 		email: email,
 		password: hashed,
 	});
@@ -217,36 +241,38 @@ app.post("/api/upload-avatar", upload.single("avatar"), async (req, res) => {
 	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
 		if (err) return res.json({ error: true });
 
-		res.json({ user, error: false });
-		console.log(path);
+		try {
+			res.json({ user, error: false });
+			console.log(path);
 
-		fs.rename(path!, path! + "." + (req.body.ext as string), err => {
-			if (err) console.log(err);
-		});
-		path = path! + "." + (req.body.ext as string);
+			fs.rename(path!, path! + "." + (req.body.ext as string), err => {
+				if (err) console.log(err);
+			});
+			path = path! + "." + (req.body.ext as string);
 
-		const guild = await client.guilds.fetch(database_guild);
-		const channel = (await guild.channels.fetch(database_channel)) as TextChannel;
-		const message = await channel.send({
-			files: [{ attachment: path! }],
-		});
+			const guild = await client.guilds.fetch(database_guild);
+			const channel = (await guild.channels.fetch(database_channel)) as TextChannel;
+			const message = await channel.send({
+				files: [{ attachment: path! }],
+			});
 
-		const attachment = message.attachments.first()?.proxyURL;
-		console.log(attachment);
+			const attachment = message.attachments.first()?.proxyURL;
+			console.log(attachment);
 
-		const m_user = await User.updateOne(
-			{
-				email: user.email,
-				handle: user.handle,
-			},
-			{
-				avatar: attachment,
-			}
-		);
+			const m_user = await User.updateOne(
+				{
+					email: user.email,
+					handle: user.handle,
+				},
+				{
+					avatar: attachment,
+				}
+			);
 
-		fs.unlink(path, err => {
-			if (err) console.log(err);
-		});
+			fs.unlink(path, err => {
+				if (err) console.log(err);
+			});
+		} catch (err) {}
 	});
 });
 
@@ -259,38 +285,42 @@ app.post("/api/upload-banner", upload.single("banner"), async (req, res) => {
 
 		console.log("PATH " + req.file?.path);
 
-		fs.rename(path!, path! + "." + (req.body.ext_banner as string), err => {
-			if (err) console.log(err);
-		});
-		path = path! + "." + (req.body.ext_banner as string);
+		try {
+			fs.rename(path!, path! + "." + (req.body.ext_banner as string), err => {
+				if (err) console.log(err);
+			});
+			path = path! + "." + (req.body.ext_banner as string);
 
-		const guild = await client.guilds.fetch(database_guild);
-		const channel = (await guild.channels.fetch(database_channel)) as TextChannel;
-		const message = await channel.send({
-			files: [{ attachment: path! }],
-		});
+			const guild = await client.guilds.fetch(database_guild);
+			const channel = (await guild.channels.fetch(database_channel)) as TextChannel;
+			const message = await channel.send({
+				files: [{ attachment: path! }],
+			});
 
-		const attachment = message.attachments.first()?.proxyURL;
-		console.log(attachment);
+			const attachment = message.attachments.first()?.proxyURL;
+			console.log(attachment);
 
-		const m_user = await User.updateOne(
-			{
-				email: user.email,
-				handle: user.handle,
-			},
-			{
-				banner: attachment,
-			}
-		);
+			const m_user = await User.updateOne(
+				{
+					email: user.email,
+					handle: user.handle,
+				},
+				{
+					banner: attachment,
+				}
+			);
 
-		fs.unlink(path, err => {
-			if (err) console.log(err);
-		});
+			fs.unlink(path, err => {
+				if (err) console.log(err);
+			});
 
-		res.json({
-			user,
-			error: false,
-		});
+			res.json({
+				user,
+				error: false,
+			});
+		} catch (err) {
+			res.json({ error: true });
+		}
 	});
 });
 
@@ -345,35 +375,32 @@ app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
 });
 
 app.get("/verify/:handle", async (req: express.Request, res: express.Response) => {
-	const { handle } = req.params;
-
-	const user = await User.updateOne(
-		{
-			handle,
-		},
-		{
-			verified: true,
-		}
-	);
-
-	res.send("test!");
+	// const { handle } = req.params;
+	// const user = await User.updateOne(
+	// 	{
+	// 		handle,
+	// 	},
+	// 	{
+	// 		verified: true,
+	// 	}
+	// );
+	// res.send("test!");
 });
 
 app.get("/mod/:handle", async (req: express.Request, res: express.Response) => {
-	const { handle } = req.params;
-
-	const user = await User.updateOne(
-		{
-			handle,
-		},
-		{
-			moderator: true,
-		}
-	);
-
-	res.send("test!");
+	// const { handle } = req.params;
+	// const user = await User.updateOne(
+	// 	{
+	// 		handle,
+	// 	},
+	// 	{
+	// 		moderator: true,
+	// 	}
+	// );
+	// res.send("test!");
 });
 
+const post_limiters: PostLimiter = {};
 app.post("/api/post", async (req: express.Request, res: express.Response) => {
 	const { content, token } = req.body;
 
@@ -389,6 +416,9 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 			email: user.email,
 			handle: user.handle,
 		});
+		if (!m_user) return res.json({ error: true });
+
+		if (post_limiters[m_user.handle]) return res.json({ error: true });
 
 		let post;
 		if (req.body.reply_type) {
@@ -435,6 +465,9 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 			data: post,
 		};
 		box_type.data.content = sanitize(box_type.data.content);
+
+		post_limiters[m_user.handle] = true;
+		setTimeout(() => (post_limiters[m_user.handle] = false), 5000);
 
 		io.emit("post", box_type);
 		res.json(box_type);
@@ -533,10 +566,9 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has liked your post!</a>`;
 
-			// if (receiver.handle != user.handle) {
-			console.log(receiver!.handle + " handle");
-			if (getSockets()[receiver!.handle]) getSockets()[receiver!.handle].emit("notification", notif, url);
-
+			if (receiver?.handle != user.handle) {
+				if (getSockets()[receiver!.handle]) getSockets()[receiver!.handle].emit("notification", notif, url);
+			}
 			receiver!.notifications.push(notif);
 			receiver!.save();
 		}
@@ -624,16 +656,16 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 					},
 				}
 			);
-
-			const url = `${CONSTANTS.FRONTEND_URL}/profile/${m_user_follow!.handle}`;
+			if (!m_user_follow) return;
+			const url = `${CONSTANTS.FRONTEND_URL}/profile/${user.handle}`;
 			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has followed you!</a>`;
 
-			// if (receiver.handle != user.handle) {
-			console.log(m_user_follow!.handle + " handle");
-			if (getSockets()[m_user_follow!.handle]) {
-				const emit = getSockets()[m_user_follow!.handle].emit("notification", notif, url);
+			if (m_user_follow.handle != user.handle) {
+				if (getSockets()[m_user_follow!.handle]) {
+					const emit = getSockets()[m_user_follow!.handle].emit("notification", notif, url);
+				}
 			}
 			/*
 https://discord.gg/3PES8DU
@@ -861,9 +893,7 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 
 		const m_user = (await User.find({ handle: user.handle, email: user.email }).limit(1))[0];
 		const post = (await Post.find({ postID }).limit(1))[0];
-		console.log(post);
 		if (unrepost) {
-			console.log("fuck me!");
 			const postFUCK = await Post.findOne({ repost_id: postID });
 			postFUCK?.deleteOne();
 			post.reposts.splice(
@@ -899,12 +929,27 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has reposted your post!</a>`;
-			if (getSockets()[receiver!.handle]) {
+			if (getSockets()[receiver!.handle] && receiver.handle != user.handle) {
 				getSockets()[receiver!.handle].emit("notification", notif, url);
-				console.log("notif received");
 			}
 
 			return res.json(repost);
 		}
 	});
+});
+
+app.get("/mod/ban-user/:handle", async (req: express.Request, res: express.Response) => {
+	// const { handle } = req.params;
+	// const posts = await Post.find({ op: handle });
+	// posts.forEach(post => post.deleteOne());
+	// const user = await User.findOne({ handle });
+	// await user?.deleteOne();
+	// res.send("Banned user " + handle);
+});
+
+app.get("/hash/:password", async (req: express.Request, res: express.Response) => {
+	// const { password } = req.params;
+	// const salt = await bcrypt.genSalt(10);
+	// const hashed = await bcrypt.hash(password, salt);
+	// return res.send(hashed);
 });

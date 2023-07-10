@@ -3,6 +3,8 @@ import GetUserData from "../api/GetUserData";
 import "./navigation.css";
 import socket from "../io/socket";
 import { Icons, toast } from "react-toastify";
+import notifToast from "../functions/notif";
+import sanitize from "sanitize-html";
 
 function NavigationPanel() {
 	if (window.innerWidth <= 1200) {
@@ -67,6 +69,12 @@ function NavigationPanel() {
 		socket.on("notification", async (notif: string, url: string) => {
 			const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]") as string[];
 			notifs.unshift(notif);
+			notifToast("New notification!", {
+				body: sanitize(notif, { allowedTags: [] }),
+			}).onclick = () => {
+				window.location.href = url;
+				window.focus();
+			};
 
 			localStorage.setItem("notifs", JSON.stringify(notifs));
 			window.dispatchEvent(new Event("notif-update"));

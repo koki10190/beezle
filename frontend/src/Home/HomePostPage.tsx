@@ -19,6 +19,8 @@ import PostBox from "../Components/MainPanel/PostBox";
 import getBadgeType from "../functions/getBadgeType";
 import { Icons, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import EmojiPicker, { EmojiClickData, EmojiStyle, Theme } from "emoji-picker-react";
+import sanitize from "sanitize-html";
 
 function HomePostPage() {
 	const { postID } = useParams();
@@ -28,7 +30,9 @@ function HomePostPage() {
 	const [render, setRender] = useState<boolean>(false);
 	const [isLiked, setLiked] = useState<boolean>(false);
 	const [replies, setReplies] = useState<PostBoxType[]>([]);
+	const emojiPicker = useRef<HTMLDivElement>(null);
 	const [offset, setOffset] = useState<number>(0);
+	const [isEmojiPickerShown, setEmojiShown] = useState(false);
 	const [replyParent, setReplyParent] = useState<PostBoxType>({} as PostBoxType);
 	const [isBookmarked, setBookmarked] = useState<boolean>(false);
 	const html_likes = useRef<HTMLParagraphElement>(null);
@@ -88,6 +92,10 @@ function HomePostPage() {
 		setReplies([...replies]);
 		postDeleteCheck++;
 	});
+
+	const addEmoji = (emoji: EmojiClickData) => {
+		postText.current!.value += emoji.emoji;
+	};
 
 	useEffect(() => {
 		(async () => {
@@ -319,23 +327,10 @@ function HomePostPage() {
 											wordWrap: "break-word",
 										}}
 									>
-										{replyParent
-											.data
-											.content
-											.length >
-										14
-											? replyParent.data.content.substring(
-													0,
-													replyParent
-														.data
-														.content
-														.length -
-														3
-											  ) +
-											  "..."
-											: replyParent
-													.data
-													.content}
+										{replyParent.data.content.replace(
+											/(.{40})..+/,
+											"$1…"
+										)}
 									</span>
 								</p>
 							) : (
@@ -360,8 +355,13 @@ function HomePostPage() {
 								></div>
 								<p
 									dangerouslySetInnerHTML={{
-										__html: VerifyBadgeText(
-											user!
+										__html: sanitize(
+											VerifyBadgeText(
+												user!
+											),
+											{
+												allowedTags: [],
+											}
 										),
 									}}
 									className="page-name"
@@ -492,7 +492,13 @@ function HomePostPage() {
 									className="small-bar"
 								/>
 								<div className="post-text-buttons">
-									<a>
+									<a
+										onClick={() =>
+											setEmojiShown(
+												!isEmojiPickerShown
+											)
+										}
+									>
 										<i className="fa-solid fa-face-awesome"></i>
 									</a>
 									<a
@@ -515,6 +521,28 @@ function HomePostPage() {
 										Reply
 									</button>
 								</div>
+								{isEmojiPickerShown ? (
+									<div
+										className="emoji-picker-post"
+										ref={
+											emojiPicker
+										}
+									>
+										<EmojiPicker
+											onEmojiClick={
+												addEmoji
+											}
+											theme={
+												Theme.DARK
+											}
+											emojiStyle={
+												EmojiStyle.TWITTER
+											}
+										/>
+									</div>
+								) : (
+									<div></div>
+								)}
 							</div>
 							{replies.map(item => (
 								<PostBox
