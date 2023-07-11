@@ -63,8 +63,10 @@ function Post({ fetch_method }: { fetch_method: string }) {
 		}
 		const post = posts.findIndex(m_post => m_post.data.postID == postId);
 		if (post < 0) return;
-		posts[post].data.likes = liked;
-		setPosts([...posts]);
+		setPosts(prev => {
+			prev[post].data.likes = liked;
+			return [...prev];
+		});
 		postLikesCheck++;
 	});
 
@@ -157,8 +159,8 @@ function Post({ fetch_method }: { fetch_method: string }) {
 			socketID: socket.id,
 		}).then(res => {
 			if (res.data.error) return;
-			posts.unshift(res.data);
-			setPosts([...posts]);
+
+			setPosts(prev => [res.data, ...prev]);
 			post.current!.value = "";
 		});
 	};

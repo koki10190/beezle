@@ -24,6 +24,8 @@ interface MessageType {
 let m_shiftDown = false;
 let m_user: UserType;
 let dm = "";
+let messagesCheck = 0;
+
 function HomeDms() {
 	const [user, setUser] = useState<UserType>({} as UserType);
 	const [friends, setFriends] = useState<string[]>([] as string[]);
@@ -67,6 +69,19 @@ function HomeDms() {
 		})();
 	}, []);
 
+	socket.on("get-message", (from: string, to: string, msg: MessageType) => {
+		if (messagesCheck > 0) {
+			messagesCheck++;
+			if (messagesCheck >= 4) messagesCheck = 0;
+			return;
+		}
+		if (from !== dm || to !== user.handle) return;
+		console.log(msg);
+		messages.push(msg);
+		// if (messages.find(x => x.messageID === msg.messageID)) return;
+		setMessages(prev => [...prev, msg]);
+		messagesCheck++;
+	});
 	// useEffect(() => {
 	// }, [friends]);
 
@@ -87,13 +102,6 @@ function HomeDms() {
 
 		if (window.innerWidth <= 1000) setSidePanel(false);
 	};
-
-	socket.on("get-message", (from: string, to: string, msg: MessageType) => {
-		if (from !== dm || to !== user.handle) return;
-		console.log(msg);
-		messages.push(msg);
-		setMessages(prev => [...prev, msg]);
-	});
 
 	const sendMessage = async (content: string) => {
 		if (content === "") return;

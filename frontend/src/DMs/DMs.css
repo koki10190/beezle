@@ -7,7 +7,6 @@
 
 	box-sizing: border-box;
 	padding: 15px;
-
 	overflow-y: auto;
 }
 
@@ -54,7 +53,6 @@
 }
 
 .dms-content {
-	overflow-y: auto;
 	position: fixed;
 	bottom: 0;
 	right: 0;
@@ -64,6 +62,7 @@
 }
 
 .dms-messages {
+	z-index: 1;
 }
 
 .dms-content-full {
@@ -106,6 +105,7 @@
 	margin-bottom: 90px;
 	width: 100%;
 	word-wrap: break-word;
+	z-index: 100;
 }
 
 .dm-msg-right > .dm-friend-avatar {
