@@ -9,8 +9,17 @@ import axios from "axios";
 import { api_url } from "../constants/ApiURL";
 import { useNavigate } from "react-router-dom";
 
+function iOS() {
+	return (
+		["iPad Simulator", "iPhone Simulator", "iPod Simulator", "iPad", "iPhone", "iPod"].includes(navigator.userAgent) ||
+		// iPad on iOS 13 detection
+		(navigator.userAgent.includes("Mac") && "ontouchend" in document)
+	);
+}
+
 function NavigationPanel() {
 	const navigate = useNavigate();
+	const [deferredPrompt, setPrompt] = useState<any>(null);
 	if (window.innerWidth <= 1200) {
 		localStorage.setItem("navigation_panel", "false");
 	}
@@ -38,6 +47,14 @@ function NavigationPanel() {
 	const navigationPanel = () => {
 		setPanel(!isOpen);
 	};
+
+	useEffect(() => {
+		window.addEventListener("beforeinstallprompt", e => {
+			e.preventDefault();
+			setPrompt(e);
+			console.log(e);
+		});
+	}, []);
 
 	useEffect(() => {
 		const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]") as string[];
@@ -154,6 +171,13 @@ function NavigationPanel() {
 					<a onClick={myProfile}>
 						Profile <i className="fa-solid fa-user"></i>
 					</a>
+					{iOS() ? (
+						""
+					) : (
+						<a onClick={() => deferredPrompt.prompt()}>
+							Install <i className="fa-solid fa-download"></i>
+						</a>
+					)}
 					<a
 						onClick={logout}
 						style={{

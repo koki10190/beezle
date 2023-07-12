@@ -169,30 +169,6 @@ function Post({ fetch_method }: { fetch_method: string }) {
 		const element = event.target! as HTMLDivElement;
 		if (element.scrollHeight - element.scrollTop === element.clientHeight) {
 			axios.get(`${api_url}/api/${fetch_method}/${postsOffset + 1}`).then(async res => {
-				// let found = false;
-				// for (const reply of res.data
-				// 	.posts as PostBoxType[]) {
-				// 	console.log(
-				// 		reply.data
-				// 			.content
-				// 	);
-				// 	if (
-				// 		posts.findIndex(
-				// 			x =>
-				// 				x
-				// 					.data
-				// 					.postID ===
-				// 				reply
-				// 					.data
-				// 					.postID
-				// 		) > -1
-				// 	) {
-				// 		found =
-				// 			true;
-				// 		break;
-				// 	}
-				// }
-				// if (found) return;
 				setPosts(posts.concat(res.data.posts as PostBoxType[]));
 
 				setPostsOffset(res.data.latestIndex);

@@ -11,12 +11,13 @@ import bcrypt, { hash } from "bcrypt";
 import fs from "fs";
 import mongoose from "mongoose";
 import { rateLimit } from "express-rate-limit";
-import jwt from "jsonwebtoken";
+import jwt, { verify } from "jsonwebtoken";
 import client from "./discord/bot";
 import cors from "cors";
 import uuid, { valid } from "uuid4";
 // MongoDB Models
 import User from "./models/User";
+import Report from "./models/Report";
 import UserType from "./interfaces/UserType";
 import GetUserByEmail from "./searches/GetUserByEmail";
 import GetUserByHandle from "./searches/GetUserByHandle";
@@ -930,6 +931,11 @@ app.post("/api/report", async (req: express.Request, res: express.Response) => {
 			embeds: [embed],
 		});
 
+		const report = await Report.create({
+			user: user.handle,
+			postID,
+		});
+
 		return res.json({ status: "The post has been reported." });
 	});
 });
@@ -1025,20 +1031,11 @@ app.post("/api/edit-post", async (req: express.Request, res: express.Response) =
 	});
 });
 
-app.get("/mod/ban-user/:handle", async (req: express.Request, res: express.Response) => {
-	const { handle } = req.params;
-	const posts = await Post.find({ op: handle });
-	posts.forEach(post => post.deleteOne());
-	const user = await User.findOne({ handle });
-	await user?.deleteOne();
-	res.send("Banned user " + handle);
-});
-
 app.get("/hash/:password", async (req: express.Request, res: express.Response) => {
-	// const { password } = req.params;
-	// const salt = await bcrypt.genSalt(10);
-	// const hashed = await bcrypt.hash(password, salt);
-	// return res.send(hashed);
+	const { password } = req.params;
+	const salt = await bcrypt.genSalt(10);
+	const hashed = await bcrypt.hash(password, salt);
+	return res.send(hashed);
 });
 
 app.get("/verify/:hashtt", async (req: express.Request, res: express.Response) => {
@@ -1085,3 +1082,139 @@ app.get("/status/:handle", async (req: express.Request, res: express.Response) =
 	if (getSockets()[handle]) return res.json({ status: "online" });
 	else return res.json({ status: "offline" });
 });
+
+// MODERATOR FIELD
+app.post("/mod/ban-user", async (req: express.Request, res: express.Response) => {
+	const { token, handle } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		if (m_user.verified || m_user.owner) {
+		} else return res.json({ error: true });
+
+		const user_ban = await User.findOne({ handle });
+		if (!user_ban) return res.json({ error: true });
+		if (user_ban.owner) return res.json({ error: true });
+		if (user_ban.moderator && !user_ban.owner) return res.json({ error: true });
+		const posts = await Post.find({ op: handle });
+		posts.forEach(post => post.deleteOne());
+		await user_ban.deleteOne();
+
+		sendEmail(
+			user_ban.email,
+			`Your account (@${user_ban.handle}) has been banned`,
+			`Hello @${user_ban?.handle}\nYour account has been banned for violating the rules.`
+		);
+
+		return res.json({ error: false });
+	});
+});
+
+app.post("/mod/delete-post", async (req: express.Request, res: express.Response) => {
+	const { token, postID } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		if (m_user.verified || m_user.owner) {
+		} else return res.json({ error: true });
+
+		const post = await Post.findOne({ postID });
+		if (!post) return res.json({ error: true });
+		await post?.deleteOne();
+
+		const post_user = await User.findOne({ handle: post?.op });
+		if (!post_user) return res.json({ error: true });
+		sendEmail(
+			post_user.email,
+			`Your post ${postID} has been deleted`,
+			`Hello @${post_user?.handle}\nYour post ${postID} has been deleted by a moderator: @${m_user.handle}`
+		);
+		return res.json({ error: false });
+	});
+});
+
+app.post("/mod/get-reports", async (req: express.Request, res: express.Response) => {
+	const { token, offset } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true, reports: [], offset });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		if (m_user.verified || m_user.owner) {
+		} else return res.json({ error: true, reports: [], offset });
+
+		const reports = (await Report.find({
+			__v: { $gte: 0 },
+		})
+			.sort({ $natural: -1 })
+			.skip(offset)
+			.limit(10)) as any[];
+
+		for (const report in reports) {
+			reports[report] = {
+				user: (await User.find({ handle: reports[report].user }).limit(0))[0],
+				postID: reports[report].postID,
+			};
+		}
+
+		return res.json({ error: false, reports, offset: offset + reports.length - 1 });
+	});
+});
+
+app.post("/mod/resolve", async (req: express.Request, res: express.Response) => {
+	const { token, postID, reporter } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		if (m_user.verified || m_user.owner) {
+		} else return res.json({ error: true });
+
+		const reports = await Report.find({
+			postID,
+			user: reporter,
+		});
+		reports.forEach(report => report.deleteOne());
+
+		const rec = (await User.find({ handle: reporter }).limit(1))[0];
+
+		sendEmail(
+			rec.email,
+			"Report of post: " + postID,
+			`Hello @${rec.handle}!\nYour report of post: ${postID} has been marked as resolved by @${user.handle as string}`
+		);
+
+		return res.json({ error: false });
+	});
+});
+
+app.post("/mod/verify-user", async (req: express.Request, res: express.Response) => {
+	const { token, handle } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		if (m_user.verified || m_user.owner) {
+		} else return res.json({ error: true });
+
+		const verify_user = await User.findOne({ handle });
+		if (!verify_user) return res.json({ error: true });
+		verify_user.verified = true;
+		verify_user.save();
+
+		sendEmail(
+			verify_user.email,
+			`Your account (@${verify_user.handle}) has been verified!`,
+			`Hello @${verify_user?.handle}\nYour account has been verified!`
+		);
+
+		return res.json({ error: false });
+	});
+});
+// MODERATOR FIELD

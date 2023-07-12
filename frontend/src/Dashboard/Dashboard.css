@@ -1,0 +1,114 @@
+.dashboard-panel {
+	display: inline-flex;
+
+	text-align: left;
+	flex-direction: column;
+	padding-top: 50px;
+	padding-bottom: 50px;
+}
+
+.dashboard-panel a {
+	margin-left: calc(25% / 2);
+	font-size: 30px;
+	margin-bottom: 10px;
+	width: fit-content;
+	border-radius: 100px;
+	padding: 15px;
+	padding-left: 25px;
+	padding-right: 25px;
+
+	transition: ease-in-out 100ms;
+	cursor: pointer;
+}
+
+.dashboard-panel a:hover {
+	background-color: rgba(255, 255, 255, 0.279);
+}
+
+.dashboard-full {
+	width: 100%;
+}
+
+.display-panel {
+	width: 75%;
+	padding: 20px;
+	box-sizing: border-box;
+}
+
+.display-panel-full {
+	width: 100%;
+	padding: 20px;
+	box-sizing: border-box;
+}
+
+.report-box {
+	width: 100%;
+	min-height: 100px;
+	box-sizing: border-box;
+	border-radius: 15px;
+	background-color: rgb(53, 43, 24);
+	padding: 15px;
+	margin-bottom: 10px;
+}
+
+.report-avatar {
+	width: 70px;
+	height: 70px;
+	background-position: center;
+	background-size: cover;
+	background-repeat: no-repeat;
+	border-radius: 100%;
+}
+
+.report-name {
+	margin-top: -55px;
+	margin-left: 80px;
+	font-size: 20px;
+}
+
+.report-handle {
+	margin-top: -25px;
+	margin-left: 80px;
+	font-size: 15px;
+	color: rgba(255, 255, 255, 0.5);
+}
+
+.report-id {
+	cursor: pointer;
+	margin-top: 30px;
+	word-wrap: break-word;
+	overflow: hidden;
+
+	transition: ease-in-out 150ms;
+}
+
+.report-id:hover {
+	color: rgba(255, 255, 255, 0.7);
+}
+
+.report-btn {
+	margin-top: 0px;
+
+	transition: ease-in-out 150ms;
+}
+
+.report-btn:hover {
+	background-color: rgba(255, 255, 0, 0.733);
+}
+
+.reload-reports {
+	color: rgba(255, 255, 255, 0.5);
+	margin-top: 0px;
+	transition: ease-in-out 150ms;
+	cursor: pointer;
+}
+
+.reload-reports:hover {
+	color: rgba(255, 255, 255, 1);
+}
+
+@media screen and (max-width: 1200px) {
+	.dashboard-panel {
+		width: 100%;
+	}
+}

@@ -24,6 +24,7 @@ body {
 	padding: 0;
 	color: white;
 	overflow-y: hidden;
+	overflow-x: hidden;
 }
 
 nav {

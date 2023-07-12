@@ -22,6 +22,11 @@ import HomeExplore from "./Home/HomeExplore";
 import HomeDms from "./DMs/HomeDms";
 import PrivacyPolicy from "./Policy/PrivacyPolicy";
 import DeleteAccount from "./Policy/DeleteAccount";
+import Dashboard from "./Dashboard/Dashboard";
+import Reports from "./Dashboard/Pages/Reports";
+import DeletePost from "./Dashboard/Pages/DeletePost";
+import BanUser from "./Dashboard/Pages/BanUser";
+import VerifyUser from "./Dashboard/Pages/VerifyUser";
 
 function iOS() {
 	return (
@@ -120,6 +125,26 @@ function App() {
 					<Route
 						path="/privacy-and-terms"
 						element={<PrivacyPolicy />}
+					/>
+					<Route
+						path="/dashboard"
+						element={<Dashboard />}
+					/>
+					<Route
+						path="/dashboard/reports"
+						element={<Reports />}
+					/>
+					<Route
+						path="/dashboard/delete-post"
+						element={<DeletePost />}
+					/>
+					<Route
+						path="/dashboard/ban"
+						element={<BanUser />}
+					/>
+					<Route
+						path="/dashboard/verify"
+						element={<VerifyUser />}
 					/>
 				</Routes>
 			</BrowserRouter>
