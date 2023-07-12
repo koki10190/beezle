@@ -17,10 +17,10 @@ import { useNavigate } from "react-router-dom";
 function HomeNotification() {
 	let user;
 	const [notifs, setNotifs] = useState<string[]>([]);
+	const navigate = useNavigate();
 	(async () => {
 		const data = await GetUserData();
 		if (data.error) {
-			const navigate = useNavigate();
 			navigate("/");
 		}
 	})();

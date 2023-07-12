@@ -1078,3 +1078,10 @@ app.post("/api/fetch-messages", async (req: express.Request, res: express.Respon
 		return res.json(messages);
 	});
 });
+
+app.get("/status/:handle", async (req: express.Request, res: express.Response) => {
+	const { handle } = req.params;
+
+	if (getSockets()[handle]) return res.json({ status: "online" });
+	else return res.json({ status: "offline" });
+});

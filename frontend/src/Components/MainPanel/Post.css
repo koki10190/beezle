@@ -71,7 +71,14 @@ button {
 	background-position: center;
 	background-size: cover;
 	background-repeat: no-repeat;
-	/* background-color: grey; */
+	position: relative;
+}
+
+.post-avatar > .status {
+	width: 15px;
+	height: 15px;
+	border: 3px solid rgb(53, 43, 24);
+	bottom: -5px;
 }
 
 .user-stuff > .user-desc > .post-name {
@@ -119,7 +126,7 @@ button {
 	margin-bottom: 15px;
 	border-radius: 100%;
 	display: inline-block;
-
+	position: relative;
 	background-position: center;
 	background-size: cover;
 	background-repeat: no-repeat;
@@ -237,6 +244,21 @@ button {
 	background-size: contain;
 	margin-top: 10px;
 	max-height: 500px;
+	position: relative;
+}
+
+.download-img {
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	font-size: 25px;
+	color: rgb(255, 255, 255, 0.5);
+	text-shadow: black 0px 0px 5px;
+	transition: ease-in-out 150ms;
+}
+
+.download-img:hover {
+	color: rgb(255, 255, 255, 1);
 }
 
 .image-shower {

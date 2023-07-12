@@ -12,7 +12,12 @@ var io: ioServer;
 interface SocketType {
 	[handle: string]: Socket;
 }
+
+interface SocketTypeID {
+	[id: string]: string;
+}
 const sockets: SocketType = {};
+const sockets_id: SocketTypeID = {};
 
 function getSockets(): SocketType {
 	return sockets;
@@ -33,10 +38,15 @@ function handleConnections() {
 
 		socket.on("disconnect", () => {
 			console.log("User Disconnected " + socket.id);
+
+			if (sockets_id[socket.id]) {
+				delete sockets[sockets_id[socket.id]];
+			}
 		});
 
 		socket.on("get-handle", (handle: string) => {
 			sockets[handle] = socket;
+			sockets_id[socket.id] = handle;
 		});
 
 		socket.on("message", async (from: string, to: string, msg: MessageType) => {

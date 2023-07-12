@@ -19,6 +19,14 @@
 	background-position: center;
 	background-size: cover;
 	background-repeat: no-repeat;
+	position: relative;
+}
+
+.page-avatar .status {
+	width: 15px;
+	height: 15px;
+	border: 3px solid black;
+	bottom: -2px;
 }
 
 .page-name {

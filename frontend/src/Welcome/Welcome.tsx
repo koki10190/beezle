@@ -6,13 +6,13 @@ import LoginForm from "./LoginForm";
 import socket from "../io/socket";
 import { useNavigate } from "react-router-dom";
 function Welcome() {
+	const navigate = useNavigate();
 	if (localStorage.getItem("auth_token")) {
 		(async () => {
 			const data = await GetUserData();
 			if (data) {
 				// socket.emit("get-handle", data.user.handle);
-				const navigate = useNavigate();
-				navigate("/");
+				navigate("/home");
 			}
 		})();
 	} else {

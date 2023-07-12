@@ -21,6 +21,7 @@ import { Icons, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import EmojiPicker, { EmojiClickData, EmojiStyle, Theme } from "emoji-picker-react";
 import sanitize from "sanitize-html";
+import VerifyBadge from "../functions/VerifyBadge";
 
 function HomePostPage() {
 	const navigate = useNavigate();
@@ -32,6 +33,7 @@ function HomePostPage() {
 	const [isLiked, setLiked] = useState<boolean>(false);
 	const [replies, setReplies] = useState<PostBoxType[]>([]);
 	const emojiPicker = useRef<HTMLDivElement>(null);
+	const pageName = useRef<HTMLParagraphElement>(null);
 	const [offset, setOffset] = useState<number>(0);
 	const [isEmojiPickerShown, setEmojiShown] = useState(false);
 	const [replyParent, setReplyParent] = useState<PostBoxType>({} as PostBoxType);
@@ -39,6 +41,7 @@ function HomePostPage() {
 	const [isReposted, setReposted] = useState<boolean>(false);
 	const [editingPost, setEditing] = useState<boolean>(false);
 	const [edit_content, setContent] = useState<string>("");
+	const [status, setStatus] = useState<string>("offline");
 	const html_likes = useRef<HTMLParagraphElement>(null);
 	const html_bookmarks = useRef<HTMLParagraphElement>(null);
 	const html_reposts = useRef<HTMLParagraphElement>(null);
@@ -161,6 +164,9 @@ function HomePostPage() {
 
 			setContent(post.data.content);
 
+			const data_status = (await axios.get(`${api_url}/status/${post.op.handle}`)).data;
+			setStatus(data_status.status);
+
 			interval = setInterval(() => {
 				if (postFile.current && html_likes.current && html_bookmarks.current && html_reposts.current) {
 					postFile.current.addEventListener("change", async (event: Event) => {
@@ -223,6 +229,12 @@ function HomePostPage() {
 			}, 100);
 		})();
 	}, []);
+
+	useEffect(() => {
+		setTimeout(() => {
+			VerifyBadge(pageName.current!, user);
+		}, 500);
+	}, [render]);
 
 	const bookmark = () => {
 		if (isBookmarked) {
@@ -436,7 +448,18 @@ function HomePostPage() {
 										}")`,
 									}}
 									className="page-avatar"
-								></div>
+								>
+									<div
+										className="status"
+										style={{
+											backgroundColor:
+												status ===
+												"online"
+													? "lime"
+													: "gray",
+										}}
+									></div>
+								</div>
 								<p
 									dangerouslySetInnerHTML={{
 										__html: sanitize(
@@ -448,6 +471,7 @@ function HomePostPage() {
 											}
 										),
 									}}
+									ref={pageName}
 									className="page-name"
 								></p>
 								<p className="page-handle">
@@ -463,7 +487,10 @@ function HomePostPage() {
 									.replace("afew seconds", "1s")
 									.replace("aminute", "1m")
 									.replace("ahour", "1h")
-									.replace("anhour", "1h")}
+									.replace("anhour", "1h")
+									.replace("aday", "1d")
+									.replace("days", "d")
+									.replace("day", "1d")}
 							</p>
 							{editingPost ? (
 								<>

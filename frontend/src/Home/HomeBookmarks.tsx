@@ -7,11 +7,11 @@ import { useNavigate } from "react-router-dom";
 
 function HomeBookmarks() {
 	let user;
+	const navigate = useNavigate();
 
 	(async () => {
 		user = await GetUserData();
 		if (user.error) {
-			const navigate = useNavigate();
 			navigate("/");
 		}
 	})();

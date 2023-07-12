@@ -12,11 +12,11 @@ function HomeEditProfile() {
 	const avatar = useRef<HTMLImageElement>(null);
 	const banner = useRef<HTMLImageElement>(null);
 	const username = useRef<HTMLHeadingElement>(null);
+	const navigate = useNavigate();
 
 	(async () => {
 		const data = await GetUserData();
 		if (data.error) {
-			const navigate = useNavigate();
 			navigate("/");
 		}
 	})();

@@ -15,6 +15,7 @@ import millify from "millify";
 import displayContent from "../../functions/displayContent";
 import { PostType } from "../../interfaces/PostType";
 import { useNavigate } from "react-router-dom";
+import VerifyBadgeText from "../../functions/VerifyBadgeText";
 
 interface PostBoxInterface {
 	name: string;
@@ -74,6 +75,7 @@ function PostBox({
 	const [repostOp, setRepostOp] = useState<UserType>({} as UserType);
 	const [like_color, setLikeColor] = useState<string>(default_button_color);
 	const [repost_color, setRepostColor] = useState<string>(default_button_color);
+	const [status, setStatus] = useState("offline");
 
 	(async () => {
 		// setMe(me);
@@ -118,8 +120,13 @@ function PostBox({
 				}
 
 				VerifyBadgeBool(username.current!, repostOp.user.displayName.replace(/(.{16})..+/, "$1…"), badgeType);
-
 				setReposted(true);
+
+				const status = await axios.get(`${api_url}/status/${repostOp.user.handle}`);
+				setStatus(status.data.status);
+			} else {
+				const status = await axios.get(`${api_url}/status/${handle}`);
+				setStatus(status.data.status);
 			}
 		})();
 		if (tokenUser) {
@@ -254,7 +261,17 @@ function PostBox({
 							}")`,
 						}}
 						className="post-avatar"
-					></div>
+					>
+						<div
+							style={{
+								backgroundColor:
+									status === "online"
+										? "lime"
+										: "gray",
+							}}
+							className="status"
+						></div>
+					</div>
 					<p
 						ref={username}
 						className="post-name"

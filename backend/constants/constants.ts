@@ -1,7 +1,7 @@
 const CONSTANTS = {
 	POST_TIMEOUT: 5 * 1000,
-	FRONTEND_URL: "https://8f44-95-83-232-242.ngrok-free.app",
-	SERVER_URL: "https://4650-95-83-232-242.ngrok-free.app",
+	FRONTEND_URL: "https://483e-80-233-59-146.ngrok-free.app",
+	SERVER_URL: "https://12b3-80-233-59-146.ngrok-free.app",
 };
 
 export default CONSTANTS;

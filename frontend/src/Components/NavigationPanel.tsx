@@ -43,15 +43,15 @@ function NavigationPanel() {
 		const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]") as string[];
 		setCounter(notifs.length);
 		// if (counter <= 0) notifCounter.current!.innerText = ``;
-		// socket.on("notification", async (notif: string, url: string) => {
-		// 	const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]") as string[];
-		// 	notifs.unshift(notif);
+		socket.on("notification", async (notif: string, url: string) => {
+			const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]") as string[];
+			notifs.unshift(notif);
 
-		// 	localStorage.setItem("notifs", JSON.stringify(notifs));
-		// 	window.dispatchEvent(new Event("notif-update"));
-		// 	setCounter(notifs.length);
-		// 	notifCounter.current!.innerText = `(${counter})`;
-		// });
+			localStorage.setItem("notifs", JSON.stringify(notifs));
+			window.dispatchEvent(new Event("notif-update"));
+			setCounter(notifs.length);
+			notifCounter.current!.innerText = `(${counter})`;
+		});
 
 		if (!isOpen) {
 			document.querySelector(".main-panel")!.classList.add("scale-twice");
@@ -73,22 +73,6 @@ function NavigationPanel() {
 
 	useEffect(() => {
 		if (counter <= 0) notifCounter.current!.innerText = ``;
-
-		socket.on("notification", async (notif: string, url: string) => {
-			const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]") as string[];
-			notifs.unshift(notif);
-			notifToast("New notification!", {
-				body: sanitize(notif, { allowedTags: [] }),
-			}).onclick = () => {
-				navigate(url);
-				window.focus();
-			};
-
-			localStorage.setItem("notifs", JSON.stringify(notifs));
-			window.dispatchEvent(new Event("notif-update"));
-			setCounter(notifs.length);
-			window.dispatchEvent(new Event("update-notif-counter"));
-		});
 	}, [true]);
 
 	useEffect(() => {
@@ -111,11 +95,11 @@ function NavigationPanel() {
 			></div>
 			<div
 				style={{
-					display: isOpen ? "inline-block" : "none",
+					display: isOpen ? "inline-flex" : "none",
 				}}
 				className="navigation-panel nav-pad-right"
 			>
-				<div className="icon"></div>
+				<div className="panel-icon"></div>
 				<div className="nav-buttons">
 					<a
 						onClick={() => {

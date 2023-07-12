@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='utf-8'?>
+<widget id="io.beezle.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+    <name>Beezle</name>
+    <description>An upcoming social media.</description>
+    <author email="beezle.app.lol@gmail.com" href="https://beezle.netlify.app">
+        koki1019
+    </author>
+    <content src="index.html" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <access origin="https://beezle.netlify.app" />
+    <access origin="https://beezle.netlify.app" subdomains="true" />
+    <icon src="logo.png" width="57" height="57" density="mdpi" />
+    <preference name="SplashScreen" value="none"/>
+</widget>

@@ -9,11 +9,11 @@ import { useNavigate } from "react-router-dom";
 
 function HomeFollowers() {
 	let user;
+	const navigate = useNavigate();
 
 	(async () => {
 		const data = await GetUserData();
 		if (data.error) {
-			const navigate = useNavigate();
 			navigate("/");
 		}
 	})();

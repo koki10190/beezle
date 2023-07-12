@@ -20,6 +20,8 @@ import notif from "./functions/notif";
 import HomeRightNow from "./Home/HomeRightNow";
 import HomeExplore from "./Home/HomeExplore";
 import HomeDms from "./DMs/HomeDms";
+import PrivacyPolicy from "./Policy/PrivacyPolicy";
+import DeleteAccount from "./Policy/DeleteAccount";
 
 function iOS() {
 	return (
@@ -110,6 +112,14 @@ function App() {
 					<Route
 						path="/dms"
 						element={<HomeDms />}
+					/>
+					<Route
+						path="/delete-account"
+						element={<DeleteAccount />}
+					/>
+					<Route
+						path="/privacy-and-terms"
+						element={<PrivacyPolicy />}
 					/>
 				</Routes>
 			</BrowserRouter>

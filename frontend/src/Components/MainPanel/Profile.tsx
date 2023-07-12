@@ -31,6 +31,7 @@ function Profile() {
 
 	const [posts, setPosts] = useState([] as PostBoxType[]);
 	const [offset, setOffset] = useState(0);
+	const [status, setStatus] = useState("offline");
 
 	let postDeleteCheck = 0;
 	socket.on("post-deleted", async (postId: string, isrepost) => {
@@ -109,6 +110,10 @@ function Profile() {
 			);
 			setPosts(actualPosts);
 			setOffset(posts.latestIndex);
+
+			const status = await axios.get(`${api_url}/status/${handle}`);
+			console.log(status.data);
+			setStatus(status.data.status);
 		})();
 	}, []);
 
@@ -156,7 +161,14 @@ function Profile() {
 			<div
 				ref={avatar}
 				className="avatar"
-			></div>
+			>
+				<div
+					style={{
+						backgroundColor: status === "online" ? "lime" : "gray",
+					}}
+					className="status"
+				></div>
+			</div>
 			<div>
 				{m_user?.handle == handle ? (
 					<button
