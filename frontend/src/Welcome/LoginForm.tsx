@@ -1,5 +1,5 @@
 import axios from "axios";
-import { FormEvent, useRef } from "react";
+import { FormEvent, useRef, useState } from "react";
 import RegisterTokenData from "../interfaces/RegisterTokenData";
 import { api_url } from "../constants/ApiURL";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +16,16 @@ function LoginForm({ state_change }: LoginFormInterface) {
 	const password = useRef<HTMLInputElement>(null);
 	const login_error = useRef<HTMLParagraphElement>(null);
 	const btn = useRef<HTMLButtonElement>(null);
+	const [text, setText] = useState("Forgot Password");
+
+	const forgot_pass = async () => {
+		axios.post(`${api_url}/settings/forgot-pass`, {
+			email: email.current!.value,
+			password: password.current?.value,
+		}).then(res => {
+			setText("Check your E-Mail Address to confirm changes.");
+		});
+	};
 
 	const Login = (event: FormEvent) => {
 		event.preventDefault();
@@ -61,7 +71,7 @@ function LoginForm({ state_change }: LoginFormInterface) {
 			<input
 				name="password"
 				ref={password}
-				placeholder="Password"
+				placeholder="Password (If you forgot password, type new one here)"
 				required
 				className="form-control"
 				type="password"
@@ -76,6 +86,14 @@ function LoginForm({ state_change }: LoginFormInterface) {
 				ref={login_error}
 				className="register-error"
 			></p>
+			<a
+				onClick={forgot_pass}
+				className="centered-text-form"
+			>
+				{text}
+			</a>
+			<br></br>
+			<br></br>
 			<a
 				onClick={state_stuff}
 				className="centered-text-form"

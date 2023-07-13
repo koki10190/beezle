@@ -40,6 +40,7 @@ import { VerifyBadgeText } from "./functions/badges";
 import validate from "deep-email-validator";
 import EmailVerification from "./models/EmailVerification";
 import Message from "./models/Message";
+import PasswordVerification from "./models/PasswordVerification";
 
 process.on("uncaughtException", function (err) {
 	console.error(err);
@@ -252,7 +253,6 @@ app.post("/api/logout", async (req: express.Request, res: express.Response) => {
 
 		const m_user = await User.findOneAndUpdate(
 			{
-				email: user.email,
 				handle: user.handle,
 			},
 			{
@@ -269,7 +269,6 @@ app.post("/api/verify-token", async (req: express.Request, res: express.Response
 		if (err) return res.json({ error: true });
 
 		const m_user = await User.findOne({
-			email: user.email,
 			handle: user.handle,
 		});
 		if (!m_user) return res.json({ error: true });
@@ -321,7 +320,6 @@ app.post("/api/upload-avatar", upload.single("avatar"), async (req, res) => {
 
 			const m_user = await User.updateOne(
 				{
-					email: user.email,
 					handle: user.handle,
 				},
 				{
@@ -362,7 +360,6 @@ app.post("/api/upload-banner", upload.single("banner"), async (req, res) => {
 
 			const m_user = await User.updateOne(
 				{
-					email: user.email,
 					handle: user.handle,
 				},
 				{
@@ -421,7 +418,6 @@ app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
 		if (err) return res.json({ error: true });
 		const m_user = await User.updateOne(
 			{
-				email: user.email,
 				handle: user.handle,
 			},
 			{
@@ -473,7 +469,6 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 		if (err) return res.json({ error: true });
 
 		const m_user = await User.findOne({
-			email: user.email,
 			handle: user.handle,
 		});
 		if (!m_user) return res.json({ error: true });
@@ -490,6 +485,7 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 				replyingTo: req.body.replyingTo,
 				repost_type: false,
 				repost_op: "",
+				private_post: m_user.private,
 				repost_id: "",
 			});
 
@@ -534,29 +530,48 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 	});
 });
 
-app.get("/api/explore-posts/:offset", async (req: express.Request, res: express.Response) => {
+app.post("/api/explore-posts/:offset", async (req: express.Request, res: express.Response) => {
 	const { offset } = req.params;
-	const posts = await fetchGlobalPosts(parseInt(offset));
-	return res.json({
-		posts: posts.data,
-		latestIndex: posts.latestIndex,
+	const { token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		const posts = await fetchGlobalPosts(m_user.handle, parseInt(offset));
+		return res.json({
+			posts: posts.data,
+			latestIndex: posts.latestIndex,
+		});
 	});
 });
 
-app.get("/api/right-now/:offset", async (req: express.Request, res: express.Response) => {
+app.post("/api/right-now/:offset", async (req: express.Request, res: express.Response) => {
 	const { offset } = req.params;
-	const posts = await fetchRightNow(parseInt(offset));
-	return res.json({
-		posts: posts.data,
-		latestIndex: posts.latestIndex,
+	const { token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		const posts = await fetchRightNow(m_user.handle, parseInt(offset));
+		return res.json({
+			posts: posts.data,
+			latestIndex: posts.latestIndex,
+		});
 	});
 });
 
-app.get("/api/user-posts/:handle", async (req: express.Request, res: express.Response) => {
-	const { handle } = req.params;
+app.post("/api/user-posts/:handle", async (req: express.Request, res: express.Response) => {
+	const { token, handle } = req.params;
 
-	return res.json({
-		posts: fetchUserPosts(handle as string),
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		return res.json({
+			posts: fetchUserPosts(m_user.handle, handle as string),
+		});
 	});
 });
 
@@ -565,7 +580,6 @@ app.post("/api/follow-posts", async (req: express.Request, res: express.Response
 
 	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
 		const m_user = (await User.findOne({
-			email: user.email,
 			handle: user.handle,
 		}))!;
 
@@ -580,7 +594,6 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 
 	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
 		const m_user = (await User.findOne({
-			email: user.email,
 			handle: user.handle,
 		}))!;
 		const Unlike = async () => {
@@ -647,20 +660,32 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 	});
 });
 
-app.get("/api/get-user-posts/:handle/:offset", async (req: express.Request, res: express.Response) => {
+app.post("/api/get-user-posts/:handle/:offset", async (req: express.Request, res: express.Response) => {
 	const { offset, handle } = req.params;
+	const { token } = req.body;
 	const posts = (await Post.find({ op: handle }).sort({ $natural: -1 }).skip(parseInt(offset)).limit(10)) as any[];
 
-	for (const i in posts) {
-		const count = await Post.count({
-			replyingTo: posts[i].postID,
-		});
-		posts[i].replies = count;
-	}
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
 
-	res.json({
-		posts,
-		latestIndex: parseInt(offset) + posts.length - 1,
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		const p_user = (await User.find({ handle }).limit(1))[0];
+
+		for (const i in posts) {
+			const count = await Post.count({
+				replyingTo: posts[i].postID,
+			});
+			posts[i].replies = count;
+		}
+
+		if (p_user.private && !p_user.following.includes(m_user.handle) && p_user.handle !== m_user.handle) {
+			return res.json({ posts: [], latestIndex: 0 });
+		}
+
+		res.json({
+			posts,
+			latestIndex: parseInt(offset) + posts.length - 1,
+		});
 	});
 });
 
@@ -673,7 +698,6 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 		const Unfollow = async () => {
 			const m_user = await User.findOneAndUpdate(
 				{
-					email: user.email,
 					handle: user.handle,
 				},
 				{
@@ -697,7 +721,6 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 
 		const m_user = await User.findOneAndUpdate(
 			{
-				email: user.email,
 				handle: user.handle,
 			},
 			{
@@ -759,7 +782,6 @@ app.post("/api/delete-post", async (req: express.Request, res: express.Response)
 		const m_user = (
 			await User.find({
 				handle: user.handle,
-				email: user.email,
 			}).limit(1)
 		)[0];
 
@@ -781,7 +803,6 @@ app.post("/api/bookmark", async (req: express.Request, res: express.Response) =>
 			const m_user = await User.updateOne(
 				{
 					handle: user.handle,
-					email: user.email,
 				},
 				{
 					$pull: {
@@ -793,7 +814,6 @@ app.post("/api/bookmark", async (req: express.Request, res: express.Response) =>
 			const m_user = await User.updateOne(
 				{
 					handle: user.handle,
-					email: user.email,
 				},
 				{
 					$push: {
@@ -814,7 +834,6 @@ app.post("/api/get-bookmarks", async (req: express.Request, res: express.Respons
 		const m_user = (
 			await User.find({
 				handle: user.handle,
-				email: user.email,
 			}).limit(1)
 		)[0];
 
@@ -852,11 +871,23 @@ app.post("/api/upload-file", upload.single("file"), async (req, res) => {
 	});
 });
 
-app.get("/api/get-post/:postID", async (req: express.Request, res: express.Response) => {
+app.post("/api/get-post/:postID", async (req: express.Request, res: express.Response) => {
 	const { postID } = req.params;
+	const { token } = req.body;
 
-	const post = await fetchPostByID(postID);
-	return res.json(post);
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({});
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		const post = await fetchPostByID(postID);
+		const p_user = (await User.find({ handle: post.op }).limit(1))[0];
+
+		if (p_user.private && !p_user.following.includes(m_user.handle)) {
+			return res.json({});
+		}
+
+		return res.json(post);
+	});
 });
 
 app.get("/api/get-replies/:postID/:offset", async (req: express.Request, res: express.Response) => {
@@ -876,7 +907,6 @@ app.post("/api/search", async (req: express.Request, res: express.Response) => {
 		const m_user = (
 			await User.find({
 				handle: user.handle,
-				email: user.email,
 			}).limit(1)
 		)[0];
 
@@ -914,7 +944,6 @@ app.post("/api/report", async (req: express.Request, res: express.Response) => {
 		const m_user = (
 			await User.find({
 				handle: user.handle,
-				email: user.email,
 			}).limit(1)
 		)[0];
 
@@ -948,7 +977,6 @@ app.post("/api/clear-notifs", async (req: express.Request, res: express.Response
 		const m_user = await User.findOneAndUpdate(
 			{
 				handle: user.handle,
-				email: user.email,
 			},
 			{
 				notifications: [],
@@ -1218,3 +1246,180 @@ app.post("/mod/verify-user", async (req: express.Request, res: express.Response)
 	});
 });
 // MODERATOR FIELD
+
+// SETTINGS FIELD
+
+app.post("/settings/delete-user", async (req: express.Request, res: express.Response) => {
+	const { token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+
+		const handle = m_user.handle;
+		const user_ban = await User.findOne({ handle });
+		if (!user_ban) return res.json({ error: true });
+		if (user_ban.owner) return res.json({ error: true });
+		if (user_ban.moderator && !user_ban.owner) return res.json({ error: true });
+		const posts = await Post.find({ op: handle });
+		posts.forEach(post => post.deleteOne());
+		await user_ban.deleteOne();
+
+		sendEmail(
+			user_ban.email,
+			`Your account (@${user_ban.handle}) has been deleted`,
+			`Hello @${user_ban?.handle}\nYour account that you requested to be deleted\nhas been deleted.`
+		);
+
+		return res.json({ error: false });
+	});
+});
+
+app.post("/settings/private-user", async (req: express.Request, res: express.Response) => {
+	const { token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		m_user.private = !m_user.private;
+		m_user.save();
+
+		return res.json({ error: false });
+	});
+});
+
+app.post("/settings/change-password", async (req: express.Request, res: express.Response) => {
+	const { token, password } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		const ipAddress = req.header("x-forwarded-for") || req.socket.remoteAddress;
+
+		const auth = uuid4();
+
+		if (password.length < 8) return res.json({ error: true });
+
+		const m_auth = await PasswordVerification.create({
+			for: m_user.handle,
+			auth,
+			new_pass: password,
+		});
+
+		sendEmail(
+			m_user.email,
+			"Change Password",
+			`Hello @${m_user.handle}!\nYou requested a password change, click on the link below to confirm changes\nIP Address of requester: ${ipAddress}\n\n${CONSTANTS.SERVER_URL}/pass-change/${auth}`
+		);
+
+		return res.json({ error: false });
+	});
+});
+
+app.post("/settings/forgot-pass", async (req: express.Request, res: express.Response) => {
+	const { email, password } = req.body;
+
+	const m_user = (await User.find({ email }).limit(1))[0];
+	const ipAddress = req.header("x-forwarded-for") || req.socket.remoteAddress;
+
+	const auth = uuid4();
+	if (password.length < 8) return res.json({ error: true });
+
+	const m_auth = await PasswordVerification.create({
+		for: m_user.handle,
+		auth,
+		new_pass: password,
+	});
+
+	sendEmail(
+		m_user.email,
+		"Change Password",
+		`Hello @${m_user.handle}!\nYou requested a password change, click on the link below to confirm changes\nIP Address of requester: ${ipAddress}\n\n${CONSTANTS.SERVER_URL}/pass-change/${auth}`
+	);
+
+	return res.json({ error: false });
+});
+
+app.post("/settings/change-email", async (req: express.Request, res: express.Response) => {
+	const { token, email } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		const ipAddress = req.header("x-forwarded-for") || req.socket.remoteAddress;
+
+		const auth = uuid4();
+
+		if (!email.match(/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/g)) {
+			res.json({
+				error: true,
+			});
+			return;
+		}
+
+		const m_auth = await PasswordVerification.create({
+			for: m_user.handle,
+			auth,
+			new_pass: email,
+		});
+
+		sendEmail(
+			m_user.email,
+			"Change E-Mail",
+			`Hello @${m_user.handle}!\nYou requested an E-Mail change, click on the link below to confirm changes\nIP Address of requester: ${ipAddress}\n\n${CONSTANTS.SERVER_URL}/email-change/${auth}`
+		);
+
+		return res.json({ error: false });
+	});
+});
+
+app.get("/pass-change/:auth", async (req: express.Request, res: express.Response) => {
+	const { auth } = req.params;
+
+	const m_auth = await PasswordVerification.findOne({
+		auth,
+	});
+	if (!m_auth) return res.send("Invalid authentication code!");
+
+	const salt = await bcrypt.genSalt(10);
+	const hashed = await bcrypt.hash(m_auth.new_pass, salt);
+
+	const user = await User.findOneAndUpdate(
+		{
+			handle: m_auth.for,
+		},
+		{
+			password: hashed,
+		}
+	);
+
+	m_auth.deleteOne();
+
+	res.send("Success! your password has been resetted!");
+});
+
+app.get("/email-change/:auth", async (req: express.Request, res: express.Response) => {
+	const { auth } = req.params;
+
+	const m_auth = await PasswordVerification.findOne({
+		auth,
+	});
+	if (!m_auth) return res.send("Invalid authentication code!");
+
+	const user = await User.findOneAndUpdate(
+		{
+			handle: m_auth.for,
+		},
+		{
+			email: m_auth.new_pass,
+		}
+	);
+
+	m_auth.deleteOne();
+
+	res.send("Success! your email has been resetted!");
+});
+
+// SETTINGS FIELD

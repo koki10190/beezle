@@ -171,6 +171,9 @@ function NavigationPanel() {
 					<a onClick={myProfile}>
 						Profile <i className="fa-solid fa-user"></i>
 					</a>
+					<a onClick={() => navigate("/settings")}>
+						Settings <i className="fa-solid fa-user-gear"></i>
+					</a>
 					{iOS() ? (
 						""
 					) : (

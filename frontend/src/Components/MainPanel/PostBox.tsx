@@ -108,7 +108,9 @@ function PostBox({
 	useEffect(() => {
 		(async () => {
 			if (repost_type) {
-				const repostData = await axios.get(`${api_url}/api/get-post/${repost_id}`);
+				const repostData = await axios.post(`${api_url}/api/get-post/${repost_id}`, {
+					token: localStorage.getItem("auth_token"),
+				});
 				setRepostData(repostData.data.data);
 
 				const repostOp = await GetOtherUser(repost_op);

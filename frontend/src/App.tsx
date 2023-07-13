@@ -21,12 +21,15 @@ import HomeRightNow from "./Home/HomeRightNow";
 import HomeExplore from "./Home/HomeExplore";
 import HomeDms from "./DMs/HomeDms";
 import PrivacyPolicy from "./Policy/PrivacyPolicy";
-import DeleteAccount from "./Policy/DeleteAccount";
+import DeleteAccount from "./Settings/Pages/DeleteAccount";
 import Dashboard from "./Dashboard/Dashboard";
 import Reports from "./Dashboard/Pages/Reports";
 import DeletePost from "./Dashboard/Pages/DeletePost";
 import BanUser from "./Dashboard/Pages/BanUser";
 import VerifyUser from "./Dashboard/Pages/VerifyUser";
+import Settings from "./Settings/Settings";
+import PrivacySettings from "./Settings/Pages/Privacy";
+import Credentials from "./Settings/Pages/Credentials";
 
 function iOS() {
 	return (
@@ -119,10 +122,6 @@ function App() {
 						element={<HomeDms />}
 					/>
 					<Route
-						path="/delete-account"
-						element={<DeleteAccount />}
-					/>
-					<Route
 						path="/privacy-and-terms"
 						element={<PrivacyPolicy />}
 					/>
@@ -145,6 +144,26 @@ function App() {
 					<Route
 						path="/dashboard/verify"
 						element={<VerifyUser />}
+					/>
+					<Route
+						path="/settings"
+						element={<Settings />}
+					/>
+					<Route
+						path="/settings/delete-account"
+						element={<DeleteAccount />}
+					/>
+					<Route
+						path="/delete-account"
+						element={<DeleteAccount />}
+					/>
+					<Route
+						path="/settings/privacy"
+						element={<PrivacySettings />}
+					/>
+					<Route
+						path="/settings/credentials"
+						element={<Credentials />}
 					/>
 				</Routes>
 			</BrowserRouter>

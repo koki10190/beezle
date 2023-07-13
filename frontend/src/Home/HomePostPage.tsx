@@ -22,6 +22,7 @@ import "react-toastify/dist/ReactToastify.css";
 import EmojiPicker, { EmojiClickData, EmojiStyle, Theme } from "emoji-picker-react";
 import sanitize from "sanitize-html";
 import VerifyBadge from "../functions/VerifyBadge";
+import MetaTags from "react-meta-tags";
 
 function HomePostPage() {
 	const navigate = useNavigate();
@@ -148,10 +149,20 @@ function HomePostPage() {
 				setMe(data.user);
 			}
 
-			const post = (await axios.get(`${api_url}/api/get-post/${postID}`)).data as PostBoxType;
+			const post = (
+				await axios.post(`${api_url}/api/get-post/${postID}`, {
+					token: localStorage.getItem("auth_token"),
+				})
+			).data as PostBoxType;
 
 			if (post.data.reply_type) {
-				setReplyParent((await axios.get(`${api_url}/api/get-post/${post.data.replyingTo}`)).data as PostBoxType);
+				setReplyParent(
+					(
+						await axios.post(`${api_url}/api/get-post/${post.data.replyingTo}`, {
+							token: localStorage.getItem("auth_token"),
+						})
+					).data as PostBoxType
+				);
 			}
 
 			setPost(post);
@@ -377,6 +388,20 @@ function HomePostPage() {
 				>
 					{render ? (
 						<>
+							<MetaTags>
+								<meta
+									name="description"
+									content={"Post " + postID}
+								/>
+								<meta
+									property="og:title"
+									content="Beezle Post"
+								/>
+								<meta
+									property="og:image"
+									content="/icon.png"
+								/>
+							</MetaTags>
 							{post?.data.edited ? (
 								<p
 									style={{

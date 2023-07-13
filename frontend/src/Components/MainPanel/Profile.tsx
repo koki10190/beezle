@@ -100,7 +100,11 @@ function Profile() {
 
 			followBtn.current!.innerText = user.followers.find(x => x === usrData.user.handle) ? "Unfollow" : "Follow";
 
-			const posts = (await axios.get(`${api_url}/api/get-user-posts/${handle}/${offset}`)).data;
+			const posts = (
+				await axios.post(`${api_url}/api/get-user-posts/${handle}/${offset}`, {
+					token: localStorage.getItem("auth_token"),
+				})
+			).data;
 			const actualPosts: PostBoxType[] = [];
 			(posts.posts as PostType[]).forEach(post =>
 				actualPosts.push({
@@ -132,20 +136,22 @@ function Profile() {
 	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
 		const element = event.target! as HTMLDivElement;
 		if (element.scrollHeight - element.scrollTop === element.clientHeight) {
-			axios.get(`${api_url}/api/get-user-posts/${handle}/${offset + 1}`).then(async res => {
-				const actualPosts: PostBoxType[] = [];
-				(res.data.posts as PostType[]).forEach(post =>
-					actualPosts.push({
-						data: post,
-						op: user,
-					})
-				);
+			axios.post(`${api_url}/api/get-user-posts/${handle}/${offset + 1}`, { token: localStorage.getItem("auth_token") }).then(
+				async res => {
+					const actualPosts: PostBoxType[] = [];
+					(res.data.posts as PostType[]).forEach(post =>
+						actualPosts.push({
+							data: post,
+							op: user,
+						})
+					);
 
-				setPosts(posts.concat(actualPosts));
+					setPosts(posts.concat(actualPosts));
 
-				setOffset(res.data.latestIndex);
-				console.log(`Offset: ${res.data.latestIndex}`);
-			});
+					setOffset(res.data.latestIndex);
+					console.log(`Offset: ${res.data.latestIndex}`);
+				}
+			);
 		}
 	};
 

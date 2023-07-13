@@ -3,6 +3,7 @@ interface UserType {
 	displayName: string;
 	email: string;
 	password: string;
+	private: boolean;
 	bio: string;
 	avatar: string;
 	banner: string;

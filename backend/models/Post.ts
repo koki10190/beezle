@@ -14,6 +14,10 @@ const schema = new mongoose.Schema({
 		required: true,
 		default: Date.now,
 	},
+	private_post: {
+		type: Boolean,
+		default: false,
+	},
 	edited: {
 		type: Boolean,
 		required: true,

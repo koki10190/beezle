@@ -85,6 +85,7 @@ function Post({ fetch_method }: { fetch_method: string }) {
 	useEffect(() => {
 		(async () => {
 			user = (await GetUserData()).user;
+			if (!localStorage.getItem("auth_token")) navigate("/");
 			setMe(user);
 			console.log("hm");
 			setShowPosts(true);
@@ -101,11 +102,13 @@ function Post({ fetch_method }: { fetch_method: string }) {
 			VerifyBadge(username.current!, user);
 			CutLong(user.displayName, 10);
 
-			axios.get(`${api_url}/api/${fetch_method}/${postsOffset}`).then(async res => {
-				setPosts(res.data.posts as PostBoxType[]);
+			axios.post(`${api_url}/api/${fetch_method}/${postsOffset}`, { token: localStorage.getItem("auth_token") }).then(
+				async res => {
+					setPosts(res.data.posts as PostBoxType[]);
 
-				setPostsOffset(res.data.latestIndex);
-			});
+					setPostsOffset(res.data.latestIndex);
+				}
+			);
 		})();
 
 		postFile.current!.addEventListener("change", async (event: Event) => {
@@ -168,12 +171,14 @@ function Post({ fetch_method }: { fetch_method: string }) {
 	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
 		const element = event.target! as HTMLDivElement;
 		if (element.scrollHeight - element.scrollTop === element.clientHeight) {
-			axios.get(`${api_url}/api/${fetch_method}/${postsOffset + 1}`).then(async res => {
-				setPosts(posts.concat(res.data.posts as PostBoxType[]));
+			axios.post(`${api_url}/api/${fetch_method}/${postsOffset + 1}`, { token: localStorage.getItem("auth_token") }).then(
+				async res => {
+					setPosts(posts.concat(res.data.posts as PostBoxType[]));
 
-				setPostsOffset(res.data.latestIndex);
-				console.log(`Offset: ${res.data.latestIndex}`);
-			});
+					setPostsOffset(res.data.latestIndex);
+					console.log(`Offset: ${res.data.latestIndex}`);
+				}
+			);
 		}
 	};
 
@@ -190,7 +195,7 @@ function Post({ fetch_method }: { fetch_method: string }) {
 			theme: "dark",
 			hideProgressBar: true,
 		});
-		axios.get(`${api_url}/api/${fetch_method}/0`).then(async res => {
+		axios.post(`${api_url}/api/${fetch_method}/0`, { token: localStorage.getItem("auth_token") }).then(async res => {
 			setPosts(res.data.posts as PostBoxType[]);
 			setPostsOffset(res.data.latestIndex);
 			toast("Refreshed the posts", {

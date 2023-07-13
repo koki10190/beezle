@@ -9,6 +9,7 @@ interface PostType {
 		required: true;
 		default: false;
 	};
+	private_post: boolean;
 	op: string;
 	likes: string[];
 	reposts: string[];

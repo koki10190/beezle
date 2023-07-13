@@ -17,6 +17,7 @@ const schema = new mongoose.Schema({
 		type: String,
 		required: true,
 	},
+	private: { type: Boolean, default: false },
 	bio: {
 		type: String,
 		required: false,

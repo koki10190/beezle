@@ -6,6 +6,7 @@ interface PostType {
 	date: Date;
 	edited: boolean;
 	op: string;
+	private_post: boolean;
 	likes: string[];
 	reposts: string[];
 	replies: number;

@@ -8,6 +8,8 @@ function VerifyBadgeText(user: UserType): string {
 	else if (user.moderator) ret += ` <i style="color: yellow" class="fa-solid fa-shield-check"></i>`;
 	else if (user.verified) ret += ` <i style="color: yellow" class="fa-solid fa-badge-check"></i>`;
 
+	if (user.private) ret += ` <i style="color: yellow" class="fa-solid fa-lock"></i>`;
+
 	return ret;
 }
 

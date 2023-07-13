@@ -19,7 +19,7 @@ function shuffle(array: any[]) {
 	return array;
 }
 
-async function fetchGlobalPosts(offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
+async function fetchGlobalPosts(me: string, offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
 	const collection_size = await Post.count({ __v: { $gte: 0 } });
 	const m_posts = (await Post.find({
 		__v: { $gte: 0 },
@@ -30,11 +30,20 @@ async function fetchGlobalPosts(offset: number): Promise<{ data: PostBoxType[]; 
 
 	const posts = shuffle(m_posts);
 
+	const remove_posts: number[] = [];
 	for (let i = 0; i < posts.length; i++) {
 		posts[i] = {
 			data: posts[i],
 			op: await GetUserByHandle(posts[i].op),
 		};
+
+		if (posts[i].op.private && posts[i].op !== me) {
+			if (!posts[i].op.following.includes(me) && posts[i].op.handle !== me) {
+				remove_posts.push(i);
+				continue;
+			}
+		}
+
 		const count = await Post.count({
 			replyingTo: posts[i].data.postID,
 		});
@@ -43,10 +52,12 @@ async function fetchGlobalPosts(offset: number): Promise<{ data: PostBoxType[]; 
 		posts[i].data.content = sanitize(posts[i].data.content);
 	}
 
+	remove_posts.forEach(i => posts.splice(i, 1));
+
 	return { data: posts, latestIndex: offset + posts.length - 1 };
 }
 
-async function fetchRightNow(offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
+async function fetchRightNow(me: string, offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
 	const posts = (await Post.find({
 		__v: { $gte: 0 },
 		// repost_type: { $ne: true },
@@ -55,11 +66,21 @@ async function fetchRightNow(offset: number): Promise<{ data: PostBoxType[]; lat
 		.sort({ $natural: -1 })
 		.skip(offset)
 		.limit(10)) as any[];
+
+	const remove_posts: number[] = [];
 	for (let i = 0; i < posts.length; i++) {
 		posts[i] = {
 			data: posts[i],
 			op: await GetUserByHandle(posts[i].op),
 		};
+
+		if (posts[i].op.private) {
+			if (!posts[i].op.following.includes(me) && posts[i].op.handle !== me) {
+				remove_posts.push(i);
+				continue;
+			}
+		}
+
 		const count = await Post.count({
 			replyingTo: posts[i].data.postID,
 		});
@@ -67,6 +88,8 @@ async function fetchRightNow(offset: number): Promise<{ data: PostBoxType[]; lat
 		posts[i].data.replies = count;
 		posts[i].data.content = sanitize(posts[i].data.content);
 	}
+
+	remove_posts.forEach(i => posts.splice(i, 1));
 
 	return { data: posts, latestIndex: offset + posts.length - 1 };
 }
@@ -98,11 +121,18 @@ async function fetchReplies(postID: string, offset: number): Promise<{ data: Pos
 	return { data: posts, latestIndex: offset + posts.length - 1 };
 }
 
-async function fetchUserPosts(handle: string) {
+async function fetchUserPosts(me: string, handle: string) {
 	const posts = (await Post.find({
 		op: handle,
 		reply_type: { $ne: true },
 	})) as any[];
+
+	const user = await User.findOne({ handle });
+	const m_user = await User.findOne({ handle: me });
+
+	if (user!.private) {
+		if (!user?.following.includes(m_user!.handle) && handle !== me) return [];
+	}
 
 	return posts;
 }
