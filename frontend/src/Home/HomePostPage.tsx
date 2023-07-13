@@ -230,12 +230,6 @@ function HomePostPage() {
 		})();
 	}, []);
 
-	useEffect(() => {
-		setTimeout(() => {
-			VerifyBadge(pageName.current!, user);
-		}, 500);
-	}, [render]);
-
 	const bookmark = () => {
 		if (isBookmarked) {
 			setBookmarked(false);
@@ -628,7 +622,10 @@ function HomePostPage() {
 										fontSize: "20px",
 										minHeight: "70px",
 									}}
-									placeholder={`Reply to ${post?.op.displayName}!`}
+									placeholder={`Reply to ${post?.op.displayName.replace(
+										/(.{16})..+/,
+										"$1…"
+									)}!`}
 									className="post-textarea"
 								></textarea>
 								<hr
