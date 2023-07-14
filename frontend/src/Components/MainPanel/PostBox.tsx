@@ -210,7 +210,9 @@ function PostBox({
 		}
 	};
 
-	const redirectToProfile = () => navigate("/profile/" + handle);
+	const redirectToProfile = () => {
+		window.location.href = "/profile/" + repost_type ? repostOp.handle : handle;
+	};
 
 	const deletePost = async () => {
 		axios.post(`${api_url}/api/delete-post`, {

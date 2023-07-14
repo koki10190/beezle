@@ -9,8 +9,7 @@ const displayContent = (content: string): string => {
 		const img = new Image();
 		img.onload = () => {
 			const element = document.getElementById(nID) as HTMLDivElement;
-
-			element.style.height = `${img.naturalHeight > 500 ? 500 : img.naturalHeight}px`;
+			if (element) element.style.height = `${img.naturalHeight > 500 ? 500 : img.naturalHeight}px`;
 		};
 		img.src = matched[0];
 	}

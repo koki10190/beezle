@@ -16,13 +16,25 @@
 :root {
 	font-family: "Open Sans", sans-serif;
 	--toastify-color-progress-warning: red;
+
+	--bg-color: #000;
+	--text-color-root: #fff;
+	--text-color-btn: #000;
+	--btn-color: yellow;
+	--btn-color-hover: rgb(216, 216, 0);
+	--field-bg-color: ;
+	--beezle-logo-color-1: rgb(255, 223, 135);
+	--beezle-logo-color-2: rgb(192, 147, 0);
+
+	--form-bg: rgb(53, 43, 24);
+	--form-bg-border: rgb(192, 147, 0);
 }
 
 body {
-	background-color: rgb(0, 0, 0);
+	background-color: var(--bg-color);
 	margin: 0;
 	padding: 0;
-	color: white;
+	color: var(--text-color-root);
 	overflow-y: hidden;
 	overflow-y: hidden;
 	overflow-x: hidden;
@@ -46,7 +58,7 @@ nav > .icon {
 }
 
 button {
-	color: black;
+	color: (--text-color-btn);
 }
 
 .icon {
@@ -79,7 +91,7 @@ header > h1 {
 	margin-right: 50px;
 	margin-top: 150px;
 	font-size: 100px;
-	background: -webkit-linear-gradient(rgb(255, 223, 135), rgb(192, 147, 0));
+	background: -webkit-linear-gradient(var(--beezle-logo-color-1), var(--beezle-logo-color-2));
 	-webkit-background-clip: text;
 	-webkit-text-fill-color: transparent;
 }
@@ -118,9 +130,8 @@ textarea {
 	min-height: 50%;
 	border-radius: 30px;
 	margin-top: 170px;
-	background-color: rgb(53, 43, 24);
-	border: solid 5px rgb(192, 147, 0);
-	border: solid 1px rgb(192, 147, 0);
+	background-color: var(--form-bg);
+	border: solid 1px var(--form-bg-border);
 	box-sizing: border-box;
 	padding: 50px;
 }
@@ -162,7 +173,7 @@ textarea {
 .welcome-form-registration > button {
 	width: 100%;
 	height: 50px;
-	background-color: yellow;
+	background-color: var(--btn-color);
 	outline: none;
 	border: none;
 	font-family: "Open Sans";
@@ -173,7 +184,7 @@ textarea {
 
 .welcome-form-registration > button:hover {
 	transform: rotateZ(5deg) scale(1.1);
-	background-color: rgb(216, 216, 0);
+	background-color: var(--btn-color-hover);
 }
 
 .welcome-form-registration > .centered-text-form {

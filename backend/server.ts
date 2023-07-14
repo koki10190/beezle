@@ -41,6 +41,9 @@ import validate from "deep-email-validator";
 import EmailVerification from "./models/EmailVerification";
 import Message from "./models/Message";
 import PasswordVerification from "./models/PasswordVerification";
+import axios from "axios";
+
+const basic_spotify = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString("base64");
 
 process.on("uncaughtException", function (err) {
 	console.error(err);
@@ -103,12 +106,6 @@ app.get("/", (req: express.Request, res: express.Response) => {
 	// Post.deleteMany({
 	// 	__v: { $gte: 0 },
 	// }).then(() => res.write("Deleted!"));
-
-	User.find({ $gte: 0 }).updateMany({
-		active: true,
-	});
-
-	User.updateMany({ $gte: 0 }, { active: true }).then(res => console.log(res));
 });
 
 app.get("/search/:email", async (req: express.Request, res: express.Response) => {
@@ -880,9 +877,8 @@ app.post("/api/get-post/:postID", async (req: express.Request, res: express.Resp
 
 		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
 		const post = await fetchPostByID(postID);
-		const p_user = (await User.find({ handle: post.op }).limit(1))[0];
 
-		if (p_user.private && !p_user.following.includes(m_user.handle)) {
+		if (post.op.private && !post.op.following.includes(m_user.handle)) {
 			return res.json({});
 		}
 
@@ -1233,13 +1229,13 @@ app.post("/mod/verify-user", async (req: express.Request, res: express.Response)
 
 		const verify_user = await User.findOne({ handle });
 		if (!verify_user) return res.json({ error: true });
-		verify_user.verified = true;
+		verify_user.bug_hunter = true;
 		verify_user.save();
 
 		sendEmail(
 			verify_user.email,
-			`Your account (@${verify_user.handle}) has been verified!`,
-			`Hello @${verify_user?.handle}\nYour account has been verified!`
+			`Your account (@${verify_user.handle}) has been given a bug hunter verification!`,
+			`Hello @${verify_user?.handle}\nYour account has been given a bug hunter verification!`
 		);
 
 		return res.json({ error: false });
@@ -1423,3 +1419,73 @@ app.get("/email-change/:auth", async (req: express.Request, res: express.Respons
 });
 
 // SETTINGS FIELD
+
+// CONNECTING ACCOUNTS FIELD
+interface SpotifyBearer {
+	access_token: string;
+	expires_in: string;
+	token_type: string;
+}
+const encodeFormData = (data: any) => {
+	return Object.keys(data)
+		.map(key => encodeURIComponent(key) + "=" + encodeURIComponent(data[key]))
+		.join("&");
+};
+app.post("/user/connect-spotify", async (req: express.Request, res: express.Response) => {
+	const { code, token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		let body = {
+			grant_type: "authorization_code",
+			code: code[1],
+			redirect_uri: CONSTANTS.FRONTEND_URL,
+			client_id: process.env.SPOTIFY_CLIENT_ID,
+			client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+		};
+		const m_res = await axios.post("https://accounts.spotify.com/api/token", encodeFormData(body), {
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+				Authorization:
+					"Basic " +
+					Buffer.from(
+						process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET
+					).toString("base64"),
+			},
+		});
+		m_user.connected_accounts = {
+			spotify: { access_token: m_res.data.access_token, refresh_token: m_res.data.refresh_token },
+		};
+		console.log(m_res.data);
+		m_user.save();
+
+		return res.json({ error: false });
+	});
+});
+
+app.get("/refresh-spotify-token/:handle", async (req: express.Request, res: express.Response) => {
+	const { handle } = req.params;
+
+	const user = await User.findOne({ handle });
+	if (!user) return res.json({ error: true });
+	let body = {
+		grant_type: "refresh_token",
+		refresh_token: user.connected_accounts?.spotify?.refresh_token,
+	};
+	const m_res = await axios.post("https://accounts.spotify.com/api/token", encodeFormData(body), {
+		headers: {
+			"Content-Type": "application/x-www-form-urlencoded",
+			Authorization:
+				"Basic " +
+				Buffer.from(process.env.SPOTIFY_CLIENT_ID + ":" + process.env.SPOTIFY_CLIENT_SECRET).toString("base64"),
+		},
+	});
+
+	user.connected_accounts!.spotify!.access_token = m_res.data.access_token;
+	user.save();
+
+	res.json({ error: false });
+});
+// CONNECTING ACCOUNTS FIELD

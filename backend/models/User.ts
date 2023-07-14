@@ -38,6 +38,7 @@ const schema = new mongoose.Schema({
 		required: true,
 		default: false,
 	},
+	bug_hunter: { type: Boolean, default: false },
 	moderator: {
 		type: Boolean,
 		required: true,
@@ -66,6 +67,12 @@ const schema = new mongoose.Schema({
 	],
 	active: { type: Boolean, default: true },
 	notifications: [{ type: String }],
+	connected_accounts: {
+		spotify: {
+			access_token: { type: String, default: "" },
+			refresh_token: { type: String, default: "" },
+		},
+	},
 	// token: {
 	// 	type: String,
 	// 	required: true,

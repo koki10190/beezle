@@ -30,8 +30,10 @@
 		"multer": "^1.4.5-lts.1",
 		"nodemailer": "^6.9.3",
 		"nodemailer-smtp-transport": "^2.7.4",
+		"querystring": "^0.2.1",
 		"sanitize-html": "^2.11.0",
 		"socket.io": "^4.7.1",
+		"spotify-web-api-node": "^5.0.2",
 		"uuid4": "^2.0.3"
 	},
 	"devDependencies": {
@@ -42,6 +44,7 @@
 		"@types/multer": "^1.4.7",
 		"@types/nodemailer": "^6.4.8",
 		"@types/nodemailer-smtp-transport": "^2.7.5",
+		"@types/spotify-web-api-node": "^5.0.7",
 		"@types/uuid4": "^2.0.0",
 		"concurrently": "^8.2.0"
 	}

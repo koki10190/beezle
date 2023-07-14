@@ -1,22 +1,50 @@
 import "./Welcome.css";
 import GetUserData from "../api/GetUserData";
 import RegisterForm from "./RegisterForm";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import LoginForm from "./LoginForm";
 import socket from "../io/socket";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { api_url } from "../constants/ApiURL";
+
 function Welcome() {
 	const navigate = useNavigate();
-	if (localStorage.getItem("auth_token")) {
+
+	const getTokenFromUrl = () => {
+		return window.location.hash
+			.substring(1)
+			.split("&")
+			.reduce((initial: any, item: any) => {
+				let parts = item.split("=");
+				initial[parts[0]] = decodeURIComponent(parts[1]);
+				return initial;
+			}, {});
+	};
+
+	const getSpotifyCodeFromURL = () => window.location.search.split("=");
+
+	useEffect(() => {
 		(async () => {
-			const data = await GetUserData();
-			if (data) {
-				// socket.emit("get-handle", data.user.handle);
-				navigate("/home");
+			if (localStorage.getItem("auth_token")) {
+				const code = getSpotifyCodeFromURL();
+				console.log(code);
+				if (code.length > 1 && code[1] !== "") {
+					const save_token = await axios.post(`${api_url}/user/connect-spotify`, {
+						code,
+						token: localStorage.getItem("auth_token"),
+					});
+				}
+
+				const data = await GetUserData();
+				if (data) {
+					socket.emit("get-handle", data.user.handle);
+					navigate("/home");
+				}
+			} else {
 			}
 		})();
-	} else {
-	}
+	}, []);
 
 	const [isRegisterForm, setRegisterForm] = useState(false);
 

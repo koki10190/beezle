@@ -8,6 +8,7 @@ interface UserType {
 	avatar: string;
 	banner: string;
 	verified: boolean;
+	bug_hunter: boolean;
 	moderator: boolean;
 	owner: boolean;
 	pinned_post: string;
@@ -15,6 +16,12 @@ interface UserType {
 	following: string[];
 	bookmarks: string[];
 	notifications: string[];
+	connected_accounts: {
+		spotify: {
+			access_token: string;
+			refresh_token: string;
+		};
+	};
 }
 
 export default UserType;

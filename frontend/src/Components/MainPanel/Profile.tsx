@@ -12,6 +12,10 @@ import GetUserData from "../../api/GetUserData";
 import socket from "../../io/socket";
 import { BadgeType } from "../../functions/VerifyBadgeBool";
 import getBadgeType from "../../functions/getBadgeType";
+import SpotifyWebApi from "spotify-web-api-js";
+import millify from "millify";
+import moment from "moment";
+import ProgressBar from "@ramonak/react-progress-bar";
 
 function Profile() {
 	const navigate = useNavigate();
@@ -32,6 +36,16 @@ function Profile() {
 	const [posts, setPosts] = useState([] as PostBoxType[]);
 	const [offset, setOffset] = useState(0);
 	const [status, setStatus] = useState("offline");
+
+	// Spotify
+	const [isSpotify, setIsSpotify] = useState(false);
+	const [trackName, setTrackName] = useState("");
+	const [trackImage, setTrackImage] = useState("");
+	const [trackAlbum, setTrackAlbum] = useState("");
+	const [trackURL, setTrackURL] = useState("");
+	const [trackTimestamp, setTimestamp] = useState(0);
+	const [trackDuration, setDuration] = useState(0);
+	const [trackArtists, setTrackArtists] = useState<SpotifyApi.ArtistObjectSimplified[]>([]);
 
 	let postDeleteCheck = 0;
 	socket.on("post-deleted", async (postId: string, isrepost) => {
@@ -82,6 +96,14 @@ function Profile() {
 		user = (await GetOtherUser(handle!)).user;
 	})();
 
+	function millisToMinutesAndSeconds(millis: number) {
+		var minutes = Math.floor(millis / 60000);
+		var seconds = ((millis % 60000) / 1000).toFixed(0);
+		return minutes + ":" + ((seconds as any) < 10 ? "0" : "") + seconds;
+	}
+	function fmtMSS(s: any) {
+		return (s - (s %= 60)) / 60 + (9 < s ? ":" : ":0") + s;
+	}
 	useEffect(() => {
 		(async () => {
 			user = (await GetOtherUser(handle!)).user;
@@ -118,6 +140,32 @@ function Profile() {
 			const status = await axios.get(`${api_url}/status/${handle}`);
 			console.log(status.data);
 			setStatus(status.data.status);
+
+			if (user.connected_accounts.spotify.access_token !== "") {
+				const spotify = new SpotifyWebApi();
+				spotify.setAccessToken(user.connected_accounts.spotify.access_token);
+				setInterval(async () => {
+					const track = await spotify
+						.getMyCurrentPlayingTrack()
+						.then(track => {
+							setIsSpotify(track.is_playing);
+							setTrackName(track.item!.name);
+							setTrackAlbum(track.item!.album.name);
+							setTrackArtists(track.item!.artists);
+							setTrackImage(track.item!.album.images[0].url);
+							setTrackURL(track.item!.external_urls.spotify);
+							setTimestamp(track.progress_ms!);
+							setDuration(track.item!.duration_ms!);
+						})
+						.catch(err => {
+							axios.get(`${api_url}/refresh-spotify-token/${handle}`);
+						});
+
+					(document.querySelector(".spotify-pb-bar > div") as HTMLDivElement).style.background =
+						"yellow";
+					(document.querySelector(".spotify-pb-bar > div") as HTMLDivElement).style.color = "black";
+				}, 1000);
+			}
 		})();
 	}, []);
 
@@ -205,6 +253,47 @@ function Profile() {
 				ref={bio}
 				className="profile-bio"
 			></p>
+			{isSpotify ? (
+				<div
+					onClick={() => window.open(trackURL)}
+					className="spotify"
+				>
+					<p className="spotify-listeningto">Listening to</p>
+					<div
+						style={{
+							backgroundImage: `url("${trackImage}")`,
+						}}
+						className="spotify-image"
+					></div>
+					<h1 className="spotify-name">{trackName.replace(/(.{22})..+/, "$1…")}</h1>
+					<h1 className="spotify-album">on {trackAlbum.replace(/(.{23})..+/, "$1…")}</h1>
+					<h1 className="spotify-artists">
+						by{" "}
+						{trackArtists.map(
+							artist => artist.name.replace(/(.{16})..+/, "$1…") + ", "
+						)}
+					</h1>
+					<h1 className="spotify-artists">
+						{millisToMinutesAndSeconds(trackTimestamp)} -{" "}
+						{millisToMinutesAndSeconds(trackDuration)}
+					</h1>
+
+					<ProgressBar
+						completed={trackTimestamp}
+						maxCompleted={trackDuration}
+						customLabel={millisToMinutesAndSeconds(trackTimestamp)}
+						className="spotify-progress-bar"
+						barContainerClassName="spotify-pb-bar"
+						height="15px"
+						customLabelStyles={{
+							color: "black",
+							marginBottom: "2px",
+						}}
+					/>
+				</div>
+			) : (
+				""
+			)}
 			<div className="profile-follower-box">
 				<p
 					style={{

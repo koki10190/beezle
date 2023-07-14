@@ -124,7 +124,7 @@
 	background-color: rgb(255, 32, 32);
 	font-family: "Open Sans";
 	transition: ease-in 100ms;
-	width: 15%;
+	width: fit-content;
 }
 
 .post-edit-save-red:hover {
@@ -142,7 +142,7 @@
 	background-color: yellow;
 	font-family: "Open Sans";
 	transition: ease-in 100ms;
-	width: 15%;
+	width: fit-content;
 }
 
 .post-edit-save-btn:hover {

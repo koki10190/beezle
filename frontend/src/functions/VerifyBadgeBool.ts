@@ -6,6 +6,7 @@ enum BadgeType {
 	VERIFIED = 2,
 	NONE = 3,
 	PRIVATE = 4,
+	BUG_HUNTER = 5,
 }
 
 function VerifyBadgeBool(element: HTMLElement, displayName: string, badgeType: BadgeType) {
@@ -14,6 +15,9 @@ function VerifyBadgeBool(element: HTMLElement, displayName: string, badgeType: B
 	switch (badgeType) {
 		case BadgeType.PRIVATE:
 			element.innerHTML += ` <i style="color: yellow" class="fa-solid fa-lock"></i>`;
+			break;
+		case BadgeType.BUG_HUNTER:
+			element.innerHTML += ` <i style="color: #ff52d7" class="fa-solid fa-screwdriver-wrench"></i>`;
 			break;
 		case BadgeType.OWNER:
 			element.innerHTML += ` <i style="color: lime" class="fa-solid fa-gear-complex-code"></i>`;

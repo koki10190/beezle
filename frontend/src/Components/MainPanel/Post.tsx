@@ -168,6 +168,37 @@ function Post({ fetch_method }: { fetch_method: string }) {
 		});
 	};
 
+	const pasteContent = async (event: any) => {
+		const item = event.clipboardData.items[0];
+
+		if (item.type.indexOf("image") === 0 || item.type.indexOf("video") === 0) {
+			event.preventDefault();
+			const blob = item.getAsFile();
+
+			const fileFormData = new FormData();
+			console.log(blob);
+			fileFormData.append("file", blob);
+
+			const split = blob.name.split(".");
+			const ext = split[split.length - 1];
+			fileFormData.append("ext", ext);
+
+			fileFormData.append("token", localStorage.getItem("auth_token") as string);
+
+			alert("The file is being uploaded, please wait.");
+
+			const res = (
+				await axios.post(`${api_url}/api/upload-file`, fileFormData, {
+					headers: {
+						"Content-Type": "multipart/form-data",
+					},
+				})
+			).data;
+
+			post.current!.value += " " + res.img;
+		}
+	};
+
 	const detectScrolling = (event: UIEvent<HTMLDivElement>) => {
 		const element = event.target! as HTMLDivElement;
 		if (element.scrollHeight - element.scrollTop === element.clientHeight) {
@@ -249,6 +280,7 @@ function Post({ fetch_method }: { fetch_method: string }) {
 						ref={post}
 						placeholder="Press here to type your post."
 						className="post-textarea"
+						onPaste={pasteContent}
 					></textarea>
 					<div className="post-text-buttons">
 						<a onClick={showEmojiPicker}>
