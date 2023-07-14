@@ -294,9 +294,21 @@ function Profile() {
 					<h1 className="spotify-album">on {trackAlbum.replace(/(.{23})..+/, "$1…")}</h1>
 					<h1 className="spotify-artists">
 						by{" "}
-						{trackArtists.map(
-							artist => artist.name.replace(/(.{16})..+/, "$1…") + ", "
-						)}
+						{trackArtists.map((artist, i) => {
+							if (i === trackArtists.length - 1) {
+								return artist.name.replace(
+									/(.{16})..+/,
+									"$1…"
+								);
+							} else {
+								return (
+									artist.name.replace(
+										/(.{16})..+/,
+										"$1…"
+									) + ", "
+								);
+							}
+						})}
 					</h1>
 					<h1 className="spotify-artists">
 						{millisToMinutesAndSeconds(trackTimestamp)} -{" "}
