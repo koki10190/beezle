@@ -39,6 +39,7 @@ const schema = new mongoose.Schema({
 		default: false,
 	},
 	bug_hunter: { type: Boolean, default: false },
+	supporter: { type: Boolean, default: false },
 	moderator: {
 		type: Boolean,
 		required: true,

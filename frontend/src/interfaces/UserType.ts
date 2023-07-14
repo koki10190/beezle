@@ -9,6 +9,7 @@ interface UserType {
 	banner: string;
 	verified: boolean;
 	bug_hunter: boolean;
+	supporter: boolean;
 	moderator: boolean;
 	owner: boolean;
 	pinned_post: string;
