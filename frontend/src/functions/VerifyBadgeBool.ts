@@ -1,4 +1,5 @@
 import UserType from "../interfaces/UserType";
+import badges from "./Badges";
 
 enum BadgeType {
 	OWNER = 0,
@@ -8,6 +9,7 @@ enum BadgeType {
 	PRIVATE = 4,
 	BUG_HUNTER = 5,
 	SUPPORTER = 6,
+	BOT = 7,
 }
 
 function VerifyBadgeBool(element: HTMLElement, displayName: string, badgeType: BadgeType) {
@@ -15,23 +17,25 @@ function VerifyBadgeBool(element: HTMLElement, displayName: string, badgeType: B
 
 	switch (badgeType) {
 		case BadgeType.PRIVATE:
-			element.innerHTML += ` <i alt="Owner of the account" style="color: yellow" class="fa-solid fa-lock"></i>`;
+			element.innerHTML += badges.owner;
 			break;
 		case BadgeType.MODERATOR:
-			element.innerHTML += ` <i style="color: #00ddff" class="fa-solid fa-shield-check"></i>`;
+			element.innerHTML += badges.moderator;
 			break;
 		case BadgeType.BUG_HUNTER:
-			element.innerHTML += ` <i style="color: #ff52d7" class="fa-solid fa-screwdriver-wrench"></i>`;
+			element.innerHTML += badges.bug_hunter;
 			break;
 		case BadgeType.SUPPORTER:
-			element.innerHTML += ` <i style="color: yellow" class="fa-duotone fa-honey-pot"></i>`;
+			element.innerHTML += badges.supporter;
 			break;
 		case BadgeType.OWNER:
-			element.innerHTML += ` <i style="color: lime" class="fa-solid fa-gear-complex-code"></i>`;
+			element.innerHTML += badges.owner;
 			break;
 		case BadgeType.VERIFIED:
-			element.innerHTML += ` <i style="color: yellow" class="fa-solid fa-badge-check"></i>`;
+			element.innerHTML += badges.verified;
 			break;
+		case BadgeType.BOT:
+			element.innerHTML += badges.bot;
 		default:
 			break;
 	}

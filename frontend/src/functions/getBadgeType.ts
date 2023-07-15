@@ -8,6 +8,7 @@ const getBadgeType = (user: UserType): BadgeType => {
 	if (user.bug_hunter) return BadgeType.BUG_HUNTER;
 	if (user.supporter) return BadgeType.SUPPORTER;
 	if (user.verified) return BadgeType.VERIFIED;
+	if (user.bot_account) return BadgeType.BOT;
 	else return BadgeType.NONE;
 };
 

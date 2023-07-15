@@ -19,6 +19,7 @@ interface UserType {
 	notifications: string[];
 	milestones: number[];
 	status: string;
+	bot_account: boolean;
 	connected_accounts: {
 		spotify: {
 			access_token: string;

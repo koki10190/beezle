@@ -22,7 +22,7 @@ function Navigate({ isOpen, setOpen }: { isOpen: boolean; setOpen: any }) {
 				<a onClick={() => navigate("/settings/credentials")}>
 					<i className="fa-solid fa-key"></i> Credentials
 				</a>
-				<a onClick={() => navigate("/settings/developer")}>
+				<a onClick={() => navigate("/settings/developers")}>
 					<i className="fa-solid fa-square-terminal"></i> Developers
 				</a>
 				<a onClick={() => navigate("/home")}>

@@ -31,6 +31,7 @@ import Settings from "./Settings/Settings";
 import PrivacySettings from "./Settings/Pages/Privacy";
 import Credentials from "./Settings/Pages/Credentials";
 import Spotify from "./Auth/Spotify";
+import Developers from "./Settings/Pages/Developers";
 
 function iOS() {
 	return (
@@ -165,6 +166,10 @@ function App() {
 					<Route
 						path="/settings/credentials"
 						element={<Credentials />}
+					/>
+					<Route
+						path="/settings/developers"
+						element={<Developers />}
 					/>
 					<Route
 						path="/auth/spotify/:stuff"

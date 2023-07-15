@@ -76,6 +76,7 @@ const schema = new mongoose.Schema({
 	},
 	milestones: [{ type: Number, default: [] }],
 	status: { type: String, default: "online" },
+	bot_account: { type: Boolean, default: false },
 	// token: {
 	// 	type: String,
 	// 	required: true,

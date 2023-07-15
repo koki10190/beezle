@@ -1633,3 +1633,19 @@ app.get("/spotify-status/:handle", async (req: express.Request, res: express.Res
 	}
 });
 // CONNECTING ACCOUNTS FIELD
+
+// BOT SECTION
+app.post("/bot/make-bot", async (req: express.Request, res: express.Response) => {
+	const { token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		m_user.bot_account = !m_user.bot_account;
+		m_user.save();
+
+		return res.json({ error: false, bot_account: m_user.bot_account });
+	});
+});
+// BOT SECTION
