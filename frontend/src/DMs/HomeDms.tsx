@@ -105,6 +105,7 @@ function HomeDms() {
 
 	const sendMessage = async (content: string) => {
 		if (content === "") return;
+		if (m_user?.bot_account) return;
 		const message: MessageType = {
 			handle: m_user.handle,
 			avatar: m_user.avatar,

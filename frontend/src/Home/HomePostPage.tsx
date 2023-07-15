@@ -51,6 +51,7 @@ function HomePostPage() {
 	const postText = useRef<HTMLTextAreaElement>(null);
 
 	const repost = () => {
+		if (user?.bot_account) return;
 		if (isReposted) {
 			setReposted(false);
 			html_reposts.current!.style.color = "rgba(255, 255, 255, 0.377)";
@@ -266,6 +267,7 @@ function HomePostPage() {
 	};
 
 	const likePost = () => {
+		if (user?.bot_account) return;
 		if (isLiked) {
 			setLiked(false);
 			html_likes.current!.style.color = "rgba(255, 255, 255, 0.377)";
@@ -287,6 +289,7 @@ function HomePostPage() {
 	};
 
 	const reply = () => {
+		if (user?.bot_account) return;
 		const content = postText.current!.value;
 		if (content === "") return;
 
@@ -330,6 +333,7 @@ function HomePostPage() {
 	};
 
 	const report = async () => {
+		if (user?.bot_account) return;
 		const result = (
 			await axios.post(`${api_url}/api/report`, {
 				postID,

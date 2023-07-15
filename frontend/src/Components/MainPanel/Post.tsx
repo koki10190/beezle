@@ -151,6 +151,7 @@ function Post({ fetch_method }: { fetch_method: string }) {
 
 	const makePost = () => {
 		if (limiter) return;
+		if (user?.bot_account) return;
 		if (post.current!.value == "") return;
 		setLimiter(true);
 

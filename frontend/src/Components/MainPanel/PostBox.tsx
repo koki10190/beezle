@@ -141,6 +141,7 @@ function PostBox({
 	}, []);
 
 	const bookmark = () => {
+		if (user?.bot_account) return;
 		if (isBookmarked) {
 			setBookmarked(false);
 
@@ -164,6 +165,7 @@ function PostBox({
 	};
 
 	const likePost = () => {
+		if (user?.bot_account) return;
 		if (isLiked) {
 			setLiked(false);
 			setLikeColor(default_button_color);
@@ -187,6 +189,7 @@ function PostBox({
 	};
 
 	const repost = () => {
+		if (user?.bot_account) return;
 		if (isReposted) {
 			setReposted(false);
 			setRepostColor(default_button_color);
@@ -216,6 +219,7 @@ function PostBox({
 	};
 
 	const deletePost = async () => {
+		if (user?.bot_account) return;
 		axios.post(`${api_url}/api/delete-post`, {
 			postId,
 			token: localStorage.getItem("auth_token"),

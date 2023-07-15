@@ -163,9 +163,18 @@ function Profile() {
 					});
 
 				setTimeout(() => {
-					(document.querySelector(".spotify-pb-bar > div") as HTMLDivElement).style.background =
-						"yellow";
-					(document.querySelector(".spotify-pb-bar > div") as HTMLDivElement).style.color = "black";
+					if (document.querySelector(".spotify-pb-bar > div")) {
+						(
+							document.querySelector(
+								".spotify-pb-bar > div"
+							) as HTMLDivElement
+						).style.background = "yellow";
+						(
+							document.querySelector(
+								".spotify-pb-bar > div"
+							) as HTMLDivElement
+						).style.color = "black";
+					}
 				}, 1000);
 				setInterval(async () => {
 					const track = await axios
