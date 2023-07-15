@@ -1476,6 +1476,14 @@ app.post("/user/connect-spotify", async (req: express.Request, res: express.Resp
 	});
 });
 
+interface Tokens {
+	[handle: string]: {
+		access_token: string;
+		refresh_token: string;
+	};
+}
+const spotify_tokens: Tokens = {};
+
 app.get("/refresh-spotify-token/:handle", async (req: express.Request, res: express.Response) => {
 	const { handle } = req.params;
 
@@ -1498,10 +1506,14 @@ app.get("/refresh-spotify-token/:handle", async (req: express.Request, res: expr
 		});
 
 		user.connected_accounts!.spotify!.access_token = crypt.encrypt(m_res.data.access_token);
+		if (spotify_tokens[user.handle]) {
+			spotify_tokens[user.handle] = user.connected_accounts!.spotify!;
+		}
 		user.save();
 
 		res.json({ error: false });
 	} catch (err) {
+		console.log("ERROR REFERSHING TOKEN");
 		res.json({ error: true });
 	}
 });
@@ -1509,13 +1521,48 @@ app.get("/refresh-spotify-token/:handle", async (req: express.Request, res: expr
 app.get("/spotify-status/:handle", async (req: express.Request, res: express.Response) => {
 	const { handle } = req.params;
 
-	const user = await User.findOne({ handle });
-	if (!user) return res.json({ error: true });
+	if (!spotify_tokens[handle]) {
+		const user = await User.findOne({ handle });
+		if (!user) return res.json({ error: true });
+		spotify_tokens[handle] = user.connected_accounts!.spotify!;
+	}
+
 	try {
-		spotifyAPI.setAccessToken(crypt.decrypt(user.connected_accounts!.spotify!.access_token));
-		spotifyAPI.setRefreshToken(crypt.decrypt(user.connected_accounts!.spotify!.refresh_token));
-		const track = await spotifyAPI.getMyCurrentPlayingTrack();
-		res.json(track);
+		spotifyAPI.setAccessToken(crypt.decrypt(spotify_tokens[handle].access_token));
+		spotifyAPI.setRefreshToken(crypt.decrypt(spotify_tokens[handle].refresh_token));
+		const track = await spotifyAPI
+			.getMyCurrentPlayingTrack()
+			.then(m => {
+				res.json(m);
+			})
+			.catch(async err => {
+				const user = (await User.findOne({ handle }))!;
+
+				let body = {
+					grant_type: "refresh_token",
+					refresh_token: crypt.decrypt(user.connected_accounts!.spotify!.refresh_token),
+				};
+				const m_res = await axios.post("https://accounts.spotify.com/api/token", encodeFormData(body), {
+					headers: {
+						"Content-Type": "application/x-www-form-urlencoded",
+						Authorization:
+							"Basic " +
+							Buffer.from(
+								process.env.SPOTIFY_CLIENT_ID +
+									":" +
+									process.env
+										.SPOTIFY_CLIENT_SECRET
+							).toString("base64"),
+					},
+				});
+
+				user.connected_accounts!.spotify!.access_token = crypt.encrypt(m_res.data.access_token);
+				if (spotify_tokens[user.handle]) {
+					spotify_tokens[user.handle] = user.connected_accounts!.spotify!;
+				}
+				user.save();
+				return res.json({});
+			});
 	} catch (err) {
 		res.json({});
 	}

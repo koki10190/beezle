@@ -143,8 +143,6 @@ function Profile() {
 			setStatus(status.data.status);
 
 			if (user.connected_accounts.spotify.access_token !== "") {
-				const spotify = new SpotifyWebApi();
-				spotify.setAccessToken(user.connected_accounts.spotify.access_token);
 				const track = await axios
 					.get(`${api_url}/spotify-status/${handle}`)
 					.then(res => {
@@ -178,7 +176,6 @@ function Profile() {
 							setTrackArtists(track.item!.artists);
 							setTrackImage(track.item!.album.images[0].url);
 							setTrackURL(track.item!.external_urls.spotify);
-							console.log(track.progress_ms);
 							setTimestamp(track.progress_ms!);
 							setDuration(track.item!.duration_ms!);
 						})
@@ -220,9 +217,7 @@ function Profile() {
 					);
 
 					setPosts(posts.concat(actualPosts));
-
 					setOffset(res.data.latestIndex);
-					console.log(`Offset: ${res.data.latestIndex}`);
 				}
 			);
 		}
