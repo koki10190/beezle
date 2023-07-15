@@ -160,3 +160,18 @@
 .spotify-pb-complete {
 	width: 80%;
 }
+
+.milestones {
+	width: fit-content;
+	height: 40px;
+	border-radius: 5px;
+	font-size: 25px;
+	margin-left: 25px;
+	background-color: var(--form-bg);
+	display: flex;
+	align-items: center;
+	box-sizing: border-box;
+	padding: 10px;
+	gap: 20px;
+	color: rgb(255, 196, 0);
+}

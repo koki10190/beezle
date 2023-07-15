@@ -52,7 +52,7 @@
 	/* background-color: red; */
 	/* padding-left: calc(25% / 2 - 85px); */
 	display: inline-flex;
-	justify-content: center;
+	/* justify-content: center; */
 	flex-direction: column;
 }
 .navigation-panel.nav-pad-right {

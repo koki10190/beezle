@@ -17,6 +17,8 @@ interface UserType {
 	following: string[];
 	bookmarks: string[];
 	notifications: string[];
+	milestones: number[];
+	status: string;
 	connected_accounts: {
 		spotify: {
 			access_token: string;

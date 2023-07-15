@@ -74,6 +74,8 @@ const schema = new mongoose.Schema({
 			refresh_token: { type: String, default: "" },
 		},
 	},
+	milestones: [{ type: Number, default: [] }],
+	status: { type: String, default: "online" },
 	// token: {
 	// 	type: String,
 	// 	required: true,

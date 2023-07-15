@@ -41,7 +41,7 @@ function NavigationPanel() {
 	const myProfile = async () => {
 		const data = (await GetUserData()).user;
 
-		navigate(`/profile/${data.handle}`);
+		window.location.assign(`/profile/${data.handle}`);
 	};
 
 	const navigationPanel = () => {

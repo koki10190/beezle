@@ -19,6 +19,7 @@ function EditProfile() {
 
 	const avatarInput = useRef<HTMLInputElement>(null);
 	const bannerInput = useRef<HTMLInputElement>(null);
+	const m_status = useRef<HTMLSelectElement>(null);
 	const aboutMe = useRef<HTMLTextAreaElement>(null);
 	const displayName = useRef<HTMLInputElement>(null);
 	const saveChangesButton = useRef<HTMLButtonElement>(null);
@@ -107,6 +108,7 @@ function EditProfile() {
 			displayName: displayName.current!.value as string,
 			bio: aboutMe.current!.value as string,
 			token: localStorage.getItem("auth_token") as string,
+			status: m_status.current!.value,
 		}).then(res => {
 			if (!res.data.error) {
 				setTimeout(() => {
@@ -161,6 +163,20 @@ function EditProfile() {
 					required
 					className="form-control"
 				/>
+
+				<label>Status</label>
+				<select
+					ref={m_status}
+					placeholder="Name"
+					name="display-name"
+					required
+					className="form-control"
+				>
+					<option value="online">Online</option>
+					<option value="dnd">Do Not Disturb</option>
+					<option value="idle">Idle</option>
+					<option value="offline">Offline</option>
+				</select>
 
 				<label>Bio (About Me)</label>
 				<textarea

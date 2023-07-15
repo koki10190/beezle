@@ -16,6 +16,8 @@ import SpotifyWebApi from "spotify-web-api-js";
 import millify from "millify";
 import moment from "moment";
 import ProgressBar from "@ramonak/react-progress-bar";
+import { milestones } from "../../functions/milestones";
+import StatusCheck from "../../functions/StatusCheck";
 
 function Profile() {
 	const navigate = useNavigate();
@@ -238,7 +240,7 @@ function Profile() {
 			>
 				<div
 					style={{
-						backgroundColor: status === "online" ? "lime" : "gray",
+						backgroundColor: StatusCheck(status),
 					}}
 					className="status"
 				></div>
@@ -269,6 +271,20 @@ function Profile() {
 				ref={tag}
 				className="profile-handle"
 			></h3>
+			{m_user ? (
+				m_user.milestones?.length > 0 ? (
+					<div
+						dangerouslySetInnerHTML={{
+							__html: milestones(m_user ? m_user?.milestones : []),
+						}}
+						className="milestones"
+					></div>
+				) : (
+					""
+				)
+			) : (
+				""
+			)}
 			<p
 				ref={bio}
 				className="profile-bio"

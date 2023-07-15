@@ -23,6 +23,7 @@ import EmojiPicker, { EmojiClickData, EmojiStyle, Theme } from "emoji-picker-rea
 import sanitize from "sanitize-html";
 import VerifyBadge from "../functions/VerifyBadge";
 import MetaTags from "react-meta-tags";
+import StatusCheck from "../functions/StatusCheck";
 
 function HomePostPage() {
 	const navigate = useNavigate();
@@ -502,11 +503,9 @@ function HomePostPage() {
 									<div
 										className="status"
 										style={{
-											backgroundColor:
-												status ===
-												"online"
-													? "lime"
-													: "gray",
+											backgroundColor: StatusCheck(
+												status
+											),
 										}}
 									></div>
 								</div>

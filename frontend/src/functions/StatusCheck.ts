@@ -1,4 +1,4 @@
-function StatusCheck(status: "online" | "idle" | "offline" | "dnd") {
+function StatusCheck(status: string) {
 	switch (status) {
 		case "online":
 			return "lime";
@@ -10,3 +10,5 @@ function StatusCheck(status: "online" | "idle" | "offline" | "dnd") {
 			return "#ffc524";
 	}
 }
+
+export default StatusCheck;

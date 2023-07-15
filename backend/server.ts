@@ -382,7 +382,7 @@ app.post("/api/upload-banner", upload.single("banner"), async (req, res) => {
 });
 
 app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
-	const { displayName, token, bio } = req.body;
+	const { status, displayName, token, bio } = req.body;
 	const m_bio = sanitize(marked(bio), {
 		allowedTags: [
 			"img",
@@ -423,6 +423,7 @@ app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
 			{
 				displayName,
 				bio: m_bio,
+				status,
 			}
 		);
 
@@ -496,7 +497,7 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has replied to your post!</a>`;
 
-			if (receiver.handle != user.handle) {
+			if (receiver.handle != user.handle && receiver.status !== "dnd") {
 				if (getSockets()[receiver!.handle]) getSockets()[receiver.handle].emit("notification", notif, url);
 
 				receiver.notifications.push(notif);
@@ -648,11 +649,25 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has liked your post!</a>`;
 
-			if (receiver?.handle != user.handle) {
+			if (receiver?.handle != user.handle && receiver?.status !== "dnd") {
 				if (getSockets()[receiver!.handle]) getSockets()[receiver!.handle].emit("notification", notif, url);
+				receiver!.notifications.push(notif);
 			}
-			receiver!.notifications.push(notif);
 			receiver!.save();
+
+			if (m_post!.likes.length >= 1000) {
+				receiver?.milestones.push(1);
+
+				const url = `${CONSTANTS.FRONTEND_URL}/profile/${receiver!.handle}`;
+				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "1K Likes" milestone!</a>`;
+
+				if (receiver?.handle != user.handle && receiver?.status !== "dnd") {
+					if (getSockets()[receiver!.handle])
+						getSockets()[receiver!.handle].emit("notification", notif, url);
+					receiver!.notifications.push(notif);
+				}
+				receiver!.save();
+			}
 		}
 
 		res.json({ error: false });
@@ -754,19 +769,49 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has followed you!</a>`;
 
-			if (m_user_follow.handle != user.handle) {
+			if (m_user_follow.handle != user.handle && m_user_follow.status !== "dnd") {
 				if (getSockets()[m_user_follow!.handle]) {
 					const emit = getSockets()[m_user_follow!.handle].emit("notification", notif, url);
 				}
+				m_user_follow!.notifications.push(notif);
 			}
-			/*
-https://discord.gg/3PES8DU
-The link is in announcements channel
 
-- DO not give the link to ABSOLUTELY anyone
-- If you click a button that does something wait for it, do not  spam it since thatll cause a rate limitaion rn.
-*/
-			m_user_follow!.notifications.push(notif);
+			if (m_user_follow.followers.length >= 1000) {
+				m_user_follow.milestones.push(0);
+
+				const url = `${CONSTANTS.FRONTEND_URL}/profile/${m_user_follow.handle}`;
+				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "1K Followers" Milestone!</a>`;
+
+				if (m_user_follow.handle != user.handle && m_user_follow.status !== "dnd") {
+					if (getSockets()[m_user_follow!.handle]) {
+						const emit = getSockets()[m_user_follow!.handle].emit(
+							"notification",
+							notif,
+							url
+						);
+					}
+					m_user_follow!.notifications.push(notif);
+				}
+			}
+
+			if (m_user_follow.followers.length >= 100000) {
+				m_user_follow.milestones.push(3);
+
+				const url = `${CONSTANTS.FRONTEND_URL}/profile/${m_user_follow.handle}`;
+				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "100K Followers" Milestone!</a>`;
+
+				if (m_user_follow.handle != user.handle && m_user_follow.status !== "dnd") {
+					if (getSockets()[m_user_follow!.handle]) {
+						const emit = getSockets()[m_user_follow!.handle].emit(
+							"notification",
+							notif,
+							url
+						);
+					}
+					m_user_follow!.notifications.push(notif);
+				}
+			}
+
 			m_user_follow!.save();
 		} else {
 			Unfollow();
@@ -1030,9 +1075,28 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has reposted your post!</a>`;
-			if (getSockets()[receiver!.handle] && receiver.handle != user.handle) {
+			if (getSockets()[receiver!.handle] && receiver.handle != user.handle && receiver.status !== "dnd") {
 				getSockets()[receiver!.handle].emit("notification", notif, url);
+				receiver!.notifications.push(notif);
 			}
+			if (post.reposts.length >= 1000) {
+				receiver.milestones.push(2);
+
+				const url = `${CONSTANTS.FRONTEND_URL}/profile/${receiver.handle}`;
+				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "1K Reposts" Milestone!</a>`;
+
+				if (receiver.handle != user.handle && receiver.status !== "dnd") {
+					if (getSockets()[receiver!.handle]) {
+						const emit = getSockets()[receiver!.handle].emit(
+							"notification",
+							notif,
+							url
+						);
+					}
+					receiver!.notifications.push(notif);
+				}
+			}
+			receiver!.save();
 
 			return res.json(repost);
 		}
@@ -1106,8 +1170,10 @@ app.post("/api/fetch-messages", async (req: express.Request, res: express.Respon
 app.get("/status/:handle", async (req: express.Request, res: express.Response) => {
 	const { handle } = req.params;
 
-	if (getSockets()[handle]) return res.json({ status: "online" });
-	else return res.json({ status: "offline" });
+	if (getSockets()[handle]) {
+		const user = (await User.find({ handle }).limit(1))[0];
+		return res.json({ status: user?.status ? user.status : "online" });
+	} else return res.json({ status: "offline" });
 });
 
 // MODERATOR FIELD
@@ -1513,7 +1579,6 @@ app.get("/refresh-spotify-token/:handle", async (req: express.Request, res: expr
 
 		res.json({ error: false });
 	} catch (err) {
-		console.log("ERROR REFERSHING TOKEN");
 		res.json({ error: true });
 	}
 });

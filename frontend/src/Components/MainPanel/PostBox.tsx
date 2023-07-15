@@ -16,6 +16,7 @@ import displayContent from "../../functions/displayContent";
 import { PostType } from "../../interfaces/PostType";
 import { useNavigate } from "react-router-dom";
 import VerifyBadgeText from "../../functions/VerifyBadgeText";
+import StatusCheck from "../../functions/StatusCheck";
 
 interface PostBoxInterface {
 	name: string;
@@ -255,7 +256,9 @@ function PostBox({
 					""
 				)}
 				<div
-					onClick={redirectToProfile}
+					onClick={() => {
+						window.location.href = `/profile/${isRepost ? repostOp.handle : handle}`;
+					}}
 					className="user-desc"
 				>
 					<div
@@ -268,10 +271,7 @@ function PostBox({
 					>
 						<div
 							style={{
-								backgroundColor:
-									status === "online"
-										? "lime"
-										: "gray",
+								backgroundColor: StatusCheck(status),
 							}}
 							className="status"
 						></div>

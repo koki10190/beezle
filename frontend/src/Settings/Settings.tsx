@@ -6,6 +6,7 @@ import UserType from "../interfaces/UserType";
 import GetUserData from "../api/GetUserData";
 import { useNavigate } from "react-router-dom";
 import "./Settings.css";
+import PrivacySettings from "./Pages/Privacy";
 
 function Settings() {
 	const navigate = useNavigate();
@@ -21,14 +22,7 @@ function Settings() {
 
 	return (
 		<>
-			<Navigate
-				isOpen={isOpen}
-				setOpen={setOpen}
-			/>
-			<Display
-				isOpen={isOpen}
-				setOpen={setOpen}
-			/>
+			<PrivacySettings />
 		</>
 	);
 }
