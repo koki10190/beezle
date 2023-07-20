@@ -93,7 +93,6 @@ function Post({ fetch_method }: { fetch_method: string }) {
 			user = (await GetUserData()).user;
 			if (!localStorage.getItem("auth_token")) navigate("/");
 			setMe(user);
-			console.log("hm");
 			setShowPosts(true);
 			localStorage.setItem("notifs", JSON.stringify(user.notifications));
 			localStorage.setItem("handle", user.handle);
@@ -111,8 +110,7 @@ function Post({ fetch_method }: { fetch_method: string }) {
 
 			axios.post(`${api_url}/api/${fetch_method}/${postsOffset}`, { token: localStorage.getItem("auth_token") }).then(
 				async res => {
-					setPosts(res.data.posts as PostBoxType[]);
-
+					setPosts(res.data.posts);
 					setPostsOffset(res.data.latestIndex);
 				}
 			);
@@ -121,7 +119,6 @@ function Post({ fetch_method }: { fetch_method: string }) {
 		postFile.current!.addEventListener("change", async (event: Event) => {
 			setLoading(true);
 			const fileFormData = new FormData();
-			console.log(postFile.current!.files![0]);
 			fileFormData.append("file", postFile.current!.files![0]);
 
 			const split = postFile.current!.files![0].name.split(".");
@@ -152,7 +149,6 @@ function Post({ fetch_method }: { fetch_method: string }) {
 	}, []);
 
 	const redirectToUserProfile = () => {
-		console.log(user);
 		navigate("/profile/" + localStorage.getItem("handle"));
 	};
 
@@ -194,7 +190,6 @@ function Post({ fetch_method }: { fetch_method: string }) {
 			const blob = item.getAsFile();
 
 			const fileFormData = new FormData();
-			console.log(blob);
 			fileFormData.append("file", blob);
 
 			const split = blob.name.split(".");
@@ -224,7 +219,6 @@ function Post({ fetch_method }: { fetch_method: string }) {
 					setPosts(posts.concat(res.data.posts as PostBoxType[]));
 
 					setPostsOffset(res.data.latestIndex);
-					console.log(`Offset: ${res.data.latestIndex}`);
 				}
 			);
 		}
@@ -421,54 +415,29 @@ function Post({ fetch_method }: { fetch_method: string }) {
 					className="small-bar"
 				/>
 				{showPosts
-					? posts.map(item =>
-							!item.data.repost_type ? (
-								<PostBox
-									avatarShape={
-										item.op
-											.cosmetic
-											.avatar_shape
-									}
-									edited={item.data.edited}
-									repost_type={
-										item.data
-											.repost_type
-									}
-									repost_id={
-										item.data
-											.repost_id
-									}
-									repost_op={
-										item.data
-											.repost_op
-									}
-									badgeType={getBadgeType(
-										item.op
-									)}
-									reply_type={
-										item.data
-											.reply_type
-									}
-									replyingTo={
-										item.data
-											.replyingTo
-									}
-									key={item.data.postID}
-									date={item.data.date}
-									postId={item.data.postID}
-									name={item.op.displayName}
-									handle={item.op.handle}
-									avatarURL={item.op.avatar}
-									content={item.data.content}
-									likes={item.data.likes}
-									reposts={item.data.reposts}
-									replies={item.data.replies}
-									tokenUser={meUser!}
-								/>
-							) : (
-								""
-							)
-					  )
+					? posts.map(item => (
+							<PostBox
+								avatarShape={item.op.cosmetic.avatar_shape}
+								edited={item.data.edited}
+								repost_type={item.data.repost_type}
+								repost_id={item.data.repost_id}
+								repost_op={item.data.repost_op}
+								badgeType={getBadgeType(item.op)}
+								reply_type={item.data.reply_type}
+								replyingTo={item.data.replyingTo}
+								key={item.data.postID}
+								date={item.data.date}
+								postId={item.data.postID}
+								name={item.op.displayName}
+								handle={item.op.handle}
+								avatarURL={item.op.avatar}
+								content={item.data.content}
+								likes={item.data.likes}
+								reposts={item.data.reposts}
+								replies={item.data.replies}
+								tokenUser={meUser!}
+							/>
+					  ))
 					: ""}
 			</div>
 		</>

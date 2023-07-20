@@ -60,7 +60,7 @@ async function fetchGlobalPosts(me: string, offset: number): Promise<{ data: Pos
 async function fetchRightNow(me: string, offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
 	const posts = (await Post.find({
 		__v: { $gte: 0 },
-		// repost_type: { $ne: true },
+		repost_type: { $ne: true },
 		// reply_type: { $ne: true },
 	})
 		.sort({ $natural: -1 })
