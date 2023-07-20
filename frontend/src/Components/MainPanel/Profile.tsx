@@ -197,35 +197,35 @@ function Profile() {
 						).style.color = "black";
 					}
 				}, 1000);
-				interval = setInterval(async () => {
-					if (!window.location.pathname.includes("/profile")) clearInterval(interval);
-					const track = await axios
-						.get(`${api_url}/spotify-status/${handle}`)
-						.then(res => {
-							const track = res.data.body;
-							setIsSpotify(track.is_playing);
-							setTrackName(track.item!.name);
-							setTrackAlbum(track.item!.album.name);
-							setTrackArtists(track.item!.artists);
-							setTrackImage(track.item!.album.images[0].url);
-							setTrackURL(track.item!.external_urls.spotify);
-							setTimestamp(track.progress_ms!);
-							setDuration(track.item!.duration_ms!);
-							(
-								document.querySelector(
-									".spotify-pb-bar > div"
-								) as HTMLDivElement
-							).style.background = "yellow";
-							(
-								document.querySelector(
-									".spotify-pb-bar > div"
-								) as HTMLDivElement
-							).style.color = "black";
-						})
-						.catch(err => {
-							axios.get(`${api_url}/refresh-spotify-token/${handle}`);
-						});
-				}, 1000);
+				// interval = setInterval(async () => {
+				// 	if (!window.location.pathname.includes("/profile")) clearInterval(interval);
+				// 	const track = await axios
+				// 		.get(`${api_url}/spotify-status/${handle}`)
+				// 		.then(res => {
+				// 			const track = res.data.body;
+				// 			setIsSpotify(track.is_playing);
+				// 			setTrackName(track.item!.name);
+				// 			setTrackAlbum(track.item!.album.name);
+				// 			setTrackArtists(track.item!.artists);
+				// 			setTrackImage(track.item!.album.images[0].url);
+				// 			setTrackURL(track.item!.external_urls.spotify);
+				// 			setTimestamp(track.progress_ms!);
+				// 			setDuration(track.item!.duration_ms!);
+				// 			(
+				// 				document.querySelector(
+				// 					".spotify-pb-bar > div"
+				// 				) as HTMLDivElement
+				// 			).style.background = "yellow";
+				// 			(
+				// 				document.querySelector(
+				// 					".spotify-pb-bar > div"
+				// 				) as HTMLDivElement
+				// 			).style.color = "black";
+				// 		})
+				// 		.catch(err => {
+				// 			axios.get(`${api_url}/refresh-spotify-token/${handle}`);
+				// 		});
+				// }, 1000);
 			}
 
 			const rpc_res = await axios.get(`${api_url}/rpc/${handle}`);
@@ -336,8 +336,22 @@ function Profile() {
 			></h1>
 			<h3
 				ref={tag}
+				style={{
+					marginBottom: "5px",
+				}}
 				className="profile-handle"
 			></h3>
+			<a
+				style={{
+					marginLeft: "25px",
+					fontSize: "15px",
+				}}
+				className="coins"
+			>
+				<i className="fa-solid fa-coins"></i>{" "}
+				{m_user_follow.coins ? m_user_follow.coins.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : 0} Activity
+				Coins
+			</a>
 			{m_user.handle ? (
 				<Helmet>
 					<title>@{m_user.handle}'s Profile</title>
@@ -384,6 +398,9 @@ function Profile() {
 				""
 			)}
 			<p
+				style={{
+					marginTop: "30px",
+				}}
 				ref={bio}
 				className="profile-bio"
 			></p>

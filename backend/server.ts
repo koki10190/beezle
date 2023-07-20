@@ -166,14 +166,6 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 		return;
 	}
 
-	const emailCheck = await validate(email);
-	if (!emailCheck.valid) {
-		res.json({
-			error: "Invalid email address!",
-			was_error: true,
-		});
-	}
-
 	const length = 24;
 	const user = await User.create({
 		handle: name.toLowerCase().replace(/(.{16})..+/, "$1"),

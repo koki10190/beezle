@@ -10,9 +10,14 @@ const activityItems = [
 		style: "polygon(0 0, 100% 0%, 100% 100%, 0% 100%)",
 	},
 	{
-		name: "Parallelogram Avatar Shape",
+		name: "Parallelogram Right Avatar Shape",
 		price: 4500,
 		style: "polygon(25% 0%, 100% 0%, 75% 100%, 0% 100%)",
+	},
+	{
+		name: "Parallelogram Left Avatar Shape",
+		price: 4500,
+		style: "polygon(0 1%, 75% 0, 100% 100%, 25% 100%)",
 	},
 	{
 		name: "Triangle Avatar Shape",
