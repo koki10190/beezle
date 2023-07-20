@@ -12,8 +12,7 @@
 	display: flex;
 	justify-content: center;
 	align-content: center;
-	text-shadow: black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px,
-		black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px,
+	text-shadow: black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px,
 		black 0px 0px 15px;
 	/* border-radius: 100%; */
 	padding-top: calc(150px / 2 - 10px);
@@ -24,8 +23,7 @@
 	display: flex;
 	justify-content: center;
 	align-content: center;
-	text-shadow: black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px,
-		black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px,
+	text-shadow: black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px, black 0px 0px 15px,
 		black 0px 0px 15px;
 	padding-top: calc(250px / 2 - 10px);
 }

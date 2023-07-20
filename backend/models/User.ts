@@ -77,10 +77,20 @@ const schema = new mongoose.Schema({
 	milestones: [{ type: Number, default: [] }],
 	status: { type: String, default: "online" },
 	bot_account: { type: Boolean, default: false },
-	// token: {
-	// 	type: String,
-	// 	required: true,
-	// },
+	api_key: { type: String, default: undefined },
+
+	// ACTIVITY SHOP
+	coins: { type: Number, default: 0 },
+	cosmetic: {
+		avatar_shape: { type: String, default: "circle(50% at 50% 50%)" },
+		avatar_frame: { type: String, default: "" },
+		custom_emojis: [
+			{
+				type: String,
+				default: "",
+			},
+		],
+	},
 });
 
 export default mongoose.model("User", schema);

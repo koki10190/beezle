@@ -24,6 +24,8 @@ import sanitize from "sanitize-html";
 import VerifyBadge from "../functions/VerifyBadge";
 import MetaTags from "react-meta-tags";
 import StatusCheck from "../functions/StatusCheck";
+import uuid4 from "uuid4";
+import { TailSpin } from "react-loader-spinner";
 
 function HomePostPage() {
 	const navigate = useNavigate();
@@ -44,6 +46,8 @@ function HomePostPage() {
 	const [editingPost, setEditing] = useState<boolean>(false);
 	const [edit_content, setContent] = useState<string>("");
 	const [status, setStatus] = useState<string>("offline");
+	const [loading, setLoading] = useState(false);
+	const [images, setImages] = useState<string[]>([]);
 	const html_likes = useRef<HTMLParagraphElement>(null);
 	const html_bookmarks = useRef<HTMLParagraphElement>(null);
 	const html_reposts = useRef<HTMLParagraphElement>(null);
@@ -183,6 +187,7 @@ function HomePostPage() {
 			interval = setInterval(() => {
 				if (postFile.current && html_likes.current && html_bookmarks.current && html_reposts.current) {
 					postFile.current.addEventListener("change", async (event: Event) => {
+						setLoading(true);
 						const fileFormData = new FormData();
 						console.log(postFile.current!.files![0]);
 						fileFormData.append("file", postFile.current!.files![0]);
@@ -192,8 +197,6 @@ function HomePostPage() {
 						fileFormData.append("ext", ext);
 
 						fileFormData.append("token", localStorage.getItem("auth_token") as string);
-
-						alert("The file is being uploaded, please wait.");
 
 						const res = (
 							await axios.post(
@@ -207,7 +210,9 @@ function HomePostPage() {
 							)
 						).data;
 
-						postText.current!.value += res.img;
+						// postText.current!.value += res.img;
+						setImages(prev => [...prev, res.img]);
+						setLoading(false);
 					});
 
 					if (post.data.likes.find(x => x === data.user.handle)) {
@@ -291,17 +296,18 @@ function HomePostPage() {
 	const reply = () => {
 		if (user?.bot_account) return;
 		const content = postText.current!.value;
-		if (content === "") return;
+		if (content === "" && images.length < 1) return;
 
 		axios.post(`${api_url}/api/post`, {
 			token: localStorage.getItem("auth_token")!,
-			content: content,
+			content: content + " " + images.join(" "),
 			reply_type: true,
 			replyingTo: postID,
 			socketID: socket.id,
 		}).then(res => {
 			postText.current!.value = "";
 			replies.unshift(res.data);
+			setImages([]);
 			setReplies([...replies]);
 		});
 	};
@@ -323,7 +329,7 @@ function HomePostPage() {
 						uniquePosts.push(c);
 					}
 				});
-
+				if (uniquePosts.length < 1) return;
 				setReplies(replies.concat(uniquePosts));
 
 				setOffset(res.data.offset);
@@ -387,6 +393,7 @@ function HomePostPage() {
 		const item = event.clipboardData.items[0];
 
 		if (item.type.indexOf("image") === 0 || item.type.indexOf("video") === 0) {
+			setLoading(true);
 			event.preventDefault();
 			const blob = item.getAsFile();
 
@@ -410,7 +417,8 @@ function HomePostPage() {
 				})
 			).data;
 
-			postText.current!.value += " " + res.img;
+			setImages(prev => [...prev, res.img]);
+			setLoading(false);
 		}
 	};
 
@@ -454,7 +462,7 @@ function HomePostPage() {
 							{post?.data.reply_type ? (
 								<p
 									onClick={() =>
-										navigate(
+										window.location.assign(
 											"/post/" +
 												replyParent
 													.data
@@ -494,16 +502,28 @@ function HomePostPage() {
 									)
 								}
 							>
-								<div
-									style={{
-										backgroundImage: `url("${
-											post!
-												.op
-												.avatar
-										}")`,
-									}}
-									className="page-avatar"
-								>
+								<div className="avatar-parent postpage-avatar-parent">
+									<div
+										style={{
+											backgroundImage: `url("${
+												post!
+													.op
+													.avatar
+											}")`,
+											clipPath:
+												post
+													.op
+													.cosmetic
+													?.avatar_shape !==
+												""
+													? post
+															.op
+															.cosmetic
+															.avatar_shape
+													: "circle(50% at 50% 50%)",
+										}}
+										className="page-avatar"
+									></div>
 									<div
 										className="status"
 										style={{
@@ -550,9 +570,6 @@ function HomePostPage() {
 									<textarea
 										onChange={
 											set_content
-										}
-										onPaste={
-											pasteContent
 										}
 										className="post-edit-textarea"
 										value={
@@ -626,6 +643,21 @@ function HomePostPage() {
 									<i className="fa-solid fa-flag"></i>
 								</div>
 
+								<div
+									onClick={() =>
+										navigator.share(
+											{
+												url: window
+													.location
+													.href,
+												text: "Look at this post on beezle!",
+											}
+										)
+									}
+								>
+									<i className="fa-solid fa-share"></i>
+								</div>
+
 								{localStorage.getItem("handle") ===
 								post?.op.handle ? (
 									<>
@@ -662,6 +694,15 @@ function HomePostPage() {
 											me!
 												.avatar
 										}")`,
+										clipPath:
+											me
+												.cosmetic
+												?.avatar_shape !==
+											""
+												? me
+														.cosmetic
+														.avatar_shape
+												: "circle(50% at 50% 50%)",
 									}}
 									className="post-text-avatar"
 								></div>
@@ -683,13 +724,44 @@ function HomePostPage() {
 									style={{
 										fontSize: "20px",
 										minHeight: "70px",
+										display: loading
+											? "none"
+											: "block",
 									}}
+									onPaste={pasteContent}
 									placeholder={`Reply to ${post?.op.displayName.replace(
 										/(.{16})..+/,
 										"$1…"
 									)}!`}
 									className="post-textarea"
 								></textarea>
+								{loading ? (
+									<TailSpin
+										wrapperStyle={{
+											marginBottom: "50px",
+										}}
+										height="100"
+										width="100"
+										color="yellow"
+										ariaLabel="loading"
+									/>
+								) : (
+									""
+								)}
+								<div className="image-holder">
+									{images.map(img => (
+										<div
+											className="postImage"
+											style={{
+												backgroundImage:
+													"url(" +
+													img +
+													")",
+											}}
+											key={uuid4()}
+										></div>
+									))}
+								</div>
 								<hr
 									style={{
 										marginBottom: "25px",
@@ -752,6 +824,11 @@ function HomePostPage() {
 							{replies.map(item => (
 								<PostBox
 									edited={item.data.edited}
+									avatarShape={
+										item.op
+											.cosmetic
+											.avatar_shape
+									}
 									repost_type={
 										item.data
 											.repost_type

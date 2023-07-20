@@ -9,8 +9,10 @@ import { api_url } from "../constants/ApiURL";
 import { PostBoxType } from "../interfaces/PostType";
 import PostBox from "../Components/MainPanel/PostBox";
 import getBadgeType from "../functions/getBadgeType";
+import { useParams } from "react-router-dom";
 
-function HomeSearch() {
+function HomeTags() {
+	const { hashtag } = useParams();
 	const [user, setUser] = useState<UserType>({} as UserType);
 	const [isSearching, setSearching] = useState<boolean>(false);
 	const [posts, setPosts] = useState<PostBoxType[]>([] as PostBoxType[]);
@@ -19,6 +21,7 @@ function HomeSearch() {
 	useEffect(() => {
 		(async () => {
 			setUser((await GetUserData()).user);
+			search();
 		})();
 	}, []);
 
@@ -27,7 +30,7 @@ function HomeSearch() {
 		setPosts([]);
 		const results = (
 			await axios.post(`${api_url}/api/search`, {
-				toSearch: toSearch.current!.value,
+				toSearch: "#" + hashtag,
 				token: localStorage.getItem("auth_token"),
 			})
 		).data as PostBoxType[];
@@ -40,39 +43,14 @@ function HomeSearch() {
 			<div className="main-pages">
 				<InfoPanel />
 				<div className="navigation-panel main-panel search-panel">
-					<div className="post-text-box">
-						<textarea
-							ref={toSearch}
-							style={{
-								fontSize: "20px",
-								minHeight: "70px",
-							}}
-							placeholder="Press here to search"
-							className="post-textarea"
-						></textarea>
-						<hr
-							style={{
-								marginBottom: "25px",
-							}}
-							className="small-bar"
-						/>
-					</div>
-					<div className="post-text-buttons">
-						<button
-							onClick={search}
-							style={{ width: "100%" }}
-						>
-							Search
-						</button>
-					</div>
+					<h1>#{hashtag} posts</h1>
 					<hr
 						style={{
-							marginTop: "90px",
+							marginBottom: "20px",
 						}}
 						className="small-bar"
 					/>
-					{isSearching ? <h1 className="searching">Searching...</h1> : ""}
-
+					{posts.length < 1 ? <h3>No posts were found containing the hashtag: #{hashtag}</h3> : ""}
 					{posts.map(item => (
 						<PostBox
 							edited={item.data.edited}
@@ -103,4 +81,4 @@ function HomeSearch() {
 	);
 }
 
-export default HomeSearch;
+export default HomeTags;

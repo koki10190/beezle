@@ -18,6 +18,17 @@ import moment from "moment";
 import ProgressBar from "@ramonak/react-progress-bar";
 import { milestones } from "../../functions/milestones";
 import StatusCheck from "../../functions/StatusCheck";
+import { Helmet } from "react-helmet";
+
+interface RPC {
+	largeImage: string;
+	smallImage: string;
+	title: string;
+	description: string;
+	time_elapsed: Date;
+	time_set: boolean;
+}
+let interval: NodeJS.Timeout;
 
 function Profile() {
 	const navigate = useNavigate();
@@ -30,6 +41,7 @@ function Profile() {
 	const tag = useRef<HTMLHeadingElement>(null);
 	const bio = useRef<HTMLHeadingElement>(null);
 	const avatar = useRef<HTMLDivElement>(null);
+	const avatarShadow = useRef<HTMLDivElement>(null);
 	const banner = useRef<HTMLDivElement>(null);
 	const following = useRef<HTMLSpanElement>(null);
 	const followers = useRef<HTMLSpanElement>(null);
@@ -49,16 +61,21 @@ function Profile() {
 	const [trackDuration, setDuration] = useState(0);
 	const [trackArtists, setTrackArtists] = useState<SpotifyApi.ArtistObjectSimplified[]>([]);
 
+	// RPC
+	const [rpc, setRPC] = useState<RPC | undefined>(undefined);
+
 	let postDeleteCheck = 0;
 	socket.on("post-deleted", async (postId: string, isrepost) => {
 		if (postDeleteCheck > 0) {
 			if (postDeleteCheck >= 4) postDeleteCheck = 0;
 		}
-		posts.splice(
-			posts.findIndex(x => (isrepost ? x.data.repost_id == postId : x.data.postID == postId)),
-			1
+
+		setPosts(prev =>
+			prev.splice(
+				posts.findIndex(x => (isrepost ? x.data.repost_id == postId : x.data.postID == postId)),
+				1
+			)
 		);
-		setPosts([...posts]);
 		postDeleteCheck++;
 	});
 
@@ -69,8 +86,10 @@ function Profile() {
 		}
 		const post = posts.findIndex(m_post => m_post.data.postID == postId);
 		if (post < 0) return;
-		posts[post].data.likes = liked;
-		setPosts([...posts]);
+		setPosts(prev => {
+			prev[post].data.likes = liked;
+			return [...prev];
+		});
 		postLikesCheck++;
 	});
 
@@ -118,7 +137,9 @@ function Profile() {
 			tag.current!.textContent = "@" + user.handle;
 			const biolimit = 2000;
 			bio.current!.innerHTML = user.bio.length > biolimit ? user.bio.substring(0, biolimit - 3) + "..." : user.bio;
-			avatar.current!.style.backgroundImage = `url("${user.avatar}")`;
+			avatar.current!.style.backgroundImage = `url("${user.avatar}") `;
+			avatar.current!.style.clipPath = user.cosmetic?.avatar_shape;
+			avatarShadow.current!.style.clipPath = user.cosmetic?.avatar_shape;
 			banner.current!.style.backgroundImage = `url("${user.banner}")`;
 			following.current!.innerText = user.following.length.toString();
 			followers.current!.innerText = user.followers.length.toString();
@@ -176,7 +197,8 @@ function Profile() {
 						).style.color = "black";
 					}
 				}, 1000);
-				setInterval(async () => {
+				interval = setInterval(async () => {
+					if (!window.location.pathname.includes("/profile")) clearInterval(interval);
 					const track = await axios
 						.get(`${api_url}/spotify-status/${handle}`)
 						.then(res => {
@@ -189,16 +211,25 @@ function Profile() {
 							setTrackURL(track.item!.external_urls.spotify);
 							setTimestamp(track.progress_ms!);
 							setDuration(track.item!.duration_ms!);
+							(
+								document.querySelector(
+									".spotify-pb-bar > div"
+								) as HTMLDivElement
+							).style.background = "yellow";
+							(
+								document.querySelector(
+									".spotify-pb-bar > div"
+								) as HTMLDivElement
+							).style.color = "black";
 						})
 						.catch(err => {
 							axios.get(`${api_url}/refresh-spotify-token/${handle}`);
 						});
-
-					(document.querySelector(".spotify-pb-bar > div") as HTMLDivElement).style.background =
-						"yellow";
-					(document.querySelector(".spotify-pb-bar > div") as HTMLDivElement).style.color = "black";
 				}, 1000);
 			}
+
+			const rpc_res = await axios.get(`${api_url}/rpc/${handle}`);
+			setRPC(rpc_res.data);
 		})();
 	}, []);
 
@@ -227,12 +258,31 @@ function Profile() {
 						})
 					);
 
-					setPosts(posts.concat(actualPosts));
+					setPosts(prev => prev.concat(actualPosts));
 					setOffset(res.data.latestIndex);
 				}
 			);
 		}
 	};
+
+	function msToTime(milliseconds: number) {
+		//Get hours from milliseconds
+		var hours = milliseconds / (1000 * 60 * 60);
+		var absoluteHours = Math.floor(hours);
+		var h = absoluteHours > 9 ? absoluteHours : "0" + absoluteHours;
+
+		//Get remainder from hours and convert to minutes
+		var minutes = (hours - absoluteHours) * 60;
+		var absoluteMinutes = Math.floor(minutes);
+		var m = absoluteMinutes > 9 ? absoluteMinutes : "0" + absoluteMinutes;
+
+		//Get remainder from minutes and convert to seconds
+		var seconds = (minutes - absoluteMinutes) * 60;
+		var absoluteSeconds = Math.floor(seconds);
+		var s = absoluteSeconds > 9 ? absoluteSeconds : "0" + absoluteSeconds;
+
+		return h + ":" + m + ":" + s;
+	}
 
 	return (
 		<div
@@ -244,9 +294,17 @@ function Profile() {
 				className="banner"
 			></div>
 			<div
-				ref={avatar}
-				className="avatar"
+				className="avatar-parent"
+				style={{ backgroundImage: "" }}
 			>
+				<div
+					ref={avatar}
+					className="avatar"
+				></div>
+				<div
+					ref={avatarShadow}
+					className="avatar-shadow"
+				></div>
 				<div
 					style={{
 						backgroundColor: StatusCheck(status),
@@ -280,6 +338,37 @@ function Profile() {
 				ref={tag}
 				className="profile-handle"
 			></h3>
+			{m_user.handle ? (
+				<Helmet>
+					<title>@{m_user.handle}'s Profile</title>
+					<meta
+						property="og:title"
+						content={m_user.handle + "'s Profile"}
+					/>
+					<meta
+						property="og:type"
+						content="website"
+					/>
+					<meta
+						property="og:url"
+						content={window.location.href}
+					/>
+					<meta
+						property="og:image"
+						content={m_user.avatar}
+					/>
+					<meta
+						property="og:description"
+						content={"Beezle profile of @" + m_user.handle}
+					/>
+					<meta
+						name="theme-color"
+						content="#ffd500"
+					/>
+				</Helmet>
+			) : (
+				" "
+			)}
 			{m_user ? (
 				m_user.milestones?.length > 0 ? (
 					<div
@@ -298,6 +387,46 @@ function Profile() {
 				ref={bio}
 				className="profile-bio"
 			></p>
+			{rpc && rpc.title !== "" ? (
+				<>
+					<div
+						style={{ paddingBottom: "60px" }}
+						className="spotify"
+					>
+						<p className="spotify-listeningto">Playing</p>
+						<div
+							style={{
+								backgroundImage: `url("${rpc.largeImage}")`,
+							}}
+							className="spotify-image"
+						>
+							{rpc.smallImage !== "" ? (
+								<div
+									style={{
+										backgroundImage: `url("${rpc.smallImage}")`,
+									}}
+									className="spotify-small-image"
+								></div>
+							) : (
+								""
+							)}
+						</div>
+						<h1 className="spotify-name">{rpc.title}</h1>
+						<h1 className="spotify-album">{rpc.description}</h1>
+						<h1 className="spotify-artists">
+							{msToTime(
+								new Date().getTime() -
+									new Date(
+										rpc.time_elapsed
+									).getTime()
+							)}
+						</h1>
+					</div>
+					<br></br>
+				</>
+			) : (
+				""
+			)}
 			{isSpotify ? (
 				<div
 					onClick={() => window.open(trackURL)}
@@ -387,6 +516,7 @@ function Profile() {
 				{posts.map(item => (
 					<PostBox
 						edited={item.data.edited}
+						avatarShape={item.op.cosmetic.avatar_shape}
 						repost_id={item.data.repost_id}
 						repost_type={item.data.repost_type}
 						repost_op={item.data.repost_op}

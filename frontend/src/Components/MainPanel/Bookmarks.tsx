@@ -61,6 +61,7 @@ function Bookmarks() {
 				: bookmarks.map(item => (
 						<PostBox
 							edited={item.data.edited}
+							avatarShape={item.op.cosmetic.avatar_shape}
 							repost_type={item.data.repost_type}
 							repost_id={item.data.repost_id}
 							repost_op={item.data.repost_op}

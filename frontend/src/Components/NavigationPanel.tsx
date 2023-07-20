@@ -54,12 +54,7 @@ function NavigationPanel() {
 			setPrompt(e);
 			console.log(e);
 		});
-	}, []);
 
-	useEffect(() => {
-		const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]") as string[];
-		setCounter(notifs.length);
-		// if (counter <= 0) notifCounter.current!.innerText = ``;
 		socket.on("notification", async (notif: string, url: string) => {
 			const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]") as string[];
 			notifs.unshift(notif);
@@ -69,6 +64,14 @@ function NavigationPanel() {
 			setCounter(notifs.length);
 			notifCounter.current!.innerText = `(${counter})`;
 		});
+
+		if (counter <= 0) notifCounter.current!.innerText = ``;
+	}, []);
+
+	useEffect(() => {
+		const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]") as string[];
+		setCounter(notifs.length);
+		// if (counter <= 0) notifCounter.current!.innerText = ``;
 
 		if (!isOpen) {
 			document.querySelector(".main-panel")!.classList.add("scale-twice");
@@ -87,10 +90,6 @@ function NavigationPanel() {
 		setCounter(notifs.length);
 		window.document.title = notifs.length > 0 ? `Beezle | (${notifs.length})` : "Beezle";
 	});
-
-	useEffect(() => {
-		if (counter <= 0) notifCounter.current!.innerText = ``;
-	}, [true]);
 
 	useEffect(() => {
 		notifCounter.current!.style.color = "yellow";
@@ -174,13 +173,16 @@ function NavigationPanel() {
 					<a onClick={() => navigate("/settings")}>
 						Settings <i className="fa-solid fa-user-gear"></i>
 					</a>
-					{iOS() ? (
+					<a onClick={() => navigate("/shop")}>
+						Activity Shop <i className="fa-solid fa-cart-shopping-fast"></i>
+					</a>
+					{/* {iOS() ? (
 						""
 					) : (
 						<a onClick={() => deferredPrompt.prompt()}>
 							Install <i className="fa-solid fa-download"></i>
 						</a>
-					)}
+					)} */}
 					<a
 						onClick={logout}
 						style={{

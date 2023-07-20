@@ -1,0 +1,36 @@
+.activity-shop {
+	padding: 15px;
+}
+
+.coins {
+	color: rgb(255, 187, 0);
+	font-size: 20px;
+}
+
+.shop-item-shape {
+	width: 100%;
+	min-height: 250px;
+	border-radius: 15px;
+	margin-right: 10px;
+	margin-top: 10px;
+	margin-bottom: 20px;
+	background-color: var(--form-bg);
+	box-sizing: border-box;
+	padding: 15px;
+
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+}
+
+.preview-shape {
+	width: 150px;
+	height: 150px;
+	background-color: transparent;
+	background-position: center;
+	background-size: cover;
+}
+
+.buy-item {
+	margin-top: 30px;
+}

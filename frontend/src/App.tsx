@@ -30,8 +30,11 @@ import VerifyUser from "./Dashboard/Pages/VerifyUser";
 import Settings from "./Settings/Settings";
 import PrivacySettings from "./Settings/Pages/Privacy";
 import Credentials from "./Settings/Pages/Credentials";
-import Spotify from "./Auth/Spotify";
+import Auth from "./Auth/Auth";
 import Developers from "./Settings/Pages/Developers";
+import HomeTags from "./Home/HomeTags";
+import { HelmetProvider } from "react-helmet-async";
+import HomeShop from "./Home/HomeShop";
 
 function iOS() {
 	return (
@@ -41,6 +44,7 @@ function iOS() {
 	);
 }
 
+const helmetContext = {};
 function App() {
 	const [gotHandle, setGot] = useState(false);
 
@@ -60,9 +64,8 @@ function App() {
 	}
 
 	// notif("Testing", {});
-
 	return (
-		<>
+		<HelmetProvider context={helmetContext}>
 			<ToastContainer />
 
 			<BrowserRouter>
@@ -172,12 +175,20 @@ function App() {
 						element={<Developers />}
 					/>
 					<Route
-						path="/auth/spotify/:stuff"
-						element={<Spotify />}
+						path="/auth/:appName/:appID"
+						element={<Auth />}
+					/>
+					<Route
+						path="/tag/:hashtag"
+						element={<HomeTags />}
+					/>
+					<Route
+						path="/shop"
+						element={<HomeShop />}
 					/>
 				</Routes>
 			</BrowserRouter>
-		</>
+		</HelmetProvider>
 	);
 }
 

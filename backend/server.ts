@@ -44,6 +44,8 @@ import PasswordVerification from "./models/PasswordVerification";
 import axios from "axios";
 import cryptr from "cryptr";
 import SpotifyWebApi from "spotify-web-api-node";
+import App from "./models/App";
+import { activityItems } from "./interfaces/ItemType";
 const crypt = new cryptr(process.env.SPOTIFY_SECRET as string);
 const spotifyAPI = new SpotifyWebApi();
 const basic_spotify = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString("base64");
@@ -241,7 +243,13 @@ app.post("/api/login", async (req: express.Request, res: express.Response) => {
 		return res.json({ error: "An email has been sent, please verify your account", was_error: true });
 	}
 
-	const token = jwt.sign(user.toJSON(), jwt_secret);
+	const token = jwt.sign(
+		{
+			handle: user.handle,
+			email: user.email,
+		},
+		jwt_secret
+	);
 	return res.json({ token, error: "", was_error: false });
 });
 
@@ -513,6 +521,30 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 				repost_op: "",
 				repost_id: "",
 			});
+			m_user.coins += CONSTANTS.COIN_GIVE;
+			m_user.save();
+		}
+
+		const mentions = content.match(/@([a-z\d_\.-]+)/gi);
+
+		if (mentions) {
+			for (const m of mentions) {
+				const mention = m.replace("@", "");
+
+				const receiver = (await User.find({ handle: mention }).limit(1))[0];
+				const url = `${CONSTANTS.FRONTEND_URL}/post/${post.postID}`;
+				const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
+					m_user?.avatar
+				})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} mentioned you!</a>`;
+
+				if (receiver.handle != user.handle && receiver.status !== "dnd") {
+					if (getSockets()[receiver!.handle])
+						getSockets()[receiver.handle].emit("notification", notif, url);
+
+					receiver.notifications.push(notif);
+					receiver.save();
+				}
+			}
 		}
 
 		const box_type = {
@@ -597,6 +629,7 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 		const m_user = (await User.findOne({
 			handle: user.handle,
 		}))!;
+
 		const Unlike = async () => {
 			const post = await Post.findOneAndUpdate(
 				{
@@ -616,6 +649,8 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 			const index = m_post?.likes.findIndex(x => x === user.handle);
 			if (index! < 0) return;
 			m_post?.likes.splice(index!, 1);
+			m_user.coins -= 1;
+			m_user.save();
 
 			io.emit("post-like-refresh", postId, m_post?.likes);
 		};
@@ -668,6 +703,9 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 				}
 				receiver!.save();
 			}
+
+			m_user.coins += CONSTANTS.COIN_GIVE;
+			m_user.save();
 		}
 
 		res.json({ error: false });
@@ -744,6 +782,7 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 				},
 			}
 		);
+
 		const userToFollow = await User.findOne({
 			handle: toFollow,
 		});
@@ -813,7 +852,11 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 			}
 
 			m_user_follow!.save();
+			m_user!.coins -= 1;
+			m_user!.save();
 		} else {
+			m_user!.coins += CONSTANTS.COIN_GIVE;
+			m_user!.save();
 			Unfollow();
 		}
 	});
@@ -1046,6 +1089,10 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 				post.reposts.findIndex(x => x === m_user.handle),
 				1
 			);
+			if (m_user.coins > 0) {
+				m_user.coins += CONSTANTS.COIN_GIVE;
+				m_user.save();
+			}
 			post.save();
 			io.emit("post-repost-refresh", postID, post.reposts);
 			io.emit("post-deleted", postID, true);
@@ -1097,6 +1144,8 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 				}
 			}
 			receiver!.save();
+			m_user.coins += CONSTANTS.COIN_GIVE;
+			m_user.save();
 
 			return res.json(repost);
 		}
@@ -1184,8 +1233,10 @@ app.post("/mod/ban-user", async (req: express.Request, res: express.Response) =>
 		if (err) return res.json({ error: true });
 
 		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
-		if (m_user.verified || m_user.owner) {
+		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true });
+		m_user.coins += CONSTANTS.COIN_GIVE;
+		m_user.save();
 
 		const user_ban = await User.findOne({ handle });
 		if (!user_ban) return res.json({ error: true });
@@ -1212,8 +1263,10 @@ app.post("/mod/delete-post", async (req: express.Request, res: express.Response)
 		if (err) return res.json({ error: true });
 
 		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
-		if (m_user.verified || m_user.owner) {
+		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true });
+		m_user.coins += CONSTANTS.COIN_GIVE;
+		m_user.save();
 
 		const post = await Post.findOne({ postID });
 		if (!post) return res.json({ error: true });
@@ -1237,8 +1290,10 @@ app.post("/mod/get-reports", async (req: express.Request, res: express.Response)
 		if (err) return res.json({ error: true, reports: [], offset });
 
 		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
-		if (m_user.verified || m_user.owner) {
+		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true, reports: [], offset });
+		m_user.coins += CONSTANTS.COIN_GIVE;
+		m_user.save();
 
 		const reports = (await Report.find({
 			__v: { $gte: 0 },
@@ -1265,8 +1320,10 @@ app.post("/mod/resolve", async (req: express.Request, res: express.Response) => 
 		if (err) return res.json({ error: true });
 
 		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
-		if (m_user.verified || m_user.owner) {
+		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true });
+		m_user.coins += CONSTANTS.COIN_GIVE;
+		m_user.save();
 
 		const reports = await Report.find({
 			postID,
@@ -1293,8 +1350,10 @@ app.post("/mod/verify-user", async (req: express.Request, res: express.Response)
 		if (err) return res.json({ error: true });
 
 		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
-		if (m_user.verified || m_user.owner) {
+		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true });
+		m_user.coins += CONSTANTS.COIN_GIVE;
+		m_user.save();
 
 		const verify_user = await User.findOne({ handle });
 		if (!verify_user) return res.json({ error: true });
@@ -1649,3 +1708,189 @@ app.post("/bot/make-bot", async (req: express.Request, res: express.Response) =>
 	});
 });
 // BOT SECTION
+
+// RPC SECTION
+
+interface RPC {
+	largeImage: string;
+	smallImage: string;
+	title: string;
+	description: string;
+	time_elapsed: Date;
+	time_set: boolean;
+}
+
+const rpcs: { [handle: string]: RPC } = {};
+
+app.post("/rpc/set", async (req: express.Request, res: express.Response) => {
+	const { apiKey, largeImage, smallImage, title, description, time_elapsed, time_set } = req.body;
+
+	jwt.verify(apiKey, jwt_secret, async (err: any, m: any) => {
+		if (err) return res.json({ error: true, rpc: {} });
+
+		rpcs[m.user] = {
+			largeImage,
+			smallImage,
+			title,
+			description,
+			time_elapsed,
+			time_set,
+		};
+
+		res.json({ error: false, rpc: rpcs[m.user] });
+	});
+});
+
+app.post("/rpc/unset", async (req: express.Request, res: express.Response) => {
+	const { apiKey } = req.body;
+
+	jwt.verify(apiKey, jwt_secret, async (err: any, m: any) => {
+		if (err) return res.json({ error: true });
+
+		delete rpcs[m.user];
+		res.json({ error: false });
+	});
+});
+
+app.get("/rpc/:handle", async (req: express.Request, res: express.Response) => {
+	const { handle } = req.params;
+
+	return res.json(
+		rpcs[handle]
+			? rpcs[handle]
+			: {
+					largeImage: "",
+					smallImage: "",
+					title: "",
+					description: "",
+					time_elapsed: Date.now(),
+					time_set: false,
+			  }
+	);
+});
+
+app.post("/auth", async (req: express.Request, res: express.Response) => {
+	const { token, appID } = req.body;
+
+	const app = await App.findOne({ id: appID });
+
+	if (!app) return res.json({ error: true });
+
+	jwt.verify(token, jwt_secret, async (err: any, m: any) => {
+		if (err) return res.json({ error: true });
+
+		const user = (await User.find({ handle: m.handle }).limit(1))[0];
+		if (user.api_key) {
+			return res.json({ uri: app.uri, api_key: crypt.decrypt(user.api_key) });
+		} else {
+			user.api_key = crypt.encrypt(jwt.sign({ user: user.handle }, jwt_secret));
+			user.save();
+			return res.json({ uri: app.uri, api_key: crypt.decrypt(user.api_key) });
+		}
+	});
+});
+
+app.post("/app/create", async (req: express.Request, res: express.Response) => {
+	const { token, uri, name } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, m: any) => {
+		if (err) return res.json({ error: true });
+
+		const app = await App.create({
+			id: uuid4(),
+			uri,
+			name,
+			by: m.handle,
+		});
+		return res.json({ app, error: false });
+	});
+});
+
+app.post("/app/get", async (req: express.Request, res: express.Response) => {
+	const { token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, m: any) => {
+		if (err) return res.json({ error: true });
+		const apps = await App.find({
+			by: m.handle,
+		});
+		return res.json({ apps, error: false });
+	});
+});
+
+app.post("/app/edit", async (req: express.Request, res: express.Response) => {
+	const { token, id, uri, name } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, m: any) => {
+		if (err) return res.json({ error: true });
+
+		const app = await App.findOneAndUpdate(
+			{
+				by: m.handle,
+				id,
+			},
+			{
+				uri,
+				name,
+			}
+		);
+		return res.json({ app, error: false });
+	});
+});
+
+app.post("/app/delete", async (req: express.Request, res: express.Response) => {
+	const { token, id, uri, name } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, m: any) => {
+		if (err) return res.json({ error: true });
+
+		const app = await App.findOne({
+			by: m.handle,
+			id,
+		});
+		app?.deleteOne();
+		return res.json({ app, error: false });
+	});
+});
+
+// RPC SECTION
+
+// ACTIVITY SHOP SECTION
+
+app.get("/activity-items", async (req: express.Request, res: express.Response) => {
+	res.json(activityItems);
+});
+
+app.post("/buy-avatar-frame", async (req: express.Request, res: express.Response) => {
+	const { token, name } = req.body;
+	const item = activityItems[activityItems.findIndex(x => x.name === name)];
+
+	if (!item) return res.json({ error: true });
+
+	jwt.verify(token, jwt_secret, async (err: any, m: any) => {
+		if (err) return res.json({ error: true });
+
+		const user = (await User.find({ handle: m.handle }))[0];
+
+		if (user.coins >= item.price) {
+			if (!user.cosmetic) {
+				user.cosmetic = {
+					avatar_shape: item.style,
+					avatar_frame: "",
+					custom_emojis: [],
+				};
+			} else {
+				user.cosmetic.avatar_shape = item.style;
+			}
+
+			user.coins -= item.price;
+			user.save();
+		} else {
+			return res.json({ msg: "You do not have enough coins to buy this item! Be more active on Beezle to get more coins!" });
+		}
+
+		return res.json({ msg: 'Avatar frame "' + item.name + '" Successfully bought!' });
+	});
+});
+
+// ACTIVITY SHOP SECTION

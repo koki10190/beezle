@@ -13,6 +13,9 @@ import { api_url } from "../../constants/ApiURL";
 import getBadgeType from "../../functions/getBadgeType";
 import { Icons, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import { TailSpin } from "react-loader-spinner";
+import uuid4 from "uuid4";
+import { Helmet } from "react-helmet";
 
 function Post({ fetch_method }: { fetch_method: string }) {
 	const navigate = useNavigate();
@@ -24,11 +27,14 @@ function Post({ fetch_method }: { fetch_method: string }) {
 	const post = useRef<HTMLTextAreaElement>(null);
 	const postFile = useRef<HTMLInputElement>(null);
 	const emojiPicker = useRef<HTMLDivElement>(null);
+	const imageHolder = useRef<HTMLDivElement>(null);
 
 	const [isEmojiPickerShown, setEmojiShown] = useState(false);
 	const [posts, setPosts] = useState([] as PostBoxType[]);
 	const [showPosts, setShowPosts] = useState(false);
 	const [postsOffset, setPostsOffset] = useState(0);
+	const [loading, setLoading] = useState(false);
+	const [images, setImages] = useState<string[]>([]);
 
 	let postCheck = 0;
 	// socket.on("post", async (post: PostBoxType) => {
@@ -94,6 +100,7 @@ function Post({ fetch_method }: { fetch_method: string }) {
 			window.dispatchEvent(new Event("update-notif-counter"));
 
 			avatar.current!.style.backgroundImage = `url("${user.avatar}")`;
+			avatar.current!.style.clipPath = user.cosmetic?.avatar_shape;
 			username.current!.innerText = user.displayName;
 			handle.current!.innerText = "@" + user.handle;
 
@@ -112,6 +119,7 @@ function Post({ fetch_method }: { fetch_method: string }) {
 		})();
 
 		postFile.current!.addEventListener("change", async (event: Event) => {
+			setLoading(true);
 			const fileFormData = new FormData();
 			console.log(postFile.current!.files![0]);
 			fileFormData.append("file", postFile.current!.files![0]);
@@ -122,8 +130,6 @@ function Post({ fetch_method }: { fetch_method: string }) {
 
 			fileFormData.append("token", localStorage.getItem("auth_token") as string);
 
-			alert("The file is being uploaded, please wait.");
-
 			const res = (
 				await axios.post(`${api_url}/api/upload-file`, fileFormData, {
 					headers: {
@@ -132,7 +138,16 @@ function Post({ fetch_method }: { fetch_method: string }) {
 				})
 			).data;
 
-			post.current!.value += " " + res.img;
+			const img = new Image();
+			const nID = uuid4();
+			img.onload = () => {
+				const element = document.getElementById(nID) as HTMLDivElement;
+				if (element) element.style.height = `${img.naturalHeight > 500 ? 500 : img.naturalHeight}px`;
+			};
+			img.src = res.img;
+
+			setImages(prev => [...prev, res.img]);
+			setLoading(false);
 		});
 	}, []);
 
@@ -152,20 +167,21 @@ function Post({ fetch_method }: { fetch_method: string }) {
 	const makePost = () => {
 		if (limiter) return;
 		if (user?.bot_account) return;
-		if (post.current!.value == "") return;
+		if (post.current!.value == "" && images.length < 1) return;
 		setLimiter(true);
 
 		setTimeout(() => setLimiter(false), 5000);
 
 		axios.post(`${api_url}/api/post`, {
 			token: localStorage.getItem("auth_token")!,
-			content: post.current!.value,
+			content: post.current!.value + " " + images.join(" "),
 			socketID: socket.id,
 		}).then(res => {
 			if (res.data.error) return;
 
 			setPosts(prev => [res.data, ...prev]);
 			post.current!.value = "";
+			setImages([]);
 		});
 	};
 
@@ -173,6 +189,7 @@ function Post({ fetch_method }: { fetch_method: string }) {
 		const item = event.clipboardData.items[0];
 
 		if (item.type.indexOf("image") === 0 || item.type.indexOf("video") === 0) {
+			setLoading(true);
 			event.preventDefault();
 			const blob = item.getAsFile();
 
@@ -186,8 +203,6 @@ function Post({ fetch_method }: { fetch_method: string }) {
 
 			fileFormData.append("token", localStorage.getItem("auth_token") as string);
 
-			alert("The file is being uploaded, please wait.");
-
 			const res = (
 				await axios.post(`${api_url}/api/upload-file`, fileFormData, {
 					headers: {
@@ -196,7 +211,8 @@ function Post({ fetch_method }: { fetch_method: string }) {
 				})
 			).data;
 
-			post.current!.value += " " + res.img;
+			setImages(prev => [...prev, res.img]);
+			setLoading(false);
 		}
 	};
 
@@ -244,7 +260,32 @@ function Post({ fetch_method }: { fetch_method: string }) {
 	return (
 		<>
 			{/* <div className="image-shower"></div> */}
-
+			<Helmet>
+				<meta
+					property="og:title"
+					content="Beezle"
+				/>
+				<meta
+					property="og:type"
+					content="website"
+				/>
+				<meta
+					property="og:url"
+					content="https://beezle.lol"
+				/>
+				<meta
+					property="og:image"
+					content={window.location.host + "/icon2.png"}
+				/>
+				<meta
+					property="og:description"
+					content="See posts on Beezle"
+				/>
+				<meta
+					name="theme-color"
+					content="#ffd500"
+				></meta>
+			</Helmet>
 			<div
 				className="navigation-panel main-panel make-post"
 				onScroll={detectScrolling}
@@ -280,14 +321,72 @@ function Post({ fetch_method }: { fetch_method: string }) {
 					<textarea
 						ref={post}
 						placeholder="Press here to type your post."
+						style={{
+							display: loading ? "none" : "block",
+						}}
 						className="post-textarea"
 						onPaste={pasteContent}
 					></textarea>
+					{loading ? (
+						<TailSpin
+							wrapperStyle={{
+								marginBottom: "50px",
+							}}
+							height="100"
+							width="100"
+							color="yellow"
+							ariaLabel="loading"
+						/>
+					) : (
+						""
+					)}
+					<div
+						ref={imageHolder}
+						className="image-holder"
+					>
+						{images.map(img => (
+							<div
+								className="postImage"
+								style={{
+									backgroundImage:
+										"url(" +
+										img +
+										")",
+								}}
+								key={uuid4()}
+							>
+								{/* <a
+									className="download-img"
+									onClick={() => {
+										setImages([
+											...images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											),
+										]);
+										console.log(
+											images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											)
+										);
+									}}
+								>
+									<i className="fa-solid fa-trash"></i>
+								</a> */}
+							</div>
+						))}
+					</div>
+
 					<div className="post-text-buttons">
-						<a onClick={showEmojiPicker}>
+						<a onClick={loading ? () => {} : showEmojiPicker}>
 							<i className="fa-solid fa-face-awesome"></i>
 						</a>
-						<a onClick={uploadImage}>
+						<a onClick={loading ? () => {} : uploadImage}>
 							<i className="fa-solid fa-image"></i>
 						</a>
 						<input
@@ -325,6 +424,11 @@ function Post({ fetch_method }: { fetch_method: string }) {
 					? posts.map(item =>
 							!item.data.repost_type ? (
 								<PostBox
+									avatarShape={
+										item.op
+											.cosmetic
+											.avatar_shape
+									}
 									edited={item.data.edited}
 									repost_type={
 										item.data

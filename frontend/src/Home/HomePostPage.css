@@ -13,7 +13,8 @@
 .page-avatar {
 	width: 65px;
 	height: 65px;
-	border-radius: 100%;
+	clip-path: circle(50% at 50% 50%);
+	/* border-radius: 100%; */
 
 	background-color: gray;
 	background-position: center;
@@ -22,7 +23,7 @@
 	position: relative;
 }
 
-.page-avatar .status {
+.postpage-avatar-parent .status {
 	width: 15px;
 	height: 15px;
 	border: 3px solid black;

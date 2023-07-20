@@ -148,3 +148,25 @@
 .post-edit-save-btn:hover {
 	background-color: rgb(212, 212, 0);
 }
+
+.auth-app {
+	width: fit-content;
+	height: fit-content;
+
+	padding: 15px;
+	box-sizing: border-box;
+	border-radius: 15px;
+	background-color: var(--form-bg);
+}
+
+.auth-apps {
+	overflow: hidden;
+	gap: 15px;
+	width: 100%;
+}
+
+.auth-apps > div {
+	display: inline-block;
+	margin-right: 25px;
+	margin-bottom: 25px;
+}

@@ -26,6 +26,13 @@ interface UserType {
 			refresh_token: string;
 		};
 	};
+
+	coins: number;
+	cosmetic: {
+		avatar_shape: string;
+		avatar_frame: string;
+		custom_emojis: string[];
+	};
 }
 
 export default UserType;

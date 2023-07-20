@@ -17,6 +17,7 @@ import { PostType } from "../../interfaces/PostType";
 import { useNavigate } from "react-router-dom";
 import VerifyBadgeText from "../../functions/VerifyBadgeText";
 import StatusCheck from "../../functions/StatusCheck";
+import sanitize from "sanitize-html";
 
 interface PostBoxInterface {
 	name: string;
@@ -36,6 +37,7 @@ interface PostBoxInterface {
 	repost_id: string;
 	repost_op: string;
 	edited: boolean;
+	avatarShape?: string;
 	// me: UserType;
 }
 
@@ -58,6 +60,7 @@ function PostBox({
 	repost_id,
 	repost_op,
 	edited,
+	avatarShape,
 }: PostBoxInterface) {
 	const navigate = useNavigate();
 	let user: UserType;
@@ -226,10 +229,67 @@ function PostBox({
 		});
 	};
 
-	const reply = () => navigate("/post/" + postId);
+	const reply = () => window.location.assign("/post/" + postId);
+	const [mention, setMention] = useState<UserType | null>(null);
+	const [timeoutM, setTimeoutM] = useState<NodeJS.Timeout>();
+	const hoverMention = async (mmention: string) => {
+		if (mention?.handle === mmention) return clearTimeout(timeoutM);
+		const data = await GetOtherUser(mmention.replace("@", ""));
+		setMention(data.user);
+	};
+
+	useEffect(() => {
+		const mentions = content.match(/@([a-z\d_\.-]+)/gi);
+
+		try {
+			mentions?.forEach(mention => {
+				const element = document.getElementById(mention.replace("@", "") + "-" + postId) as HTMLAnchorElement;
+
+				if (element) {
+					element.onmouseover = () => hoverMention(element.innerText);
+					element.onmouseleave = () => {
+						setMention(null);
+						clearTimeout(timeoutM);
+					};
+				}
+			});
+		} catch (err) {}
+	}, []);
 
 	return (
 		<div className="post-box">
+			{mention ? (
+				<div
+					onClick={() => navigate("/profile/" + mention.handle)}
+					className="mini-profile"
+				>
+					<div
+						style={{ backgroundImage: `url("${mention.banner}")` }}
+						className="mini-banner"
+					></div>
+					<div
+						style={{
+							backgroundImage: `url("${mention.avatar}")`,
+						}}
+						className="mini-avatar"
+					></div>
+					<p
+						className="mini-name"
+						dangerouslySetInnerHTML={{
+							__html: VerifyBadgeText(mention),
+						}}
+					></p>
+					<p className="mini-handle">@{mention.handle}</p>
+					<p
+						dangerouslySetInnerHTML={{
+							__html: mention.bio,
+						}}
+						className="mini-bio"
+					></p>
+				</div>
+			) : (
+				""
+			)}
 			<div className="user-stuff">
 				{isRepost ? (
 					<p
@@ -265,14 +325,20 @@ function PostBox({
 					}}
 					className="user-desc"
 				>
-					<div
-						style={{
-							backgroundImage: `url("${
-								isRepost ? repostOp.avatar : avatarURL
-							}")`,
-						}}
-						className="post-avatar"
-					>
+					<div className="avatar-parent post-avatar-parent">
+						<div
+							style={{
+								backgroundImage: `url("${
+									isRepost
+										? repostOp.avatar
+										: avatarURL
+								}")`,
+								clipPath: avatarShape
+									? avatarShape
+									: "circle(50% at 50% 50%)",
+							}}
+							className="post-avatar"
+						></div>
 						<div
 							style={{
 								backgroundColor: StatusCheck(status),
@@ -311,7 +377,7 @@ function PostBox({
 						width: "100%",
 					}}
 					dangerouslySetInnerHTML={{
-						__html: displayContent(isRepost ? repostData.content : content),
+						__html: displayContent(isRepost ? repostData.content : content, postId),
 					}}
 					className="post-content"
 				></p>

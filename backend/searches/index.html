@@ -5,22 +5,16 @@
     <link rel="icon" type="image/png" href="/icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Beezle</title>
-    <link rel="manifest" href="/manifest.json"/>
-    <meta name="theme-color" content="#fcca03">
     <link rel="stylesheet" href="https://site-assets.fontawesome.com/releases/v6.4.0/css/all.css">
-    <link rel="apple-touch-icon" href="/apple-icon.png">
 
     <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
+
   </head>
   <body style="overflow: hidden">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
     <script defer>
         twemoji.parse(document.body);
-
-        if("serviceWorker" in navigator) {
-          navigator.serviceWorker.register("/serviceWorker.js").then((reg) => console.log("Service Worker Registered")).catch(err => console.log("Error SW:", err))
-        }
     </script>
   </body>
 </html>

@@ -3,6 +3,8 @@ import { FormEvent, useRef, useState } from "react";
 import RegisterTokenData from "../interfaces/RegisterTokenData";
 import { api_url } from "../constants/ApiURL";
 import { useNavigate } from "react-router-dom";
+import socket from "../io/socket";
+import GetUserData from "../api/GetUserData";
 // import LoginTokenData from "../interfaces/LoginTokenData";
 
 interface LoginFormInterface {
@@ -36,7 +38,7 @@ function LoginForm({ state_change }: LoginFormInterface) {
 		axios.post(`${api_url}/api/login`, {
 			email: email.current!.value,
 			password: password.current!.value,
-		}).then(res => {
+		}).then(async res => {
 			const data = res.data as RegisterTokenData;
 
 			if (data.was_error) {
@@ -49,6 +51,8 @@ function LoginForm({ state_change }: LoginFormInterface) {
 			}
 
 			localStorage.setItem("auth_token", data.token);
+			const user = await GetUserData();
+			socket.emit("get-handle", user.user.handle);
 			navigate("/home");
 		});
 	};

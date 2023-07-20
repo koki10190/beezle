@@ -5,7 +5,7 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "concurrently --kill-others \"ts-node backend/server.ts\" \"cd frontend && npm run dev\"",
-		"server": "ts-node backend/server.ts",
+		"server": "nodemon backend/server.ts",
 		"frontend": "cd frontend && npm run dev"
 	},
 	"keywords": [],

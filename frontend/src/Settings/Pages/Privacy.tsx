@@ -13,7 +13,7 @@ function Display({ isOpen, user }: { isOpen: boolean; user: UserType }) {
 
 	const authSpotify = async () => {
 		const endpoint = "https://accounts.spotify.com/authorize";
-		const redirectURI = "https://ebb2-95-83-232-242.ngrok-free.app";
+		const redirectURI = "https://425d-95-83-232-242.ngrok-free.app";
 		const clientID = "29d3f659c14a45d684a030365c9e4afb";
 
 		const scopes = ["user-read-currently-playing"];
@@ -24,7 +24,7 @@ function Display({ isOpen, user }: { isOpen: boolean; user: UserType }) {
 
 		window.location.href = loginURL;
 		/*
-		https://accounts.spotify.com/authorize?client_id=29d3f659c14a45d684a030365c9e4afb&redirect_uri=https://ebb2-95-83-232-242.ngrok-free.app/auth/spotify&scope=user-read-currently-playing%20user-read-recently-played%20user-read-playback-state%20user-top-read%20user-modify-playback-state&response_type=token&show_dialog=true
+		https://accounts.spotify.com/authorize?client_id=29d3f659c14a45d684a030365c9e4afb&redirect_uri=https://304b-95-83-232-242.ngrok-free.app/auth/spotify&scope=user-read-currently-playing%20user-read-recently-played%20user-read-playback-state%20user-top-read%20user-modify-playback-state&response_type=token&show_dialog=true
 		*/
 	};
 
@@ -55,7 +55,11 @@ function Display({ isOpen, user }: { isOpen: boolean; user: UserType }) {
 				onClick={authSpotify}
 				// disabled={user ? (user.connected_accounts?.spotify ? true : false) : false}
 			>
-				{user ? (user.connected_accounts?.spotify ? "SPOTIFY CONNECTED" : "CONNECT SPOTIFY") : "CONNECT SPOTIFY"}
+				{user
+					? user.connected_accounts?.spotify?.access_token !== ""
+						? "SPOTIFY CONNECTED"
+						: "CONNECT SPOTIFY"
+					: "CONNECT SPOTIFY"}
 			</button>
 		</div>
 	);
