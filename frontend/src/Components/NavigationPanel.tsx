@@ -8,6 +8,7 @@ import sanitize from "sanitize-html";
 import axios from "axios";
 import { api_url } from "../constants/ApiURL";
 import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 function iOS() {
 	return (

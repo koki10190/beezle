@@ -338,6 +338,17 @@ function HomePostPage() {
 		}
 	};
 
+	function hexToRgb(hex: string) {
+		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		return result
+			? {
+					r: parseInt(result[1], 16),
+					g: parseInt(result[2], 16),
+					b: parseInt(result[3], 16),
+			  }
+			: null;
+	}
+
 	const report = async () => {
 		if (user?.bot_account) return;
 		const result = (
@@ -821,44 +832,157 @@ function HomePostPage() {
 									<div></div>
 								)}
 							</div>
-							{replies.map(item => (
-								<PostBox
-									edited={item.data.edited}
-									avatarShape={
-										item.op
-											.cosmetic
-											.avatar_shape
-									}
-									repost_type={
-										item.data
-											.repost_type
-									}
-									repost_id={
-										item.data
-											.repost_id
-									}
-									repost_op={
-										item.data
-											.repost_op
-									}
-									reply_type={false}
-									replyingTo=""
-									badgeType={getBadgeType(
-										item.op
-									)}
-									key={item.data.postID}
-									date={item.data.date}
-									postId={item.data.postID}
-									name={item.op.displayName}
-									handle={item.op.handle}
-									avatarURL={item.op.avatar}
-									content={item.data.content}
-									likes={item.data.likes}
-									reposts={item.data.reposts}
-									replies={item.data.replies}
-									tokenUser={me!}
-								/>
-							))}
+							{replies.map(item => {
+								let postColors = {
+									color1: "rgb(53, 43, 24)",
+									color2: "rgb(53, 43, 24)",
+								};
+								let rgb = hexToRgb(item.op.gradient.color1);
+								if (!rgb) rgb = hexToRgb("#000000");
+								const divided = {
+									r: rgb!.r / 255,
+									g: rgb!.g / 255,
+									b: rgb!.b / 255,
+								};
+								const darkMultiplyer = 0.5;
+								divided.r *= darkMultiplyer;
+								divided.g *= darkMultiplyer;
+								divided.b *= darkMultiplyer;
+
+								let rgb2 = hexToRgb(item.op.gradient.color2);
+								if (!rgb2) rgb2 = hexToRgb("#000000");
+								const divided2 = {
+									r: rgb2!.r / 255,
+									g: rgb2!.g / 255,
+									b: rgb2!.b / 255,
+								};
+								divided2.r *= darkMultiplyer;
+								divided2.g *= darkMultiplyer;
+								divided2.b *= darkMultiplyer;
+								const check =
+									rgb?.r === 0 &&
+									rgb?.g === 0 &&
+									rgb?.b === 0;
+								postColors = {
+									color1: check
+										? "rgb(53, 43, 24)"
+										: `rgb(${
+												divided.r *
+												255
+										  }, ${
+												divided.g *
+												255
+										  }, ${
+												divided.b *
+												255
+										  })`,
+									color2: check
+										? "rgb(53, 43, 24)"
+										: `rgb(${
+												divided2.r *
+												255
+										  }, ${
+												divided2.g *
+												255
+										  }, ${
+												divided2.b *
+												255
+										  })`,
+								};
+								return (
+									<PostBox
+										activity={
+											item
+												.op
+												.activity
+										}
+										edited={
+											item
+												.data
+												.edited
+										}
+										avatarShape={
+											item
+												.op
+												.cosmetic
+												.avatar_shape
+										}
+										repost_type={
+											item
+												.data
+												.repost_type
+										}
+										repost_id={
+											item
+												.data
+												.repost_id
+										}
+										repost_op={
+											item
+												.data
+												.repost_op
+										}
+										reply_type={
+											false
+										}
+										replyingTo=""
+										badgeType={getBadgeType(
+											item.op
+										)}
+										key={
+											item
+												.data
+												.postID
+										}
+										date={
+											item
+												.data
+												.date
+										}
+										postId={
+											item
+												.data
+												.postID
+										}
+										name={
+											item
+												.op
+												.displayName
+										}
+										handle={
+											item
+												.op
+												.handle
+										}
+										avatarURL={
+											item
+												.op
+												.avatar
+										}
+										content={
+											item
+												.data
+												.content
+										}
+										likes={
+											item
+												.data
+												.likes
+										}
+										reposts={
+											item
+												.data
+												.reposts
+										}
+										replies={
+											item
+												.data
+												.replies
+										}
+										tokenUser={me!}
+									/>
+								);
+							})}
 						</>
 					) : (
 						""

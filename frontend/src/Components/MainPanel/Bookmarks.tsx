@@ -60,6 +60,7 @@ function Bookmarks() {
 				? "You do not have any posts bookmarked."
 				: bookmarks.map(item => (
 						<PostBox
+							activity={item.op.activity}
 							edited={item.data.edited}
 							avatarShape={item.op.cosmetic.avatar_shape}
 							repost_type={item.data.repost_type}

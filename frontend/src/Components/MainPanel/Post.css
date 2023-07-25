@@ -54,6 +54,7 @@ button {
 	padding: 0 15px 0px 15px;
 	box-sizing: border-box;
 	border-radius: 15px;
+	color: white;
 	background-color: rgb(53, 43, 24);
 	/* border: solid 5px rgb(192, 147, 0); */
 	/* border: solid 1px rgb(192, 147, 0); */
@@ -101,14 +102,14 @@ button {
 .user-stuff > .user-desc > .post-date {
 	margin-top: -25px;
 	margin-left: 60px;
-	color: gray;
+	color: rgba(255, 255, 255, 0.5);
 }
 
 .user-stuff > .user-desc > .post-date-time {
 	margin-top: -57px;
 	margin-left: 100px;
 	float: right;
-	color: gray;
+	color: rgba(255, 255, 255, 0.5);
 }
 
 .user-desc {

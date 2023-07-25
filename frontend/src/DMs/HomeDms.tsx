@@ -35,6 +35,17 @@ function HomeDms() {
 	const [messages, setMessages] = useState<MessageType[]>([] as MessageType[]);
 
 	useEffect(() => {
+		console.log("yo2");
+		socket.on("get-message", (from: string, to: string, msg: MessageType) => {
+			console.log(from, to);
+			console.log(dm, m_user.handle);
+			if (from !== dm || to !== m_user.handle) return;
+			console.log(msg);
+			messages.push(msg);
+			// if (messages.find(x => x.messageID === msg.messageID)) return;
+			setMessages(prev => [...prev, msg]);
+		});
+
 		(async () => {
 			if (window.innerWidth <= 1000) setSidePanel(false);
 			const data = await GetUserData();
@@ -69,19 +80,6 @@ function HomeDms() {
 		})();
 	}, []);
 
-	socket.on("get-message", (from: string, to: string, msg: MessageType) => {
-		if (messagesCheck > 0) {
-			messagesCheck++;
-			if (messagesCheck >= 4) messagesCheck = 0;
-			return;
-		}
-		if (from !== dm || to !== user.handle) return;
-		console.log(msg);
-		messages.push(msg);
-		// if (messages.find(x => x.messageID === msg.messageID)) return;
-		setMessages(prev => [...prev, msg]);
-		messagesCheck++;
-	});
 	// useEffect(() => {
 	// }, [friends]);
 
@@ -152,7 +150,17 @@ function HomeDms() {
 						/>
 					))}
 				</div>
-				<div className={openSidePanel ? "dms-content" : "dms-content-full"}>
+				<div
+					className={openSidePanel ? "dms-content" : "dms-content-full"}
+					style={{
+						display: window.innerWidth <= 1000 && openSidePanel ? "none" : "block",
+					}}
+				>
+					<div className="msg-navbar">
+						<a className="msg-navbar-btn">
+							<i className="fa-solid fa-phone-volume"></i>
+						</a>
+					</div>
 					<div className="dms-messages">
 						{messages.length <= 0 ? (
 							<h1 style={{ color: "rgba(255,255,255,0.2)" }}>

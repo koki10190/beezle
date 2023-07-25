@@ -20,6 +20,8 @@ interface UserType {
 	milestones: number[];
 	status: string;
 	bot_account: boolean;
+	joined: Date;
+	activity: string;
 	connected_accounts: {
 		spotify: {
 			access_token: string;
@@ -32,6 +34,11 @@ interface UserType {
 		avatar_shape: string;
 		avatar_frame: string;
 		custom_emojis: string[];
+		profile_colors: boolean;
+	};
+	gradient: {
+		color1: string;
+		color2: string;
 	};
 }
 

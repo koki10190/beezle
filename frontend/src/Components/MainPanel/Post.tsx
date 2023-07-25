@@ -88,11 +88,23 @@ function Post({ fetch_method }: { fetch_method: string }) {
 		postRepostCheck++;
 	});
 
+	function hexToRgb(hex: string) {
+		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		return result
+			? {
+					r: parseInt(result[1], 16),
+					g: parseInt(result[2], 16),
+					b: parseInt(result[3], 16),
+			  }
+			: null;
+	}
+
 	useEffect(() => {
 		(async () => {
 			user = (await GetUserData()).user;
 			if (!localStorage.getItem("auth_token")) navigate("/");
 			setMe(user);
+			socket.emit("get-handle", user.handle);
 			setShowPosts(true);
 			localStorage.setItem("notifs", JSON.stringify(user.notifications));
 			localStorage.setItem("handle", user.handle);
@@ -110,6 +122,7 @@ function Post({ fetch_method }: { fetch_method: string }) {
 
 			axios.post(`${api_url}/api/${fetch_method}/${postsOffset}`, { token: localStorage.getItem("auth_token") }).then(
 				async res => {
+					console.log(res.data);
 					setPosts(res.data.posts);
 					setPostsOffset(res.data.latestIndex);
 				}
@@ -414,30 +427,116 @@ function Post({ fetch_method }: { fetch_method: string }) {
 					}}
 					className="small-bar"
 				/>
+				<p
+					style={{
+						color: "rgba(255,255,255,0.4)",
+					}}
+				>
+					{(() => {
+						if (fetch_method === "explore-posts") {
+							return "You're viewing Explore page";
+						}
+
+						if (fetch_method === "right-now") {
+							return "You're viewing Right Now page";
+						}
+
+						if (fetch_method === "follow-posts") {
+							return "You're viewing Home page";
+						}
+					})()}
+				</p>
 				{showPosts
-					? posts.map(item => (
-							<PostBox
-								avatarShape={item.op.cosmetic.avatar_shape}
-								edited={item.data.edited}
-								repost_type={item.data.repost_type}
-								repost_id={item.data.repost_id}
-								repost_op={item.data.repost_op}
-								badgeType={getBadgeType(item.op)}
-								reply_type={item.data.reply_type}
-								replyingTo={item.data.replyingTo}
-								key={item.data.postID}
-								date={item.data.date}
-								postId={item.data.postID}
-								name={item.op.displayName}
-								handle={item.op.handle}
-								avatarURL={item.op.avatar}
-								content={item.data.content}
-								likes={item.data.likes}
-								reposts={item.data.reposts}
-								replies={item.data.replies}
-								tokenUser={meUser!}
-							/>
-					  ))
+					? posts.map(item => {
+							let postColors = {
+								color1: "rgb(53, 43, 24)",
+								color2: "rgb(53, 43, 24)",
+							};
+							let rgb = hexToRgb(item.op.gradient.color1);
+							if (!rgb) rgb = hexToRgb("#000000");
+							const divided = {
+								r: rgb!.r / 255,
+								g: rgb!.g / 255,
+								b: rgb!.b / 255,
+							};
+							const darkMultiplyer = 0.5;
+							divided.r *= darkMultiplyer;
+							divided.g *= darkMultiplyer;
+							divided.b *= darkMultiplyer;
+
+							let rgb2 = hexToRgb(item.op.gradient.color2);
+							if (!rgb2) rgb2 = hexToRgb("#000000");
+							const divided2 = {
+								r: rgb2!.r / 255,
+								g: rgb2!.g / 255,
+								b: rgb2!.b / 255,
+							};
+							divided2.r *= darkMultiplyer;
+							divided2.g *= darkMultiplyer;
+							divided2.b *= darkMultiplyer;
+							const check = rgb?.r === 0 && rgb?.g === 0 && rgb?.b === 0;
+							postColors = {
+								color1: check
+									? "rgb(53, 43, 24)"
+									: `rgb(${divided.r * 255}, ${
+											divided.g *
+											255
+									  }, ${divided.b * 255})`,
+								color2: check
+									? "rgb(53, 43, 24)"
+									: `rgb(${divided2.r * 255}, ${
+											divided2.g *
+											255
+									  }, ${divided2.b * 255})`,
+							};
+
+							return (
+								<PostBox
+									activity={item.op.activity}
+									avatarShape={
+										item.op
+											.cosmetic
+											.avatar_shape
+									}
+									edited={item.data.edited}
+									repost_type={
+										item.data
+											.repost_type
+									}
+									repost_id={
+										item.data
+											.repost_id
+									}
+									repost_op={
+										item.data
+											.repost_op
+									}
+									badgeType={getBadgeType(
+										item.op
+									)}
+									reply_type={
+										item.data
+											.reply_type
+									}
+									replyingTo={
+										item.data
+											.replyingTo
+									}
+									key={item.data.postID}
+									date={item.data.date}
+									postId={item.data.postID}
+									name={item.op.displayName}
+									handle={item.op.handle}
+									avatarURL={item.op.avatar}
+									content={item.data.content}
+									likes={item.data.likes}
+									reposts={item.data.reposts}
+									replies={item.data.replies}
+									gradient={postColors}
+									tokenUser={meUser!}
+								/>
+							);
+					  })
 					: ""}
 			</div>
 		</>

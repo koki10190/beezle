@@ -113,3 +113,24 @@
 	margin-left: 10px;
 	margin-top: -7px;
 }
+
+.msg-navbar {
+	position: fixed;
+	width: fit-content;
+	height: 50px;
+	border: 2px solid black;
+	top: 0;
+	right: 70px;
+	margin-top: 10px;
+}
+
+.msg-navbar-btn {
+	cursor: pointer;
+	font-size: 30px;
+	color: rgba(255, 255, 255, 0.4);
+	transition: ease-in-out, 150ms;
+}
+
+.msg-navbar-btn:hover {
+	color: rgba(255, 255, 255, 1);
+}

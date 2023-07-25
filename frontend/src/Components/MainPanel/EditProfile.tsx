@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import GetOtherUser from "../../api/GetOtherUser";
-import { FormEvent, useEffect, useRef } from "react";
+import { ChangeEvent, ChangeEventHandler, FormEvent, useEffect, useRef, useState } from "react";
 import UserType from "../../interfaces/UserType";
 import "./Profile.css";
 import "./EditProfile.css";
@@ -9,27 +9,43 @@ import axios from "axios";
 import { marked } from "marked";
 import { NodeHtmlMarkdown } from "node-html-markdown";
 import { api_url } from "../../constants/ApiURL";
+import { Icons, toast } from "react-toastify";
+import AvatarEditor from "react-avatar-editor";
+
+const formDataAvatar = new FormData();
+const formDataBanner = new FormData();
+var lastScrollTop = 0;
 
 function EditProfile() {
 	const navigate = useNavigate();
 	let user: UserType;
+	const [m_user, setUser] = useState<UserType>({} as any);
 
 	const avatar = useRef<HTMLDivElement>(null);
+	const [avatarEditor, setAvatarEditor] = useState<AvatarEditor | null>(null);
 	const banner = useRef<HTMLDivElement>(null);
 
 	const avatarInput = useRef<HTMLInputElement>(null);
 	const bannerInput = useRef<HTMLInputElement>(null);
 	const m_status = useRef<HTMLSelectElement>(null);
 	const aboutMe = useRef<HTMLTextAreaElement>(null);
+	const activity = useRef<HTMLInputElement>(null);
 	const displayName = useRef<HTMLInputElement>(null);
+	const color1 = useRef<HTMLInputElement>(null);
+	const color2 = useRef<HTMLInputElement>(null);
 	const saveChangesButton = useRef<HTMLButtonElement>(null);
+	const [imageURL, setImageURL] = useState("/icon1.png");
 
-	const formDataAvatar = new FormData();
-	const formDataBanner = new FormData();
+	const [avatarScale, setAvatarScale] = useState(1.2);
+	const [avatarRotate, setAvatarRotate] = useState(0);
+	const [avatarUploaded, setAvatarUploaded] = useState(false);
+
 	useEffect(() => {
 		(async () => {
 			user = (await GetUserData()).user;
+			setUser(user);
 			avatar.current!.style.backgroundImage = `url("${user.avatar}")`;
+			setImageURL(user.avatar);
 			banner.current!.style.backgroundImage = `url("${user.banner}")`;
 			aboutMe.current!.innerText = user.bio;
 			displayName.current!.value = user.displayName;
@@ -37,11 +53,18 @@ function EditProfile() {
 
 		avatarInput.current!.addEventListener("change", (event: Event) => {
 			const link = window.URL.createObjectURL(avatarInput.current!.files![0]);
+			setImageURL(link);
 			avatar.current!.style.backgroundImage = `url("${link}")`;
-			formDataAvatar.append("avatar", avatarInput.current!.files![0]);
+			console.log("SHENI DEDA MOVTYAN");
 
 			const split = avatarInput.current!.files![0].name.split(".");
 			const ext = split[split.length - 1];
+			if (ext !== "gif") {
+				setAvatarUploaded(true);
+			} else {
+				formDataAvatar.append("avatar", avatarInput.current!.files![0]);
+			}
+
 			formDataAvatar.append("ext", ext);
 			formDataAvatar.append("token", localStorage.getItem("auth_token") as string);
 			// axios.post(
@@ -75,6 +98,8 @@ function EditProfile() {
 			// 	}
 			// );
 		});
+
+		const avEditor = document.querySelector(".avatarEditor") as HTMLCanvasElement;
 	}, []);
 
 	const changeAvatar = () => {
@@ -90,6 +115,7 @@ function EditProfile() {
 	const saveChanges = (event: FormEvent) => {
 		event.preventDefault();
 		saveChangesButton.current!.disabled = true;
+		console.log(formDataBanner);
 		axios.post(`${api_url}/api/upload-banner`, formDataBanner, {
 			headers: {
 				"Content-Type": "multipart/form-data",
@@ -98,23 +124,65 @@ function EditProfile() {
 			.then(res => console.log(res.status))
 			.catch(err => console.log(err));
 
-		axios.post(`${api_url}/api/upload-avatar`, formDataAvatar, {
-			headers: {
-				"Content-Type": "multipart/form-data",
-			},
-		});
-
+		if (avatarUploaded) {
+			avatarEditor!.getImage().toBlob(blob => {
+				formDataAvatar.append("avatar", blob!);
+				axios.post(`${api_url}/api/upload-avatar`, formDataAvatar, {
+					headers: {
+						"Content-Type": "multipart/form-data",
+					},
+				});
+			});
+		} else {
+			axios.post(`${api_url}/api/upload-avatar`, formDataAvatar, {
+				headers: {
+					"Content-Type": "multipart/form-data",
+				},
+			});
+		}
 		axios.post(`${api_url}/api/edit-profile`, {
 			displayName: displayName.current!.value as string,
 			bio: aboutMe.current!.value as string,
 			token: localStorage.getItem("auth_token") as string,
 			status: m_status.current!.value,
+			activity: activity.current!.value,
+			color1:
+				m_user.cosmetic?.profile_colors || m_user.supporter || m_user.kofi || m_user.owner
+					? color1.current!.value
+					: "#000000",
+			color2:
+				m_user.cosmetic?.profile_colors || m_user.supporter || m_user.kofi || m_user.owner
+					? color2.current!.value
+					: "#000000",
 		}).then(res => {
 			if (!res.data.error) {
 				setTimeout(() => {
-					navigate(`/profile/${user.handle}`);
+					navigate(`/profile/${m_user.handle}`);
 				}, 2500);
 			}
+		});
+	};
+
+	const buyProfileColors = async () => {
+		const tst = toast("Buying item", {
+			icon: Icons.spinner,
+			progressStyle: {
+				backgroundColor: "yellow",
+			},
+			theme: "dark",
+			hideProgressBar: true,
+		});
+		const res = await axios.post(`${api_url}/buy-profile-colors`, {
+			token: localStorage.getItem("auth_token"),
+		});
+		toast.dismiss(tst);
+		if (res.data.error) return alert("There was an error when buying the item!");
+		toast(res.data.msg, {
+			icon: Icons.info,
+			progressStyle: {
+				backgroundColor: "yellow",
+			},
+			theme: "dark",
 		});
 	};
 
@@ -135,7 +203,7 @@ function EditProfile() {
 					accept=".gif,.jpg,.jpeg,.png,.webp"
 					ref={bannerInput}
 					type="file"
-					name="bannerfile"
+					name="banner"
 					className="hidden-input"
 				/>
 
@@ -154,6 +222,58 @@ function EditProfile() {
 					name="avatarfile"
 					className="hidden-input"
 				/>
+				<div
+					style={{
+						display: avatarUploaded ? "flex" : "none",
+					}}
+					className="avatarEditorDiv"
+				>
+					<AvatarEditor
+						ref={editor => setAvatarEditor(editor)}
+						image={imageURL}
+						width={250}
+						height={250}
+						border={50}
+						borderRadius={1000000}
+						color={[0, 0, 0, 0.6]} // RGBA
+						scale={avatarScale}
+						rotate={avatarRotate}
+						className="avatarEditor"
+						style={{
+							borderRadius: "15px",
+						}}
+					/>
+					<br></br>
+					<label>Scale</label>
+					<br />
+					<input
+						name="scale"
+						type="range"
+						min={1}
+						onChange={(e: ChangeEvent<HTMLInputElement>) => {
+							setAvatarScale(parseFloat(e.target.value));
+						}}
+						value={avatarScale}
+						max="5"
+						step="0.01"
+					/>
+					<br />
+					<label>Rotation</label>
+					<br />
+					<input
+						name="scale"
+						type="range"
+						min={0}
+						onChange={(e: ChangeEvent<HTMLInputElement>) => {
+							setAvatarRotate(parseFloat(e.target.value));
+						}}
+						value={avatarRotate}
+						max="360"
+						step="0.01"
+					/>
+					<br />
+					<br />
+				</div>
 
 				<label>Display Name</label>
 				<input
@@ -162,6 +282,17 @@ function EditProfile() {
 					name="display-name"
 					required
 					className="form-control"
+				/>
+
+				<label>Activity</label>
+				<input
+					ref={activity}
+					placeholder="Just Chillin'"
+					name="activity"
+					required
+					className="form-control"
+					max={200}
+					defaultValue={m_user?.activity}
 				/>
 
 				<label>Status</label>
@@ -188,6 +319,56 @@ function EditProfile() {
 					name="bio"
 					className="form-control"
 				></textarea>
+
+				{m_user.cosmetic?.profile_colors || m_user.supporter || m_user.kofi || m_user.owner ? (
+					<>
+						<label>Gradient Color One</label>
+						<input
+							type="color"
+							ref={color1}
+							style={{
+								height: "20px",
+							}}
+							defaultValue={m_user?.gradient.color1}
+							placeholder="Write stuff about you here!"
+							name="bio"
+							className="form-control"
+						></input>
+
+						<label>Gradient Color Two</label>
+						<input
+							type="color"
+							ref={color2}
+							defaultValue={m_user?.gradient.color2}
+							style={{
+								height: "20px",
+							}}
+							placeholder="Write stuff about you here!"
+							name="bio"
+							className="form-control"
+						></input>
+					</>
+				) : (
+					<>
+						<h1>
+							Buy Profile Colors<br></br>
+							<i className="fa-solid fa-coins"></i> 20,000
+						</h1>
+						<button
+							type="button"
+							className="button"
+							style={{
+								backgroundImage: "-webkit-linear-gradient(-15deg, #8b00fc, #db00fc)",
+								color: "white",
+								marginBottom: "20px",
+								marginTop: "-10px",
+							}}
+							onClick={buyProfileColors}
+						>
+							Buy
+						</button>
+					</>
+				)}
 
 				<button
 					type="submit"

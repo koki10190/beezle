@@ -20,6 +20,8 @@ import { milestones } from "../../functions/milestones";
 import StatusCheck from "../../functions/StatusCheck";
 import { Helmet } from "react-helmet";
 
+const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
 interface RPC {
 	largeImage: string;
 	smallImage: string;
@@ -29,6 +31,11 @@ interface RPC {
 	time_set: boolean;
 }
 let interval: NodeJS.Timeout;
+let intervalGradient: NodeJS.Timeout;
+let postColors2: any = {
+	color1: "rgb(53, 43, 24)",
+	color2: "rgb(53, 43, 24)",
+};
 
 function Profile() {
 	const navigate = useNavigate();
@@ -41,6 +48,7 @@ function Profile() {
 	const tag = useRef<HTMLHeadingElement>(null);
 	const bio = useRef<HTMLHeadingElement>(null);
 	const avatar = useRef<HTMLDivElement>(null);
+	const mainPage = useRef<HTMLDivElement>(null);
 	const avatarShadow = useRef<HTMLDivElement>(null);
 	const banner = useRef<HTMLDivElement>(null);
 	const following = useRef<HTMLSpanElement>(null);
@@ -60,6 +68,11 @@ function Profile() {
 	const [trackTimestamp, setTimestamp] = useState(0);
 	const [trackDuration, setDuration] = useState(0);
 	const [trackArtists, setTrackArtists] = useState<SpotifyApi.ArtistObjectSimplified[]>([]);
+	const [textColor, setTextColor] = useState("#000000");
+	const [postColors, setPostColors] = useState({
+		color1: "rgb(53, 43, 24)",
+		color2: "rgb(53, 43, 24)",
+	});
 
 	// RPC
 	const [rpc, setRPC] = useState<RPC | undefined>(undefined);
@@ -126,13 +139,77 @@ function Profile() {
 		return (s - (s %= 60)) / 60 + (9 < s ? ":" : ":0") + s;
 	}
 
+	function hexToRgb(hex: string) {
+		var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+		return result
+			? {
+					r: parseInt(result[1], 16),
+					g: parseInt(result[2], 16),
+					b: parseInt(result[3], 16),
+			  }
+			: null;
+	}
+
+	// useEffect(() => {
+	// 	intervalGradient = setInterval(() => {
+	// 		if (document.querySelector(".spotify-pb-bar > div")) {
+	// 			console.log(postColors.color1);
+	// 			(document.querySelector(".spotify-pb-bar > div") as HTMLDivElement).style.background =
+	// 				postColors2.color1 !== "rgb(53, 43, 24)"
+	// 					? `-webkit-linear-gradient(45deg, ${postColors2.color1}, ${postColors2.color2})`
+	// 					: "yellow";
+	// 			(document.querySelector(".spotify-pb-bar > div") as HTMLDivElement).style.color = "black";
+	// 			clearInterval(intervalGradient);
+	// 		}
+	// 	}, 100);
+	// }, [postColors]);
+
 	useEffect(() => {
 		(async () => {
 			user = (await GetOtherUser(handle!)).user;
 			setUserFollow(user);
+			console.log(user);
 			const usrData = await GetUserData();
 			setUser(usrData.user);
+			mainPage.current!.style.backgroundImage = `-webkit-linear-gradient(${user.gradient.color1}, ${user.gradient.color2})`;
 
+			const rgb = hexToRgb(user.gradient.color1) || hexToRgb("#000000");
+			const divided = {
+				r: rgb!.r / 255,
+				g: rgb!.g / 255,
+				b: rgb!.b / 255,
+			};
+			const darkMultiplyer = 0.4;
+			divided.r *= darkMultiplyer;
+			divided.g *= darkMultiplyer;
+			divided.b *= darkMultiplyer;
+
+			const rgb2 = hexToRgb(user.gradient.color2) || hexToRgb("#000000");
+			const divided2 = {
+				r: rgb2!.r / 255,
+				g: rgb2!.g / 255,
+				b: rgb2!.b / 255,
+			};
+			divided2.r *= darkMultiplyer;
+			divided2.g *= darkMultiplyer;
+			divided2.b *= darkMultiplyer;
+
+			setPostColors({
+				color1: `rgb(${divided.r * 255}, ${divided.g * 255}, ${divided.b * 255})`,
+				color2: `rgb(${divided2.r * 255}, ${divided2.g * 255}, ${divided2.b * 255})`,
+			});
+			postColors2 = {
+				color1: `rgb(${divided.r * 2 * 255}, ${divided.g * 2 * 255}, ${divided.b * 2 * 255})`,
+				color2: `rgb(${divided2.r * 2 * 255}, ${divided2.g * 2 * 255}, ${divided2.b * 2 * 255})`,
+			};
+
+			if (rgb && rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114 > 186) {
+				mainPage.current!.style.color = "#000000";
+				setTextColor("#000000");
+			} else {
+				mainPage.current!.style.color = "#ffffff";
+				setTextColor("#ffffff");
+			}
 			VerifyBadge(username.current!, user);
 			tag.current!.textContent = "@" + user.handle;
 			const biolimit = 2000;
@@ -189,7 +266,10 @@ function Profile() {
 							document.querySelector(
 								".spotify-pb-bar > div"
 							) as HTMLDivElement
-						).style.background = "yellow";
+						).style.background =
+							postColors2.color1 !== "rgb(53, 43, 24)"
+								? `-webkit-linear-gradient(45deg, ${postColors2.color1}, ${postColors2.color2})`
+								: "yellow";
 						(
 							document.querySelector(
 								".spotify-pb-bar > div"
@@ -197,35 +277,38 @@ function Profile() {
 						).style.color = "black";
 					}
 				}, 1000);
-				// interval = setInterval(async () => {
-				// 	if (!window.location.pathname.includes("/profile")) clearInterval(interval);
-				// 	const track = await axios
-				// 		.get(`${api_url}/spotify-status/${handle}`)
-				// 		.then(res => {
-				// 			const track = res.data.body;
-				// 			setIsSpotify(track.is_playing);
-				// 			setTrackName(track.item!.name);
-				// 			setTrackAlbum(track.item!.album.name);
-				// 			setTrackArtists(track.item!.artists);
-				// 			setTrackImage(track.item!.album.images[0].url);
-				// 			setTrackURL(track.item!.external_urls.spotify);
-				// 			setTimestamp(track.progress_ms!);
-				// 			setDuration(track.item!.duration_ms!);
-				// 			(
-				// 				document.querySelector(
-				// 					".spotify-pb-bar > div"
-				// 				) as HTMLDivElement
-				// 			).style.background = "yellow";
-				// 			(
-				// 				document.querySelector(
-				// 					".spotify-pb-bar > div"
-				// 				) as HTMLDivElement
-				// 			).style.color = "black";
-				// 		})
-				// 		.catch(err => {
-				// 			axios.get(`${api_url}/refresh-spotify-token/${handle}`);
-				// 		});
-				// }, 1000);
+				interval = setInterval(async () => {
+					if (!window.location.href.includes("/profile")) clearInterval(interval);
+					const track = await axios
+						.get(`${api_url}/spotify-status/${handle}`)
+						.then(res => {
+							const track = res.data.body;
+							setIsSpotify(track.is_playing);
+							setTrackName(track.item!.name);
+							setTrackAlbum(track.item!.album.name);
+							setTrackArtists(track.item!.artists);
+							setTrackImage(track.item!.album.images[0].url);
+							setTrackURL(track.item!.external_urls.spotify);
+							setTimestamp(track.progress_ms!);
+							setDuration(track.item!.duration_ms!);
+							// (
+							// 	document.querySelector(
+							// 		".spotify-pb-bar > div"
+							// 	) as HTMLDivElement
+							// ).style.background =
+							// 	postColors2.color1 !== "rgb(53, 43, 24)"
+							// 		? `-webkit-linear-gradient(45deg, ${postColors2.color1}, ${postColors2.color2})`
+							// 		: "yellow";
+							(
+								document.querySelector(
+									".spotify-pb-bar > div"
+								) as HTMLDivElement
+							).style.color = "black";
+						})
+						.catch(err => {
+							axios.get(`${api_url}/refresh-spotify-token/${handle}`);
+						});
+				}, 1000);
 			}
 
 			const rpc_res = await axios.get(`${api_url}/rpc/${handle}`);
@@ -286,6 +369,7 @@ function Profile() {
 
 	return (
 		<div
+			ref={mainPage}
 			onScroll={detectScrolling}
 			className="navigation-panel main-panel profile-panel"
 		>
@@ -346,7 +430,6 @@ function Profile() {
 					marginLeft: "25px",
 					fontSize: "15px",
 				}}
-				className="coins"
 			>
 				<i className="fa-solid fa-coins"></i>{" "}
 				{m_user_follow.coins ? m_user_follow.coins.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : 0} Activity
@@ -354,7 +437,7 @@ function Profile() {
 			</a>
 			{m_user.handle ? (
 				<Helmet>
-					<title>@{m_user.handle}'s Profile</title>
+					<title>@{m_user_follow.handle}'s Profile</title>
 					<meta
 						property="og:title"
 						content={m_user.handle + "'s Profile"}
@@ -397,17 +480,86 @@ function Profile() {
 			) : (
 				""
 			)}
-			<p
+			<div
 				style={{
-					marginTop: "30px",
+					backgroundImage: `-webkit-linear-gradient(${postColors.color1}, ${postColors.color2})`,
+					marginTop: "20px",
+					color: "white",
 				}}
-				ref={bio}
-				className="profile-bio"
-			></p>
+				className="bio-box"
+			>
+				<p className="about-me-text">About Me</p>
+				<p
+					ref={bio}
+					className="profile-bio"
+				></p>
+			</div>
+			<div
+				style={{
+					backgroundImage: `-webkit-linear-gradient(${postColors.color1}, ${postColors.color2})`,
+					marginTop: "20px",
+					color: "white",
+					marginBottom: "20px",
+				}}
+				className="bio-box"
+			>
+				<p>
+					<p className="about-me-text">Joined</p>
+					<p className="profile-bio">
+						{m_user_follow
+							? monthNames[new Date(m_user_follow?.joined)?.getMonth()]
+							: 0}{" "}
+						{m_user_follow ? new Date(m_user_follow?.joined)?.getFullYear() : 0}
+					</p>
+				</p>
+			</div>
+			{m_user?.activity !== "" ? (
+				<div
+					style={{
+						backgroundImage: `-webkit-linear-gradient(${postColors.color1}, ${postColors.color2})`,
+						marginTop: "20px",
+						color: "white",
+						marginBottom: "20px",
+					}}
+					className="bio-box"
+				>
+					<p>
+						<p className="about-me-text">Activity</p>
+						<p className="profile-bio">{m_user?.activity}</p>
+					</p>
+				</div>
+			) : (
+				""
+			)}
+			{/* 
+			<div
+				style={{
+					backgroundImage: `-webkit-linear-gradient(${postColors.color1}, ${postColors.color2})`,
+				}}
+				className="bio-box"
+			>
+				<p className="about-me-text">Account Connections</p>
+				<p className="profile-bio connected-accounts">
+					{m_user_follow?.connected_accounts?.spotify?.access_token !== "" ? (
+						<i className="fa-brands fa-spotify"></i>
+					) : (
+						<p
+							style={{
+								fontSize: "17px",
+							}}
+						>
+							No connected accounts
+						</p>
+					)}
+				</p>
+			</div> */}
 			{rpc && rpc.title !== "" ? (
 				<>
 					<div
-						style={{ paddingBottom: "60px" }}
+						style={{
+							paddingBottom: "60px",
+							backgroundImage: `-webkit-linear-gradient(${postColors.color1}, ${postColors.color2})`,
+						}}
 						className="spotify"
 					>
 						<p className="spotify-listeningto">Playing</p>
@@ -448,6 +600,9 @@ function Profile() {
 				<div
 					onClick={() => window.open(trackURL)}
 					className="spotify"
+					style={{
+						backgroundImage: `-webkit-linear-gradient(${postColors.color1}, ${postColors.color2})`,
+					}}
 				>
 					<p className="spotify-listeningto">Listening to</p>
 					<div
@@ -489,7 +644,7 @@ function Profile() {
 						barContainerClassName="spotify-pb-bar"
 						height="15px"
 						customLabelStyles={{
-							color: "black",
+							color: textColor,
 							marginBottom: "2px",
 						}}
 					/>
@@ -532,6 +687,17 @@ function Profile() {
 			<div className="profile-posts">
 				{posts.map(item => (
 					<PostBox
+						gradient={{
+							color1:
+								postColors.color1 === "#000000"
+									? "rgb(53, 43, 24)"
+									: postColors.color1,
+							color2:
+								postColors.color2 === "#000000"
+									? "rgb(53, 43, 24)"
+									: postColors.color2,
+						}}
+						activity={item.op.activity}
 						edited={item.data.edited}
 						avatarShape={item.op.cosmetic.avatar_shape}
 						repost_id={item.data.repost_id}

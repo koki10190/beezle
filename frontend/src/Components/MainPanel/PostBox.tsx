@@ -29,8 +29,9 @@ interface PostBoxInterface {
 	replies: number;
 	postId: string;
 	tokenUser: UserType;
+	activity: string;
 	date: Date;
-	badgeType: BadgeType;
+	badgeType: BadgeType[];
 	replyingTo: string;
 	reply_type: boolean;
 	repost_type: boolean;
@@ -38,6 +39,10 @@ interface PostBoxInterface {
 	repost_op: string;
 	edited: boolean;
 	avatarShape?: string;
+	gradient?: {
+		color1?: string;
+		color2?: string;
+	};
 	// me: UserType;
 }
 
@@ -61,6 +66,8 @@ function PostBox({
 	repost_op,
 	edited,
 	avatarShape,
+	gradient,
+	activity,
 }: PostBoxInterface) {
 	const navigate = useNavigate();
 	let user: UserType;
@@ -257,7 +264,14 @@ function PostBox({
 	}, []);
 
 	return (
-		<div className="post-box">
+		<div
+			style={{
+				backgroundImage: `-webkit-linear-gradient(-15deg, ${
+					gradient?.color1 ? gradient.color1 : "rgb(53, 43, 24)"
+				}, ${gradient?.color2 ? gradient.color2 : "rgb(53, 43, 24)"})`,
+			}}
+			className="post-box"
+		>
 			{mention ? (
 				<div
 					onClick={() => navigate("/profile/" + mention.handle)}
@@ -279,7 +293,9 @@ function PostBox({
 							__html: VerifyBadgeText(mention),
 						}}
 					></p>
-					<p className="mini-handle">@{mention.handle}</p>
+					<p className="mini-handle">
+						@{mention.handle} | {activity}
+					</p>
 					<p
 						dangerouslySetInnerHTML={{
 							__html: mention.bio,
@@ -354,7 +370,18 @@ function PostBox({
 							? repostOp.displayName.replace(/(.{16})..+/, "$1…")
 							: name.replace(/(.{16})..+/, "$1…")}
 					</p>
-					<p className="post-date">@{isRepost ? repostOp.handle : handle}</p>
+					<p className="post-date">
+						@{isRepost ? repostOp.handle : handle}{" "}
+						{activity.replace(" ", "") !== "" ? "-" : ""}{" "}
+						<span style={{ color: "rgba(255,255,255,0.6)" }}>
+							{isRepost
+								? repostOp.activity.replace(
+										/(.{24})..+/,
+										"$1…"
+								  )
+								: activity.replace(/(.{24})..+/, "$1…")}
+						</span>
+					</p>
 					<p className="post-date-time">
 						{moment(isRepost ? repostData.date : date)
 							.fromNow(true)

@@ -12,6 +12,43 @@ import { api_url } from "../../constants/ApiURL";
 import { Icons, toast } from "react-toastify";
 import uuid4 from "uuid4";
 function DisplayVerifyUser({ isOpen, setVerifyUser, verifyUser }: { isOpen: boolean; setVerifyUser: any; verifyUser: any }) {
+	const methodUser = async (type: string) => {
+		const tst = toast(`${type}`, {
+			icon: Icons.spinner,
+			progressStyle: {
+				backgroundColor: "yellow",
+			},
+			theme: "dark",
+			hideProgressBar: true,
+		});
+		const res = await axios.post(`${api_url}/mod/${type}`, {
+			token: localStorage.getItem("auth_token"),
+			handle: (document.querySelector("#" + type) as HTMLInputElement).value,
+		});
+
+		if (res.data.error) {
+			toast.dismiss(tst);
+			toast("There was an error when" + type + "the user", {
+				icon: Icons.error,
+				progressStyle: {
+					backgroundColor: "yellow",
+				},
+				theme: "dark",
+				hideProgressBar: false,
+			});
+		} else {
+			toast.dismiss(tst);
+			toast("The user has been verified successfully", {
+				icon: Icons.error,
+				progressStyle: {
+					backgroundColor: "yellow",
+				},
+				theme: "dark",
+				hideProgressBar: false,
+			});
+		}
+	};
+
 	return (
 		<>
 			<div className={`navigation-panel ${!isOpen ? "display-panel-full" : "display-panel"} main-panel`}>
@@ -26,6 +63,33 @@ function DisplayVerifyUser({ isOpen, setVerifyUser, verifyUser }: { isOpen: bool
 					className="post-edit-save"
 				>
 					Verify User
+				</button>
+				<hr className="small-bar"></hr>
+				<h1>Supporter</h1>
+				<input
+					className="post-edit-textarea"
+					onChange={(ev: any) => setVerifyUser(ev.target.value)}
+					placeholder="Type the @ of the user to verify. (Do not verify anyone without permission, you will be banned!)"
+				></input>
+				<button
+					onClick={() => methodUser("supporter-user")}
+					className="post-edit-save"
+				>
+					Supporter User
+				</button>
+
+				<h1>Kofi User</h1>
+				<input
+					className="post-edit-textarea"
+					id="kofi-user"
+					onChange={(ev: any) => setVerifyUser(ev.target.value)}
+					placeholder="Type the @ of the user to verify. (Do not verify anyone without permission, you will be banned!)"
+				></input>
+				<button
+					onClick={() => methodUser("kofi-user")}
+					className="post-edit-save"
+				>
+					Kofi User
 				</button>
 			</div>
 		</>

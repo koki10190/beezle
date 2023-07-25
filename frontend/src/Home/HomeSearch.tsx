@@ -75,6 +75,7 @@ function HomeSearch() {
 
 					{posts.map(item => (
 						<PostBox
+							activity={item.op.activity}
 							edited={item.data.edited}
 							avatarShape={item.op.cosmetic.avatar_shape}
 							repost_id={item.data.repost_id}

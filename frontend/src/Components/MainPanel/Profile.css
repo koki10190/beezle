@@ -63,12 +63,35 @@
 
 .profile-handle {
 	margin-top: -23px;
-	color: gray;
+	color: rgba(255, 255, 255, 0.5);
 }
 
 .profile-bio {
-	margin-left: 25px;
 	white-space: pre-wrap;
+}
+
+.bio-box {
+	width: 97%;
+	margin-left: auto;
+	margin-right: auto;
+	height: fit-content;
+	padding: 2px 15px 2px 15px;
+	margin-bottom: 10px;
+	border-radius: 15px;
+	box-sizing: border-box;
+	background-color: var(--form-bg);
+}
+
+.connected-accounts {
+	font-size: 35px;
+	margin-bottom: 5px;
+	margin-top: 15px;
+}
+
+.about-me-text {
+	font-size: 13px;
+	margin-bottom: -10px;
+	color: rgba(255, 255, 255, 0.4);
 }
 
 .hidden-input {
@@ -119,6 +142,7 @@
 }
 
 .spotify {
+	color: white;
 	width: 97%;
 	margin-left: auto;
 	margin-right: auto;
@@ -216,4 +240,8 @@
 	right: -15px;
 	border: 5px solid var(--form-bg);
 	/* border: 1px solid yellow; */
+}
+
+.useless-info > div {
+	display: inline-block;
 }

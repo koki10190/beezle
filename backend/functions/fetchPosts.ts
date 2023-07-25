@@ -137,20 +137,58 @@ async function fetchUserPosts(me: string, handle: string) {
 	return posts;
 }
 
-async function fetchPostsFollowing(following_handles: string[], offset: number): Promise<PostType[]> {
-	let posts: PostType[] = [];
-	for (const follow of following_handles) {
-		const m_posts = await Post.find({
-			handle: follow,
-			reply_type: { $ne: true },
-		})
-			.sort({ $natural: -1 })
-			.skip(offset)
-			.limit(6);
-		posts = posts.concat(m_posts as any);
+async function fetchPostsFollowing(following_handles: string[], offset: number): Promise<{ data: PostBoxType[]; latestIndex: number }> {
+	let collection_size = await User.count({ handle: { $in: following_handles } });
+	if (following_handles.length < 1) following_handles = ["sfdkgljsdfgkhsdfghjgsdfhjgsdfhjghjsdfghjsdfgdsfgasfgasdfasdfasdfasdfasdfasdf"];
+	const users = await User.find({
+		handle: { $in: shuffle(following_handles) },
+	}).limit(10);
+
+	users.forEach(user => (following_handles = following_handles.concat(user.following)));
+	collection_size = await User.count({ handle: { $in: following_handles } });
+	const posts = (await Post.find({
+		$and: [
+			{
+				op: {
+					$in: following_handles,
+				},
+			},
+			{
+				repost_type: { $ne: true },
+			},
+		],
+	})
+		.skip(
+			Math.random() *
+				(await Post.count({
+					$and: [
+						{
+							op: {
+								$in: following_handles,
+							},
+						},
+						{
+							repost_type: { $ne: true },
+						},
+					],
+				}))
+		)
+		.limit(10)) as any[];
+
+	for (let i = 0; i < posts.length; i++) {
+		posts[i] = {
+			data: posts[i],
+			op: await GetUserByHandle(posts[i].op),
+		};
+		const count = await Post.count({
+			replyingTo: posts[i].data.postID,
+		});
+
+		posts[i].data.replies = count;
+		posts[i].data.content = sanitize(posts[i].data.content);
 	}
 
-	return posts;
+	return { data: posts, latestIndex: offset + posts.length - 1 };
 }
 async function fetchBookmarks(ids: string[], offset: number): Promise<{ bookmarks: PostBoxType[]; offset: number }> {
 	const bookmarks = (await Post.find({

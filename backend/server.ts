@@ -107,7 +107,7 @@ app.use(
 );
 
 app.get("/", (req: express.Request, res: express.Response) => {
-	// res.send("Hello, World!");
+	User.updateMany({}, { $set: { activity: "" } }).then(m => res.json(m));
 	// Post.deleteMany({
 	// 	__v: { $gte: 0 },
 	// }).then(() => res.write("Deleted!"));
@@ -133,7 +133,7 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 	// 	error: "Registering users is currently unavailable due to an exploit.",
 	// 	was_error: true,
 	// });
-	User.findOneAndDelete({ email: "guitarwithluka@gmail.com" });
+
 	if (await usernameOrEmailTaken(name, email)) {
 		res.json({
 			error: "The username " + name + " or email " + email + " is already taken!",
@@ -171,6 +171,7 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 		handle: name.toLowerCase().replace(/(.{16})..+/, "$1"),
 		displayName: name.toLowerCase().replace(/(.{16})..+/, "$1…"),
 		email: email,
+		joined: Date.now(),
 		password: hashed,
 		active: false,
 	});
@@ -290,6 +291,8 @@ app.post("/api/get-user", async (req: express.Request, res: express.Response) =>
 	userData.displayName = sanitize(userData.displayName, {
 		allowedTags: [],
 	});
+	delete userData.password;
+	delete userData.email;
 	return res.json({ user: userData, was_error: false, error: "" });
 });
 
@@ -382,7 +385,7 @@ app.post("/api/upload-banner", upload.single("banner"), async (req, res) => {
 });
 
 app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
-	const { status, displayName, token, bio } = req.body;
+	const { status, displayName, token, bio, color1, color2, activity } = req.body;
 	const m_bio = sanitize(marked(bio), {
 		allowedTags: [
 			"img",
@@ -416,16 +419,15 @@ app.post("/api/edit-profile", (req: express.Request, res: express.Response) => {
 	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
 		console.log(err);
 		if (err) return res.json({ error: true });
-		const m_user = await User.updateOne(
-			{
-				handle: user.handle,
-			},
-			{
-				displayName,
-				bio: m_bio,
-				status,
-			}
-		);
+		const MUser = (await User.find({ handle: user.handle }))[0];
+		MUser.displayName = displayName;
+		MUser.bio = m_bio;
+		MUser.activity = activity;
+		MUser.status = status;
+		if (MUser.cosmetic?.profile_colors || MUser.supporter || MUser.kofi || MUser.owner) {
+			MUser.gradient = { color1, color2 };
+		}
+		MUser.save();
 
 		res.send({ error: false });
 	});
@@ -492,7 +494,7 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 
 			const post_rec = (await Post.find({ postID: req.body.replyingTo }).limit(1))[0];
 			const receiver = (await User.find({ handle: post_rec.op }).limit(1))[0];
-			const url = `${CONSTANTS.FRONTEND_URL}/post/${post.postID}`;
+			const url = `/post/${post.postID}`;
 			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has replied to your post!</a>`;
@@ -524,7 +526,7 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 				const mention = m.replace("@", "");
 
 				const receiver = (await User.find({ handle: mention }).limit(1))[0];
-				const url = `${CONSTANTS.FRONTEND_URL}/post/${post.postID}`;
+				const url = `/post/${post.postID}`;
 				const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
 					m_user?.avatar
 				})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} mentioned you!</a>`;
@@ -600,16 +602,17 @@ app.post("/api/user-posts/:handle", async (req: express.Request, res: express.Re
 	});
 });
 
-app.post("/api/follow-posts", async (req: express.Request, res: express.Response) => {
-	const { token, offset } = req.body;
+app.post("/api/follow-posts/:offset", async (req: express.Request, res: express.Response) => {
+	const { token } = req.body;
 
 	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
 		const m_user = (await User.findOne({
 			handle: user.handle,
 		}))!;
-
+		const data = await fetchPostsFollowing(m_user.following as string[], 0);
 		return res.json({
-			posts: fetchPostsFollowing(m_user.following as string[], offset),
+			posts: data.data,
+			latestIndex: data.latestIndex,
 		});
 	});
 });
@@ -671,7 +674,7 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 
 			const receiver = await User.findOne({ handle: post.op });
 
-			const url = `${CONSTANTS.FRONTEND_URL}/post/${post.postID}`;
+			const url = `/post/${post.postID}`;
 			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has liked your post!</a>`;
@@ -685,7 +688,7 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 			if (m_post!.likes.length >= 1000) {
 				receiver?.milestones.push(1);
 
-				const url = `${CONSTANTS.FRONTEND_URL}/profile/${receiver!.handle}`;
+				const url = `/profile/${receiver!.handle}`;
 				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "1K Likes" milestone!</a>`;
 
 				if (receiver?.handle != user.handle && receiver?.status !== "dnd") {
@@ -795,7 +798,7 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 				}
 			);
 			if (!m_user_follow) return;
-			const url = `${CONSTANTS.FRONTEND_URL}/profile/${user.handle}`;
+			const url = `/profile/${user.handle}`;
 			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has followed you!</a>`;
@@ -810,7 +813,7 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 			if (m_user_follow.followers.length >= 1000) {
 				m_user_follow.milestones.push(0);
 
-				const url = `${CONSTANTS.FRONTEND_URL}/profile/${m_user_follow.handle}`;
+				const url = `/profile/${m_user_follow.handle}`;
 				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "1K Followers" Milestone!</a>`;
 
 				if (m_user_follow.handle != user.handle && m_user_follow.status !== "dnd") {
@@ -828,7 +831,7 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 			if (m_user_follow.followers.length >= 100000) {
 				m_user_follow.milestones.push(3);
 
-				const url = `${CONSTANTS.FRONTEND_URL}/profile/${m_user_follow.handle}`;
+				const url = `/profile/${m_user_follow.handle}`;
 				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "100K Followers" Milestone!</a>`;
 
 				if (m_user_follow.handle != user.handle && m_user_follow.status !== "dnd") {
@@ -1110,7 +1113,7 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 			io.emit("post-repost-refresh", postID, post.reposts);
 
 			const receiver = (await User.find({ handle: post.op }).limit(1))[0];
-			const url = `${CONSTANTS.FRONTEND_URL}/post/${post.postID}`;
+			const url = `/post/${post.postID}`;
 			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has reposted your post!</a>`;
@@ -1121,7 +1124,7 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 			if (post.reposts.length >= 1000) {
 				receiver.milestones.push(2);
 
-				const url = `${CONSTANTS.FRONTEND_URL}/profile/${receiver.handle}`;
+				const url = `/profile/${receiver.handle}`;
 				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "1K Reposts" Milestone!</a>`;
 
 				if (receiver.handle != user.handle && receiver.status !== "dnd") {
@@ -1356,6 +1359,60 @@ app.post("/mod/verify-user", async (req: express.Request, res: express.Response)
 			verify_user.email,
 			`Your account (@${verify_user.handle}) has been given a bug hunter verification!`,
 			`Hello @${verify_user?.handle}\nYour account has been given a bug hunter verification!`
+		);
+
+		return res.json({ error: false });
+	});
+});
+
+app.post("/mod/supporter-user", async (req: express.Request, res: express.Response) => {
+	const { token, handle } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		if (m_user.moderator || m_user.owner) {
+		} else return res.json({ error: true });
+		m_user.coins += CONSTANTS.COIN_GIVE;
+		m_user.save();
+
+		const verify_user = await User.findOne({ handle });
+		if (!verify_user) return res.json({ error: true });
+		verify_user.supporter = true;
+		verify_user.save();
+
+		sendEmail(
+			verify_user.email,
+			`Your account (@${verify_user.handle}) has been given a supporter badge!`,
+			`Hello @${verify_user?.handle}\nYour account has been given a supporter badge!`
+		);
+
+		return res.json({ error: false });
+	});
+});
+
+app.post("/mod/kofi-user", async (req: express.Request, res: express.Response) => {
+	const { token, handle } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
+		if (err) return res.json({ error: true });
+
+		const m_user = (await User.find({ handle: user.handle }).limit(1))[0];
+		if (m_user.moderator || m_user.owner) {
+		} else return res.json({ error: true });
+		m_user.coins += CONSTANTS.COIN_GIVE;
+		m_user.save();
+
+		const verify_user = await User.findOne({ handle });
+		if (!verify_user) return res.json({ error: true });
+		verify_user.kofi = true;
+		verify_user.save();
+
+		sendEmail(
+			verify_user.email,
+			`Your account (@${verify_user.handle}) has been given a kofi badge!`,
+			`Hello @${verify_user?.handle}\nYour account has been given a kofi badge!`
 		);
 
 		return res.json({ error: false });
@@ -1870,6 +1927,7 @@ app.post("/buy-avatar-frame", async (req: express.Request, res: express.Response
 					avatar_shape: item.style,
 					avatar_frame: "",
 					custom_emojis: [],
+					profile_colors: false,
 				};
 			} else {
 				user.cosmetic.avatar_shape = item.style;
@@ -1882,6 +1940,38 @@ app.post("/buy-avatar-frame", async (req: express.Request, res: express.Response
 		}
 
 		return res.json({ msg: 'Avatar frame "' + item.name + '" Successfully bought!' });
+	});
+});
+
+app.post("/buy-profile-colors", async (req: express.Request, res: express.Response) => {
+	const { token } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, m: any) => {
+		if (err) return res.json({ error: true });
+
+		const user = (await User.find({ handle: m.handle }))[0];
+
+		if (user.coins >= 20000) {
+			if (!user.cosmetic) {
+				user.cosmetic = {
+					avatar_shape: "",
+					avatar_frame: "",
+					custom_emojis: [],
+					profile_colors: true,
+				};
+			} else {
+				user.cosmetic.profile_colors = true;
+			}
+
+			user.coins -= 20000;
+			user.save();
+		} else {
+			return res.json({
+				msg: "You do not have enough coins to buy profile colors! Be more active on Beezle to get more coins!",
+			});
+		}
+
+		return res.json({ msg: "Profile Colors Successfully Bought!" });
 	});
 });
 

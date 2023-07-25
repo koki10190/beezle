@@ -11,6 +11,9 @@
     <link rel="apple-touch-icon" href="/apple-icon.png">
 
     <script src="https://twemoji.maxcdn.com/v/latest/twemoji.min.js" crossorigin="anonymous"></script>
+
+    <script src='https://storage.ko-fi.com/cdn/scripts/overlay-widget.js'></script>
+				
   </head>
   <body style="overflow: hidden">
     <div id="root"></div>
@@ -22,5 +25,14 @@
           navigator.serviceWorker.register("/serviceWorker.js").then((reg) => console.log("Service Worker Registered")).catch(err => console.log("Error SW:", err))
         }
     </script>
+
+<script defer>
+  // kofiWidgetOverlay.draw('koki1019', {
+  //   'type': 'floating-chat',
+  //   'floating-chat.donateButton.text': 'Support Us',
+  //   'floating-chat.donateButton.background-color': '#fcbf47',
+  //   'floating-chat.donateButton.text-color': '#323842'
+  // });
+  </script>
   </body>
 </html>

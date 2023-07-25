@@ -18,6 +18,8 @@ const schema = new mongoose.Schema({
 		required: true,
 	},
 	private: { type: Boolean, default: false },
+	joined: { type: Date, default: Date.now() },
+	activity: { type: String, default: "" },
 	bio: {
 		type: String,
 		required: false,
@@ -39,11 +41,16 @@ const schema = new mongoose.Schema({
 		default: false,
 	},
 	bug_hunter: { type: Boolean, default: false },
+	kofi: { type: Boolean, default: false },
 	supporter: { type: Boolean, default: false },
 	moderator: {
 		type: Boolean,
 		required: true,
 		default: false,
+	},
+	gradient: {
+		color1: { type: String, default: "#000000" },
+		color2: { type: String, default: "#000000" },
 	},
 	owner: {
 		type: Boolean,
@@ -90,6 +97,7 @@ const schema = new mongoose.Schema({
 				default: "",
 			},
 		],
+		profile_colors: { type: Boolean, default: false },
 	},
 });
 
