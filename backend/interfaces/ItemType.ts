@@ -2,7 +2,7 @@ const activityItems = [
 	{
 		name: "Hexagon Avatar Shape",
 		price: 5000,
-		style: "polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%)",
+		style: "polygon(25% 3%, 75% 5%, 100% 50%, 75% 97%, 25% 97%, 0% 50%)",
 	},
 	{
 		name: "Square Avatar Shape",
@@ -30,14 +30,19 @@ const activityItems = [
 		style: "polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)",
 	},
 	{
-		name: "Right Arrow Avatar Shape",
-		price: 7000,
-		style: "polygon(0% 20%, 60% 20%, 60% 0%, 100% 50%, 60% 100%, 60% 80%, 0% 80%)",
+		name: "Pentagon Avatar Shape",
+		price: 5000,
+		style: "polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%)",
 	},
 	{
-		name: "Left Arrow Avatar Shape",
-		price: 7000,
-		style: "polygon(40% 0%, 40% 20%, 100% 20%, 100% 80%, 40% 80%, 40% 100%, 0% 50%)",
+		name: "Rabbet Avatar Shape",
+		price: 5000,
+		style: "polygon(0% 15%, 15% 15%, 15% 0%, 85% 0%, 85% 15%, 100% 15%, 100% 85%, 85% 85%, 85% 100%, 15% 100%, 15% 85%, 0% 85%)",
+	},
+	{
+		name: "Octagon Avatar Shape",
+		price: 5000,
+		style: "polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%)",
 	},
 	{
 		name: "X Avatar Shape",

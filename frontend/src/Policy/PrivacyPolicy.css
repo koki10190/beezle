@@ -1,0 +1,29 @@
+body {
+	overflow-y: scroll;
+}
+
+.privacy > h1 {
+	font-size: 50px;
+	background: -webkit-linear-gradient(var(--beezle-logo-color-1), var(--beezle-logo-color-2));
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
+
+.privacy h1 {
+	color: var(--beezle-logo-color-2);
+}
+
+.privacy {
+	width: 100%;
+	left: 0;
+	right: 0;
+	position: absolute;
+	height: 100%;
+	margin-left: auto;
+	margin-right: auto;
+	overflow: auto;
+}
+
+.privacy > ul {
+	font-size: 19px;
+}

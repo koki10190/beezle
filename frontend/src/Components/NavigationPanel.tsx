@@ -56,9 +56,10 @@ function NavigationPanel() {
 			console.log(e);
 		});
 
-		socket.on("notification", async (notif: string, url: string) => {
+		socket.on("notification", async (notif: string, url: string, id: string) => {
 			const notifs = JSON.parse(localStorage.getItem("notifs") ?? "[]") as string[];
-			notifs.unshift(notif);
+			if (notifs.findIndex(x => (new DOMParser().parseFromString(notif, "text/xml").firstChild as HTMLElement).id === id) < 0)
+				notifs.unshift(notif);
 
 			localStorage.setItem("notifs", JSON.stringify(notifs));
 			window.dispatchEvent(new Event("notif-update"));
@@ -177,13 +178,13 @@ function NavigationPanel() {
 					<a onClick={() => navigate("/shop")}>
 						Activity Shop <i className="fa-solid fa-cart-shopping-fast"></i>
 					</a>
-					{/* {iOS() ? (
+					{iOS() ? (
 						""
 					) : (
 						<a onClick={() => deferredPrompt.prompt()}>
 							Install <i className="fa-solid fa-download"></i>
 						</a>
-					)} */}
+					)}
 					<a
 						onClick={logout}
 						style={{

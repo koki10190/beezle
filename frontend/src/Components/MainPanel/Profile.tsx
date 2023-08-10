@@ -7,7 +7,7 @@ import VerifyBadge from "../../functions/VerifyBadge";
 import { PostBoxType, PostType } from "../../interfaces/PostType";
 import axios from "axios";
 import PostBox from "./PostBox";
-import { api_url } from "../../constants/ApiURL";
+import { api_url, darkMultiplyer } from "../../constants/ApiURL";
 import GetUserData from "../../api/GetUserData";
 import socket from "../../io/socket";
 import { BadgeType } from "../../functions/VerifyBadgeBool";
@@ -179,10 +179,6 @@ function Profile() {
 				g: rgb!.g / 255,
 				b: rgb!.b / 255,
 			};
-			const darkMultiplyer = 0.4;
-			divided.r *= darkMultiplyer;
-			divided.g *= darkMultiplyer;
-			divided.b *= darkMultiplyer;
 
 			const rgb2 = hexToRgb(user.gradient.color2) || hexToRgb("#000000");
 			const divided2 = {
@@ -190,26 +186,53 @@ function Profile() {
 				g: rgb2!.g / 255,
 				b: rgb2!.b / 255,
 			};
+			const mix = {
+				r: divided!.r * divided2!.r * 255,
+				g: divided!.g * divided2!.g * 255,
+				b: divided!.b * divided2!.b * 255,
+			};
+
+			divided.r *= darkMultiplyer;
+			divided.g *= darkMultiplyer;
+			divided.b *= darkMultiplyer;
+
 			divided2.r *= darkMultiplyer;
 			divided2.g *= darkMultiplyer;
 			divided2.b *= darkMultiplyer;
 
 			setPostColors({
-				color1: `rgb(${divided.r * 255}, ${divided.g * 255}, ${divided.b * 255})`,
-				color2: `rgb(${divided2.r * 255}, ${divided2.g * 255}, ${divided2.b * 255})`,
+				color1:
+					user.gradient.color1 && user.gradient.color1 !== "#000000"
+						? `rgb(${divided.r * 255}, ${divided.g * 255}, ${divided.b * 255})`
+						: "rgb(53, 43, 24)",
+				color2:
+					user.gradient.color2 && user.gradient.color2 !== "#000000"
+						? `rgb(${divided2.r * 255}, ${divided2.g * 255}, ${divided2.b * 255})`
+						: "rgb(53, 43, 24)",
 			});
 			postColors2 = {
-				color1: `rgb(${divided.r * 2 * 255}, ${divided.g * 2 * 255}, ${divided.b * 2 * 255})`,
-				color2: `rgb(${divided2.r * 2 * 255}, ${divided2.g * 2 * 255}, ${divided2.b * 2 * 255})`,
+				color1:
+					user.gradient.color1 && user.gradient.color1 !== "#000000"
+						? `rgb(${divided.r * 2 * 255}, ${divided.g * 2 * 255}, ${
+								divided.b * 2 * 255
+						  })`
+						: "rgb(53, 43, 24)",
+				color2:
+					user.gradient.color1 && user.gradient.color1 !== "#000000"
+						? `rgb(${divided2.r * 2 * 255}, ${divided2.g * 2 * 255}, ${
+								divided2.b * 2 * 255
+						  })`
+						: "rgb(53, 43, 24)",
 			};
-
-			if (rgb && rgb.r * 0.299 + rgb.g * 0.587 + rgb.b * 0.114 > 186) {
+			console.log(mix);
+			if (mix && mix.r * 0.299 + mix.g * 0.587 + mix.b * 0.114 > 186) {
 				mainPage.current!.style.color = "#000000";
 				setTextColor("#000000");
 			} else {
 				mainPage.current!.style.color = "#ffffff";
 				setTextColor("#ffffff");
 			}
+
 			VerifyBadge(username.current!, user);
 			tag.current!.textContent = "@" + user.handle;
 			const biolimit = 2000;
@@ -482,7 +505,7 @@ function Profile() {
 			)}
 			<div
 				style={{
-					backgroundImage: `-webkit-linear-gradient(${postColors.color1}, ${postColors.color2})`,
+					backgroundImage: `-webkit-linear-gradient(-45deg, ${postColors.color1}, ${postColors.color2})`,
 					marginTop: "20px",
 					color: "white",
 				}}
@@ -496,7 +519,7 @@ function Profile() {
 			</div>
 			<div
 				style={{
-					backgroundImage: `-webkit-linear-gradient(${postColors.color1}, ${postColors.color2})`,
+					backgroundImage: `-webkit-linear-gradient(-45deg, ${postColors.color1}, ${postColors.color2})`,
 					marginTop: "20px",
 					color: "white",
 					marginBottom: "20px",
@@ -513,19 +536,28 @@ function Profile() {
 					</p>
 				</p>
 			</div>
-			{m_user?.activity !== "" ? (
+			{m_user_follow?.activity !== "" ? (
 				<div
 					style={{
-						backgroundImage: `-webkit-linear-gradient(${postColors.color1}, ${postColors.color2})`,
+						backgroundImage: `-webkit-linear-gradient(-45deg, ${postColors.color1}, ${postColors.color2})`,
 						marginTop: "20px",
 						color: "white",
 						marginBottom: "20px",
+						wordWrap: "break-word",
+						overflow: "hidden",
 					}}
 					className="bio-box"
 				>
 					<p>
 						<p className="about-me-text">Activity</p>
-						<p className="profile-bio">{m_user?.activity}</p>
+						<p className="profile-bio">
+							{m_user_follow?.activity
+								? m_user_follow?.activity.replace(
+										/(.{256})..+/,
+										"$1…"
+								  )
+								: ""}
+						</p>
 					</p>
 				</div>
 			) : (
@@ -558,7 +590,7 @@ function Profile() {
 					<div
 						style={{
 							paddingBottom: "60px",
-							backgroundImage: `-webkit-linear-gradient(${postColors.color1}, ${postColors.color2})`,
+							backgroundImage: `-webkit-linear-gradient(-45deg, ${postColors.color1}, ${postColors.color2})`,
 						}}
 						className="spotify"
 					>
@@ -601,7 +633,7 @@ function Profile() {
 					onClick={() => window.open(trackURL)}
 					className="spotify"
 					style={{
-						backgroundImage: `-webkit-linear-gradient(${postColors.color1}, ${postColors.color2})`,
+						backgroundImage: `-webkit-linear-gradient(-45deg, ${postColors.color1}, ${postColors.color2})`,
 					}}
 				>
 					<p className="spotify-listeningto">Listening to</p>

@@ -9,7 +9,7 @@ import CutLong from "../../functions/CutLong";
 import axios from "axios";
 import { PostBoxType } from "../../interfaces/PostType";
 import socket from "../../io/socket";
-import { api_url } from "../../constants/ApiURL";
+import { api_url, darkMultiplyer } from "../../constants/ApiURL";
 import getBadgeType from "../../functions/getBadgeType";
 import { Icons, toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -156,7 +156,9 @@ function Post({ fetch_method }: { fetch_method: string }) {
 			};
 			img.src = res.img;
 
-			setImages(prev => [...prev, res.img]);
+			if (images.findIndex(x => x === res.img) < 0) {
+				setImages(prev => [...prev, res.img]);
+			}
 			setLoading(false);
 		});
 	}, []);
@@ -351,18 +353,26 @@ function Post({ fetch_method }: { fetch_method: string }) {
 						ref={imageHolder}
 						className="image-holder"
 					>
-						{images.map(img => (
-							<div
-								className="postImage"
-								style={{
-									backgroundImage:
-										"url(" +
-										img +
-										")",
-								}}
-								key={uuid4()}
-							>
-								{/* <a
+						{images.map(img => {
+							if (
+								img.endsWith("png") ||
+								img.endsWith("gif") ||
+								img.endsWith("webp") ||
+								img.endsWith("jpg") ||
+								img.endsWith("jpeg")
+							) {
+								return (
+									<div
+										className="postImage"
+										style={{
+											backgroundImage:
+												"url(" +
+												img +
+												")",
+										}}
+										key={uuid4()}
+									>
+										{/* <a
 									className="download-img"
 									onClick={() => {
 										setImages([
@@ -385,8 +395,84 @@ function Post({ fetch_method }: { fetch_method: string }) {
 								>
 									<i className="fa-solid fa-trash"></i>
 								</a> */}
-							</div>
-						))}
+									</div>
+								);
+							} else if (
+								img.endsWith("mp4") ||
+								img.endsWith("webm") ||
+								img.endsWith("mov")
+							) {
+								return (
+									<video
+										className="post-video"
+										src={img}
+										key={uuid4()}
+										controls
+									>
+										{/* <a
+									className="download-img"
+									onClick={() => {
+										setImages([
+											...images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											),
+										]);
+										console.log(
+											images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											)
+										);
+									}}
+								>
+									<i className="fa-solid fa-trash"></i>
+								</a> */}
+									</video>
+								);
+							} else if (
+								img.endsWith("ogg") ||
+								img.endsWith("mp3") ||
+								img.endsWith("wav")
+							) {
+								return (
+									<video
+										className="post-audio"
+										src={img}
+										key={uuid4()}
+										controls
+									>
+										{/* <a
+									className="download-img"
+									onClick={() => {
+										setImages([
+											...images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											),
+										]);
+										console.log(
+											images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											)
+										);
+									}}
+								>
+									<i className="fa-solid fa-trash"></i>
+								</a> */}
+									</video>
+								);
+							}
+						})}
 					</div>
 
 					<div className="post-text-buttons">
@@ -459,7 +545,6 @@ function Post({ fetch_method }: { fetch_method: string }) {
 								g: rgb!.g / 255,
 								b: rgb!.b / 255,
 							};
-							const darkMultiplyer = 0.5;
 							divided.r *= darkMultiplyer;
 							divided.g *= darkMultiplyer;
 							divided.b *= darkMultiplyer;

@@ -27,9 +27,16 @@ const displayContent = (content: string, postID: string = ""): string => {
 	);
 
 	txt = txt.replace(
-		/(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?/g,
-		`<iframe style="width: 100%; min-height: 350px; border: none;" src="https://youtube.com/embed/$1"></iframe>`
+		/([a-z\-_0-9\/\:\.]*\.(ogg|wav|mp3))/gi,
+		`<audio class="post-audio" src="$1" controls>Your browser does not support the audio tag.</audio>`
 	);
+
+	if (txt.match(/youtube\.com|youtu\.be/g)) {
+		txt = txt.replace(
+			/(?:https?:\/\/)?(?:www\.)?youtu\.?be(?:\.com)?\/?.*(?:watch|embed)?(?:.*v=|v\/|\/)([\w\-_]+)\&?/g,
+			`<iframe style="width: 100%; min-height: 350px; border: none;" src="https://youtube.com/embed/$1"></iframe>`
+		);
+	}
 
 	const element = document.getElementById(nID) as HTMLDivElement;
 	if (element) {

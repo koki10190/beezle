@@ -88,7 +88,7 @@ const limiter = rateLimit({
 	legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-const max_size = 7 * 1024 * 1024; // 8mb
+const max_size = 8 * 1024 * 1024; // 8mb
 const upload = multer({ dest: "uploads", limits: { fileSize: max_size } });
 
 mongoose.connect(process.env.MONGO_URI as string).then(() => console.log("[BEEZLE] Connected to the Mongoose Database"));
@@ -106,8 +106,11 @@ app.use(
 	})
 );
 
+app.use(express.static(__dirname + "/view"));
+
 app.get("/", (req: express.Request, res: express.Response) => {
-	User.updateMany({}, { $set: { activity: "" } }).then(m => res.json(m));
+	// res.sendFile(__dirname + "/view/index.html");
+	// User.updateMany({}, { $set: { activity: "" } }).then(m => res.json(m));
 	// Post.deleteMany({
 	// 	__v: { $gte: 0 },
 	// }).then(() => res.write("Deleted!"));
@@ -150,9 +153,9 @@ app.post("/api/register-user", async (req: express.Request, res: express.Respons
 		return;
 	}
 
-	if (!name.toLowerCase().match(/^[a-z0-9\._-]+$/g)) {
+	if (!name.toLowerCase().match(/^[a-z0-9_-]+$/g)) {
 		res.json({
-			error: "The username cannot have any special characters except of dots, dashes, underscores and lower case letters!",
+			error: "The username cannot have any special characters except of dashes, underscores and lower case letters!",
 			was_error: true,
 		});
 		return;
@@ -296,21 +299,33 @@ app.post("/api/get-user", async (req: express.Request, res: express.Response) =>
 	return res.json({ user: userData, was_error: false, error: "" });
 });
 
-app.post("/api/upload-avatar", upload.single("avatar"), async (req, res) => {
-	let path = req.file?.path;
-	const { token } = req.body;
+app.post("/api/upload-avatar", upload.any(), async (req, res) => {
+	let files: any | Express.Multer.File[] = req.files;
+	let path = files.find((x: any) => x.fieldname === "avatar").path;
+	let token = "";
+	if (Array.isArray(req.body.token)) {
+		token = req.body.token[0];
+	} else {
+		token = req.body.token;
+	}
 
 	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
 		if (err) return res.json({ error: true });
 
 		try {
-			res.json({ user, error: false });
 			console.log(path);
+			let ext = "";
+			if (Array.isArray(req.body.ext)) {
+				ext = req.body.ext[0];
+			} else {
+				1;
+				ext = req.body.ext;
+			}
 
-			fs.rename(path!, path! + "." + (req.body.ext as string), err => {
+			fs.rename(path!, path! + "." + ext, err => {
 				if (err) console.log(err);
 			});
-			path = path! + "." + (req.body.ext as string);
+			path = path! + "." + ext;
 
 			const guild = await client.guilds.fetch(database_guild);
 			const channel = (await guild.channels.fetch(database_channel)) as TextChannel;
@@ -333,13 +348,23 @@ app.post("/api/upload-avatar", upload.single("avatar"), async (req, res) => {
 			fs.unlink(path, err => {
 				if (err) console.log(err);
 			});
-		} catch (err) {}
+			return res.json({ error: false });
+		} catch (err) {
+			console.log(err);
+			return res.json({ error: true });
+		}
 	});
 });
 
 app.post("/api/upload-banner", upload.single("banner"), async (req, res) => {
 	let path = req.file?.path;
-	const { token } = req.body;
+
+	let token = "";
+	if (Array.isArray(req.body.token)) {
+		token = req.body.token[0];
+	} else {
+		token = req.body.token;
+	}
 
 	jwt.verify(token, jwt_secret, async (err: any, user: any) => {
 		if (err) return res.json({ error: true });
@@ -347,10 +372,18 @@ app.post("/api/upload-banner", upload.single("banner"), async (req, res) => {
 		console.log("PATH " + req.file?.path);
 
 		try {
-			fs.rename(path!, path! + "." + (req.body.ext_banner as string), err => {
+			let ext = "";
+			if (Array.isArray(req.body.ext_banner)) {
+				ext = req.body.ext_banner[0];
+			} else {
+				1;
+				ext = req.body.ext_banner;
+			}
+
+			fs.rename(path!, path! + "." + ext, err => {
 				if (err) console.log(err);
 			});
-			path = path! + "." + (req.body.ext_banner as string);
+			path = path! + "." + ext;
 
 			const guild = await client.guilds.fetch(database_guild);
 			const channel = (await guild.channels.fetch(database_channel)) as TextChannel;
@@ -495,12 +528,14 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 			const post_rec = (await Post.find({ postID: req.body.replyingTo }).limit(1))[0];
 			const receiver = (await User.find({ handle: post_rec.op }).limit(1))[0];
 			const url = `/post/${post.postID}`;
-			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
+			const notifID = uuid4();
+			const notif = `<a id="${notifID}" href="${url}" class="handle-notif"><div style="background-image: url(${
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has replied to your post!</a>`;
 
 			if (receiver.handle != user.handle && receiver.status !== "dnd") {
-				if (getSockets()[receiver!.handle]) getSockets()[receiver.handle].emit("notification", notif, url);
+				if (getSockets()[receiver!.handle])
+					getSockets()[receiver.handle].emit("notification", notif, url, notifID);
 
 				receiver.notifications.push(notif);
 				receiver.save();
@@ -527,13 +562,14 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 
 				const receiver = (await User.find({ handle: mention }).limit(1))[0];
 				const url = `/post/${post.postID}`;
-				const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
+				const notifID = uuid4();
+				const notif = `<a id="${notifID}" href="${url}" class="handle-notif"><div style="background-image: url(${
 					m_user?.avatar
 				})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} mentioned you!</a>`;
 
 				if (receiver.handle != user.handle && receiver.status !== "dnd") {
 					if (getSockets()[receiver!.handle])
-						getSockets()[receiver.handle].emit("notification", notif, url);
+						getSockets()[receiver.handle].emit("notification", notif, url, notifID);
 
 					receiver.notifications.push(notif);
 					receiver.save();
@@ -644,7 +680,7 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 			const index = m_post?.likes.findIndex(x => x === user.handle);
 			if (index! < 0) return;
 			m_post?.likes.splice(index!, 1);
-			m_user.coins -= 1;
+			m_user.coins -= CONSTANTS.COIN_GIVE;
 			m_user.save();
 
 			io.emit("post-like-refresh", postId, m_post?.likes);
@@ -675,12 +711,14 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 			const receiver = await User.findOne({ handle: post.op });
 
 			const url = `/post/${post.postID}`;
-			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
+			const notifID = uuid4();
+			const notif = `<a id="${notifID}" href="${url}" class="handle-notif"><div style="background-image: url(${
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has liked your post!</a>`;
 
 			if (receiver?.handle != user.handle && receiver?.status !== "dnd") {
-				if (getSockets()[receiver!.handle]) getSockets()[receiver!.handle].emit("notification", notif, url);
+				if (getSockets()[receiver!.handle])
+					getSockets()[receiver!.handle].emit("notification", notif, url, notifID);
 				receiver!.notifications.push(notif);
 			}
 			receiver!.save();
@@ -689,11 +727,12 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 				receiver?.milestones.push(1);
 
 				const url = `/profile/${receiver!.handle}`;
-				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "1K Likes" milestone!</a>`;
+				const notifID = uuid4();
+				const notif = `<a id="${notifID}" href="${url}" class="handle-notif">Congratulations! You achieved "1K Likes" milestone!</a>`;
 
 				if (receiver?.handle != user.handle && receiver?.status !== "dnd") {
 					if (getSockets()[receiver!.handle])
-						getSockets()[receiver!.handle].emit("notification", notif, url);
+						getSockets()[receiver!.handle].emit("notification", notif, url, notifID);
 					receiver!.notifications.push(notif);
 				}
 				receiver!.save();
@@ -799,13 +838,19 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 			);
 			if (!m_user_follow) return;
 			const url = `/profile/${user.handle}`;
-			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
+			const notifID = uuid4();
+			const notif = `<a id="${notifID}" href="${url}" class="handle-notif"><div style="background-image: url(${
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has followed you!</a>`;
 
 			if (m_user_follow.handle != user.handle && m_user_follow.status !== "dnd") {
 				if (getSockets()[m_user_follow!.handle]) {
-					const emit = getSockets()[m_user_follow!.handle].emit("notification", notif, url);
+					const emit = getSockets()[m_user_follow!.handle].emit(
+						"notification",
+						notif,
+						url,
+						notifID
+					);
 				}
 				m_user_follow!.notifications.push(notif);
 			}
@@ -814,7 +859,8 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 				m_user_follow.milestones.push(0);
 
 				const url = `/profile/${m_user_follow.handle}`;
-				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "1K Followers" Milestone!</a>`;
+				const notifID = uuid4();
+				const notif = `<a id="${notifID}" href="${url}" class="handle-notif">Congratulations! You achieved "1K Followers" Milestone!</a>`;
 
 				if (m_user_follow.handle != user.handle && m_user_follow.status !== "dnd") {
 					if (getSockets()[m_user_follow!.handle]) {
@@ -832,7 +878,8 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 				m_user_follow.milestones.push(3);
 
 				const url = `/profile/${m_user_follow.handle}`;
-				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "100K Followers" Milestone!</a>`;
+				const notifID = uuid4();
+				const notif = `<a id="${notifID}" href="${url}" class="handle-notif">Congratulations! You achieved "100K Followers" Milestone!</a>`;
 
 				if (m_user_follow.handle != user.handle && m_user_follow.status !== "dnd") {
 					if (getSockets()[m_user_follow!.handle]) {
@@ -847,10 +894,10 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 			}
 
 			m_user_follow!.save();
-			m_user!.coins -= 1;
+			m_user!.coins += CONSTANTS.COIN_GIVE;
 			m_user!.save();
 		} else {
-			m_user!.coins += CONSTANTS.COIN_GIVE;
+			m_user!.coins -= CONSTANTS.COIN_GIVE;
 			m_user!.save();
 			Unfollow();
 		}
@@ -1114,18 +1161,20 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 
 			const receiver = (await User.find({ handle: post.op }).limit(1))[0];
 			const url = `/post/${post.postID}`;
-			const notif = `<a href="${url}" class="handle-notif"><div style="background-image: url(${
+			const notifID = uuid4();
+			const notif = `<a id="${notifID}" href="${url}" class="handle-notif"><div style="background-image: url(${
 				m_user?.avatar
 			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} has reposted your post!</a>`;
 			if (getSockets()[receiver!.handle] && receiver.handle != user.handle && receiver.status !== "dnd") {
-				getSockets()[receiver!.handle].emit("notification", notif, url);
+				getSockets()[receiver!.handle].emit("notification", notif, url, notifID);
 				receiver!.notifications.push(notif);
 			}
 			if (post.reposts.length >= 1000) {
 				receiver.milestones.push(2);
 
 				const url = `/profile/${receiver.handle}`;
-				const notif = `<a href="${url}" class="handle-notif">Congratulations! You achieved "1K Reposts" Milestone!</a>`;
+				const notifID = uuid4();
+				const notif = `<a id="${notifID}" href="${url}" class="handle-notif">Congratulations! You achieved "1K Reposts" Milestone!</a>`;
 
 				if (receiver.handle != user.handle && receiver.status !== "dnd") {
 					if (getSockets()[receiver!.handle]) {

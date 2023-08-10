@@ -2,7 +2,7 @@ import axios from "axios";
 import io from "socket.io-client";
 import FormData from "form-data";
 import fs from "fs";
-const socket = io("https://304b-95-83-232-242.ngrok-free.app");
+const socket = io("https://722b-95-83-232-242.ngrok-free.app ");
 
 interface UserType {
 	handle: string;
@@ -65,10 +65,11 @@ type File = string;
 class BeezleClient {
 	user: UserType;
 	token: string;
-	#server_url = "https://304b-95-83-232-242.ngrok-free.app";
-	constructor(token: string) {
+	#server_url = "";
+	constructor(token: string, server_url: string) {
 		this.token = token;
 		this.user = {} as any;
+		this.#server_url = server_url;
 	}
 
 	async setUser() {

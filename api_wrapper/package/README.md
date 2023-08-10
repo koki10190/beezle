@@ -11,7 +11,7 @@ You can create bots using Beezle.JS
 const { BeezleClient } = require("beezle.js");
 
 async function init() {
-	const client = new BeezleClient("TOKEN");
+	const client = new BeezleClient("TOKEN", "CURRENT_NGROK_URL");
 	await client.setUser();
 
 	client.post("Hello, World!");

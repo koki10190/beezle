@@ -126,11 +126,22 @@ function EditProfile() {
 
 		if (avatarUploaded) {
 			avatarEditor!.getImage().toBlob(blob => {
-				formDataAvatar.append("avatar", blob!);
+				if (formDataAvatar.has("token")) {
+					formDataAvatar.delete("token");
+				}
+				formDataAvatar.append("token", localStorage.getItem("auth_token") as string);
+
+				if (!formDataAvatar.has("avatar")) formDataAvatar.append("avatar", blob!);
+				console.log(formDataAvatar);
 				axios.post(`${api_url}/api/upload-avatar`, formDataAvatar, {
 					headers: {
 						"Content-Type": "multipart/form-data",
 					},
+				}).then(res => {
+					console.log(res);
+					if (!res.data.error) {
+						navigate(`/profile/${m_user.handle}`);
+					}
 				});
 			});
 		} else {
@@ -154,12 +165,6 @@ function EditProfile() {
 				m_user.cosmetic?.profile_colors || m_user.supporter || m_user.kofi || m_user.owner
 					? color2.current!.value
 					: "#000000",
-		}).then(res => {
-			if (!res.data.error) {
-				setTimeout(() => {
-					navigate(`/profile/${m_user.handle}`);
-				}, 2500);
-			}
 		});
 	};
 
@@ -289,7 +294,6 @@ function EditProfile() {
 					ref={activity}
 					placeholder="Just Chillin'"
 					name="activity"
-					required
 					className="form-control"
 					max={200}
 					defaultValue={m_user?.activity}
@@ -303,10 +307,30 @@ function EditProfile() {
 					required
 					className="form-control"
 				>
-					<option value="online">Online</option>
-					<option value="dnd">Do Not Disturb</option>
-					<option value="idle">Idle</option>
-					<option value="offline">Offline</option>
+					<option
+						selected={m_user.status === "online"}
+						value="online"
+					>
+						Online
+					</option>
+					<option
+						selected={m_user.status === "dnd"}
+						value="dnd"
+					>
+						Do Not Disturb
+					</option>
+					<option
+						selected={m_user.status === "idle"}
+						value="idle"
+					>
+						Idle
+					</option>
+					<option
+						selected={m_user.status === "offline"}
+						value="offline"
+					>
+						Offline
+					</option>
 				</select>
 
 				<label>Bio (About Me)</label>
@@ -329,7 +353,11 @@ function EditProfile() {
 							style={{
 								height: "20px",
 							}}
-							defaultValue={m_user?.gradient.color1}
+							defaultValue={
+								m_user?.gradient.color1
+									? m_user?.gradient.color1
+									: "#000000"
+							}
 							placeholder="Write stuff about you here!"
 							name="bio"
 							className="form-control"
@@ -339,7 +367,11 @@ function EditProfile() {
 						<input
 							type="color"
 							ref={color2}
-							defaultValue={m_user?.gradient.color2}
+							defaultValue={
+								m_user?.gradient.color2
+									? m_user?.gradient.color2
+									: "#000000"
+							}
 							style={{
 								height: "20px",
 							}}

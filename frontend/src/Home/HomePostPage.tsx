@@ -9,7 +9,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import "./HomePostPage.css";
 import { PostBoxType, PostType } from "../interfaces/PostType";
 import axios from "axios";
-import { api_url } from "../constants/ApiURL";
+import { api_url,darkMultiplyer } from "../constants/ApiURL";
 import { VerifyBadgeBool } from "../functions/VerifyBadgeBool";
 import VerifyBadgeText from "../functions/VerifyBadgeText";
 import moment from "moment";
@@ -760,18 +760,152 @@ function HomePostPage() {
 									""
 								)}
 								<div className="image-holder">
-									{images.map(img => (
-										<div
-											className="postImage"
-											style={{
-												backgroundImage:
-													"url(" +
-													img +
-													")",
-											}}
-											key={uuid4()}
-										></div>
-									))}
+									{images.map(img => {
+										if (
+											img.endsWith(
+												"png"
+											) ||
+											img.endsWith(
+												"gif"
+											) ||
+											img.endsWith(
+												"webp"
+											) ||
+											img.endsWith(
+												"jpg"
+											) ||
+											img.endsWith(
+												"jpeg"
+											)
+										) {
+											return (
+												<div
+													className="postImage"
+													style={{
+														backgroundImage:
+															"url(" +
+															img +
+															")",
+													}}
+													key={uuid4()}
+												>
+													{/* <a
+									className="download-img"
+									onClick={() => {
+										setImages([
+											...images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											),
+										]);
+										console.log(
+											images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											)
+										);
+									}}
+								>
+									<i className="fa-solid fa-trash"></i>
+								</a> */}
+												</div>
+											);
+										} else if (
+											img.endsWith(
+												"mp4"
+											) ||
+											img.endsWith(
+												"webm"
+											) ||
+											img.endsWith(
+												"mov"
+											)
+										) {
+											return (
+												<video
+													className="post-video"
+													src={
+														img
+													}
+													key={uuid4()}
+													controls
+												>
+													{/* <a
+									className="download-img"
+									onClick={() => {
+										setImages([
+											...images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											),
+										]);
+										console.log(
+											images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											)
+										);
+									}}
+								>
+									<i className="fa-solid fa-trash"></i>
+								</a> */}
+												</video>
+											);
+										} else if (
+											img.endsWith(
+												"ogg"
+											) ||
+											img.endsWith(
+												"mp3"
+											) ||
+											img.endsWith(
+												"wav"
+											)
+										) {
+											return (
+												<video
+													className="post-audio"
+													src={
+														img
+													}
+													key={uuid4()}
+													controls
+												>
+													{/* <a
+									className="download-img"
+									onClick={() => {
+										setImages([
+											...images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											),
+										]);
+										console.log(
+											images.splice(
+												images.indexOf(
+													img
+												),
+												1
+											)
+										);
+									}}
+								>
+									<i className="fa-solid fa-trash"></i>
+								</a> */}
+												</video>
+											);
+										}
+									})}
 								</div>
 								<hr
 									style={{
@@ -844,7 +978,7 @@ function HomePostPage() {
 									g: rgb!.g / 255,
 									b: rgb!.b / 255,
 								};
-								const darkMultiplyer = 0.5;
+
 								divided.r *= darkMultiplyer;
 								divided.g *= darkMultiplyer;
 								divided.b *= darkMultiplyer;

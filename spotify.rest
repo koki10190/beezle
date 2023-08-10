@@ -1,1 +1,1 @@
-GET https://304b-95-83-232-242.ngrok-free.app/refresh-spotify-token/koki
+GET https://722b-95-83-232-242.ngrok-free.app /refresh-spotify-token/koki

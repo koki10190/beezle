@@ -1,6 +1,6 @@
 {
 	"name": "beezle.js",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"description": "Beezle.JS Is an API Wrapper for Beezle's Bot API",
 	"main": "dist/index.js",
 	"scripts": {

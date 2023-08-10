@@ -9,7 +9,7 @@ import axios from "axios";
 import { api_url } from "../../constants/ApiURL";
 import moment from "moment";
 import { BadgeType, VerifyBadgeBool } from "../../functions/VerifyBadgeBool";
-import { text } from "express";
+import { response, text } from "express";
 import uuid4 from "uuid4";
 import millify from "millify";
 import displayContent from "../../functions/displayContent";
@@ -294,7 +294,7 @@ function PostBox({
 						}}
 					></p>
 					<p className="mini-handle">
-						@{mention.handle} | {activity}
+						@{mention.handle} - {sanitize(mention.activity, { allowedTags: [] })}
 					</p>
 					<p
 						dangerouslySetInnerHTML={{
@@ -349,8 +349,26 @@ function PostBox({
 										? repostOp.avatar
 										: avatarURL
 								}")`,
-								clipPath: avatarShape
-									? avatarShape
+								clipPath: (
+									isRepost
+										? repostOp
+												.cosmetic
+												?.avatar_shape
+											? repostOp
+													.cosmetic
+													?.avatar_shape
+											: "circle(50% at 50% 50%)"
+										: avatarShape
+								)
+									? isRepost
+										? repostOp
+												.cosmetic
+												?.avatar_shape
+											? repostOp
+													.cosmetic
+													?.avatar_shape
+											: "circle(50% at 50% 50%)"
+										: avatarShape
 									: "circle(50% at 50% 50%)",
 							}}
 							className="post-avatar"
@@ -373,7 +391,7 @@ function PostBox({
 					<p className="post-date">
 						@{isRepost ? repostOp.handle : handle}{" "}
 						{activity.replace(" ", "") !== "" ? "-" : ""}{" "}
-						<span style={{ color: "rgba(255,255,255,0.6)" }}>
+						<span style={{ color: "rgba(255,255,255,0.7)" }}>
 							{isRepost
 								? repostOp.activity.replace(
 										/(.{24})..+/,

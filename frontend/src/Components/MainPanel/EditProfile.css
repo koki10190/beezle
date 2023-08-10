@@ -74,7 +74,6 @@
 textarea {
 	white-space: pre-wrap;
 }
-
 .avatarEditorDiv {
 	width: 100%;
 	height: fit-content;
@@ -88,9 +87,9 @@ textarea {
 	border-radius: 15px;
 	box-sizing: border-box;
 	padding-top: 30px;
+	overflow-x: hidden;
 	padding-bottom: 20px;
 }
 
 .avatarEditorDiv > input {
-	width: 350px;
 }
