@@ -32,7 +32,7 @@ function HomePostPage() {
 	const { postID } = useParams();
 	const [me, setMe] = useState<UserType>({} as UserType);
 	const [user, setUser] = useState<UserType>({} as UserType);
-	const [post, setPost] = useState<PostBoxType>({} as PostBoxType);
+	const [post, setPost] = useState<PostBoxType> ({} as PostBoxType);
 	const [render, setRender] = useState<boolean>(false);
 	const [isLiked, setLiked] = useState<boolean>(false);
 	const [replies, setReplies] = useState<PostBoxType[]>([]);
@@ -40,7 +40,7 @@ function HomePostPage() {
 	const pageName = useRef<HTMLParagraphElement>(null);
 	const [offset, setOffset] = useState<number>(0);
 	const [isEmojiPickerShown, setEmojiShown] = useState(false);
-	const [replyParent, setReplyParent] = useState<PostBoxType>({} as PostBoxType);
+	const [replyParent, setReplyParent] = useState<PostBoxType> ({} as PostBoxType);
 	const [isBookmarked, setBookmarked] = useState<boolean>(false);
 	const [isReposted, setReposted] = useState<boolean>(false);
 	const [editingPost, setEditing] = useState<boolean>(false);
@@ -1024,7 +1024,8 @@ function HomePostPage() {
 										  })`,
 								};
 								return (
-									<PostBox
+									<PostBox 
+rep={item.op.reputation}
 										activity={
 											item
 												.op

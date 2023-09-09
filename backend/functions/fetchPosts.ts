@@ -44,6 +44,10 @@ async function fetchGlobalPosts(me: string, offset: number): Promise<{ data: Pos
 			}
 		}
 
+		if(posts[i].op.reputation <= 25) {
+			remove_posts.push(i);
+		}
+
 		const count = await Post.count({
 			replyingTo: posts[i].data.postID,
 		});
@@ -81,6 +85,10 @@ async function fetchRightNow(me: string, offset: number): Promise<{ data: PostBo
 			}
 		}
 
+		if(posts[i].op.reputation <= 25) {
+			remove_posts.push(i);
+		}
+
 		const count = await Post.count({
 			replyingTo: posts[i].data.postID,
 		});
@@ -105,11 +113,17 @@ async function fetchReplies(postID: string, offset: number): Promise<{ data: Pos
 		.skip(offset)
 		.limit(10)) as any[];
 
+	const remove_posts: number[] = [];
 	for (let i = 0; i < posts.length; i++) {
 		posts[i] = {
 			data: posts[i],
 			op: await GetUserByHandle(posts[i].op),
 		};
+
+		if(posts[i].op.reputation <= 25) {
+			remove_posts.push(i);
+		}
+
 		const count = await Post.count({
 			replyingTo: posts[i].data.postID,
 		});
@@ -117,6 +131,8 @@ async function fetchReplies(postID: string, offset: number): Promise<{ data: Pos
 		posts[i].data.replies = count;
 		posts[i].data.content = sanitize(posts[i].data.content);
 	}
+
+	remove_posts.forEach(num => posts.splice(num, 1));
 
 	return { data: posts, latestIndex: offset + posts.length - 1 };
 }

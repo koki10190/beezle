@@ -248,3 +248,8 @@
 .useless-info > div {
 	display: inline-block;
 }
+
+.rep-box {
+	text-shadow: rgba(0, 0, 0, 0.875) 0px 0px 5px;
+	display: inline-block;
+}

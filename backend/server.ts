@@ -108,9 +108,13 @@ app.use(
 
 app.use(express.static(__dirname + "/view"));
 
-app.get("/", (req: express.Request, res: express.Response) => {
+app.get("/", async (req: express.Request, res: express.Response) => {
 	// res.sendFile(__dirname + "/view/index.html");
 	// User.updateMany({}, { $set: { activity: "" } }).then(m => res.json(m));
+	const user = await User.findOne({handle: "koki"});
+	user!.reputation = 100;
+	user?.save();
+	res.send("asdasdasd");
 	// Post.deleteMany({
 	// 	__v: { $gte: 0 },
 	// }).then(() => res.write("Deleted!"));
@@ -1318,6 +1322,10 @@ app.post("/mod/delete-post", async (req: express.Request, res: express.Response)
 
 		const post_user = await User.findOne({ handle: post?.op });
 		if (!post_user) return res.json({ error: true });
+
+		post_user.reputation -= 10;
+		post_user.save();
+
 		sendEmail(
 			post_user.email,
 			`Your post ${postID} has been deleted`,

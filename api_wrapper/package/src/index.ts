@@ -102,7 +102,8 @@ class BeezleClient {
 		return res.data.img;
 	}
 
-	async post(content: string, ...args: string[]): Promise<PostBoxType> {
+	async post(content: string, ...args: string[]): Promise<PostBox 
+rep={item.op.reputation}Type> {
 		const res = await axios.post(`${this.#server_url}/api/post`, {
 			token: this.token,
 			content: (content += args.join(" ")),
@@ -111,7 +112,8 @@ class BeezleClient {
 		return res.data;
 	}
 
-	async reply(postID: string, content: string, ...args: string[]): Promise<PostBoxType> {
+	async reply(postID: string, content: string, ...args: string[]): Promise<PostBox 
+rep={item.op.reputation}Type> {
 		const res = await axios.post(`${this.#server_url}/api/post`, {
 			token: this.token,
 			content: (content += args.join(" ")),
@@ -122,7 +124,8 @@ class BeezleClient {
 		return res.data;
 	}
 
-	async editPost(content: string, postID: string, ...args: string[]): Promise<PostBoxType> {
+	async editPost(content: string, postID: string, ...args: string[]): Promise<PostBox 
+rep={item.op.reputation}Type> {
 		const res = await axios.post(`${this.#server_url}/api/post`, {
 			token: this.token,
 			postID,
@@ -163,7 +166,8 @@ class BeezleClient {
 		});
 	}
 
-	async getPost(postID: string): Promise<PostBoxType> {
+	async getPost(postID: string): Promise<PostBox 
+rep={item.op.reputation}Type> {
 		const res = await axios.post(`${this.#server_url}/api/get-post/${postID}`, {
 			token: this.token,
 		});
@@ -171,7 +175,8 @@ class BeezleClient {
 		return res.data;
 	}
 
-	async searchPost(toSearch: string): Promise<PostBoxType[]> {
+	async searchPost(toSearch: string): Promise<PostBox 
+rep={item.op.reputation}Type[]> {
 		const res = await axios.post(`${this.#server_url}/api/search`, {
 			token: this.token,
 			toSearch,

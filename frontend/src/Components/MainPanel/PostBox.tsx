@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import VerifyBadgeText from "../../functions/VerifyBadgeText";
 import StatusCheck from "../../functions/StatusCheck";
 import sanitize from "sanitize-html";
+import { RepBadge } from "../../functions/RepBadge";
 
 interface PostBoxInterface {
 	name: string;
@@ -43,6 +44,7 @@ interface PostBoxInterface {
 		color1?: string;
 		color2?: string;
 	};
+	rep: number;
 	// me: UserType;
 }
 
@@ -68,6 +70,7 @@ function PostBox({
 	avatarShape,
 	gradient,
 	activity,
+	rep
 }: PostBoxInterface) {
 	const navigate = useNavigate();
 	let user: UserType;
@@ -95,7 +98,7 @@ function PostBox({
 	useEffect(() => {
 		(async () => {
 			// user = (await GetOtherUser(handle)).user;
-			VerifyBadgeBool(username.current!, name.replace(/(.{16})..+/, "$1…"), badgeType);
+			RepBadge(username.current!, name.replace(/(.{16})..+/, "$1…"), rep, badgeType);
 			if (likes.find(x => x === localStorage.getItem("handle"))) {
 				html_likes.current!.style.color = "#ff4281";
 				setLikeColor("#ff4281");

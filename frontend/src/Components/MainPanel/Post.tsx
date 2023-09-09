@@ -576,7 +576,8 @@ function Post({ fetch_method }: { fetch_method: string }) {
 							};
 
 							return (
-								<PostBox
+								<PostBox 
+									rep={item.op.reputation}
 									activity={item.op.activity}
 									avatarShape={
 										item.op

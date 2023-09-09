@@ -59,7 +59,8 @@ function Bookmarks() {
 			{bookmarks.length <= 0
 				? "You do not have any posts bookmarked."
 				: bookmarks.map(item => (
-						<PostBox
+						<PostBox 
+rep={item.op.reputation}
 							activity={item.op.activity}
 							edited={item.data.edited}
 							avatarShape={item.op.cosmetic.avatar_shape}

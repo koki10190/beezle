@@ -453,10 +453,48 @@ function Profile() {
 					marginLeft: "25px",
 					fontSize: "15px",
 				}}
+				className="rep-box"
 			>
 				<i className="fa-solid fa-coins"></i>{" "}
 				{m_user_follow.coins ? m_user_follow.coins.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") : 0} Activity
 				Coins
+			</a>
+			<a
+				style={{
+					marginLeft: "25px",
+					fontSize: "15px",
+				}}
+			>
+				{m_user_follow.reputation ? 
+				(() => {
+					if(m_user_follow.reputation < 25) {
+						return (
+							<div className="rep-box">
+							<i style={{color: "red"}} className="fa-solid fa-biohazard"></i> Awful Reputation
+							</div>
+						)
+					} else if(m_user_follow.reputation < 50) {
+						return (
+							<div className="rep-box">
+							<i style={{color: "orange"}} className="fa-solid fa-circle-radiation"></i> Bad Reputation
+							</div>
+						)
+					} else if(m_user_follow.reputation < 75) {
+						return (
+							<div className="rep-box">
+							<i style={{color: "yellow"}} className="fa-solid fa-circle-exclamation"></i> Decent Reputation
+							</div>
+						)
+					} else if(m_user_follow.reputation >= 75) {
+						return (
+							<div className="rep-box">
+							<i style={{color: "lime"}} className="fa-solid fa-hexagon-check"></i> Good Reputation
+							</div>
+						)
+					}
+				})() : <>
+				<i className="fa-solid fa-block-question"></i> No Reputation Detected
+				</>}
 			</a>
 			{m_user.handle ? (
 				<Helmet>
@@ -718,7 +756,8 @@ function Profile() {
 
 			<div className="profile-posts">
 				{posts.map(item => (
-					<PostBox
+					<PostBox 
+rep={item.op.reputation}
 						gradient={{
 							color1:
 								postColors.color1 === "#000000"

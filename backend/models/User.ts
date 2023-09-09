@@ -43,6 +43,7 @@ const schema = new mongoose.Schema({
 	bug_hunter: { type: Boolean, default: false },
 	kofi: { type: Boolean, default: false },
 	supporter: { type: Boolean, default: false },
+	reputation: { type: Number, required: true, default: 100 },
 	moderator: {
 		type: Boolean,
 		required: true,

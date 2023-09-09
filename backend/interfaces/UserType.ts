@@ -16,6 +16,7 @@ interface UserType {
 	followers: string[];
 	following: string[];
 	bookmarks: string[];
+	reputation: number;
 	notifications: string[];
 	milestones: number[];
 	status: string;

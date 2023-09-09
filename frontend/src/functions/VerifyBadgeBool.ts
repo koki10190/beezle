@@ -14,8 +14,9 @@ enum BadgeType {
 }
 
 function VerifyBadgeBool(element: HTMLElement, displayName: string, badgeType: BadgeType[]) {
-	element.textContent = displayName;
-
+	
+	if(!element.textContent?.includes(displayName)) element.textContent = displayName;
+	if(badgeType.length > 0) element.innerHTML += " | "
 	badgeType.forEach(badge => {
 		switch (badge) {
 			case BadgeType.PRIVATE:

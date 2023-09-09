@@ -52,7 +52,8 @@ function HomeTags() {
 					/>
 					{posts.length < 1 ? <h3>No posts were found containing the hashtag: #{hashtag}</h3> : ""}
 					{posts.map(item => (
-						<PostBox
+						<PostBox 
+rep={item.op.reputation}
 							activity={item.op.activity}
 							edited={item.data.edited}
 							avatarShape={item.op.cosmetic.avatar_shape}

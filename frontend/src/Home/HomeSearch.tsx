@@ -74,7 +74,8 @@ function HomeSearch() {
 					{isSearching ? <h1 className="searching">Searching...</h1> : ""}
 
 					{posts.map(item => (
-						<PostBox
+						<PostBox 
+rep={item.op.reputation}
 							activity={item.op.activity}
 							edited={item.data.edited}
 							avatarShape={item.op.cosmetic.avatar_shape}
