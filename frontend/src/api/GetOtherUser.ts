@@ -9,6 +9,7 @@ async function GetOtherUser(handle: string) {
 			handle,
 		})
 	).data as TokenDataType;
+	if (!data.user) return undefined;
 	data.user.displayName = data.user.displayName.replace(/(.{16})..+/, "$1");
 	return data;
 }

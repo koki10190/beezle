@@ -17,7 +17,7 @@ function Followers() {
 	const { handle } = useParams();
 
 	(async () => {
-		setFollowers((await GetOtherUser(handle as string)).user.followers);
+		setFollowers((await GetOtherUser(handle as string))!.user.followers);
 	})();
 
 	return (

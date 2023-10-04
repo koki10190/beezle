@@ -12,6 +12,8 @@
 	"dependencies": {
 		"@ideasio/add-to-homescreen-react": "^1.0.10",
 		"@ramonak/react-progress-bar": "^5.0.3",
+		"@stripe/react-stripe-js": "^2.3.1",
+		"@stripe/stripe-js": "^2.1.7",
 		"axios": "^1.4.0",
 		"bootstrap": "^5.3.0",
 		"date-fns": "^2.30.0",

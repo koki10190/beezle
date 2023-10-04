@@ -154,10 +154,13 @@ function Post({ fetch_method }: { fetch_method: string }) {
 				const element = document.getElementById(nID) as HTMLDivElement;
 				if (element) element.style.height = `${img.naturalHeight > 500 ? 500 : img.naturalHeight}px`;
 			};
-			img.src = res.img;
+			console.log(res.img);
+			const split_res = (res.img as string).split(/\?ex=/g);
+			console.log(split_res);
+			img.src = split_res[0];
 
-			if (images.findIndex(x => x === res.img) < 0) {
-				setImages(prev => [...prev, res.img]);
+			if (images.findIndex(x => x === split_res[0]) < 0) {
+				setImages(prev => [...prev, split_res[0]]);
 			}
 			setLoading(false);
 		});
@@ -576,7 +579,7 @@ function Post({ fetch_method }: { fetch_method: string }) {
 							};
 
 							return (
-								<PostBox 
+								<PostBox
 									rep={item.op.reputation}
 									activity={item.op.activity}
 									avatarShape={

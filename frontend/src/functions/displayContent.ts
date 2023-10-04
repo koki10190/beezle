@@ -15,7 +15,7 @@ const displayContent = (content: string, postID: string = ""): string => {
 		img.src = matched[0];
 	}
 	txt = txt.replace(
-		/([a-z\-_0-9\/\:\.]*\.(jpg|jpeg|png|gif))/gi,
+		/([a-z\-_0-9\/\:\.]*\.(jpg|jpeg|png|gif|webp))/gi,
 		`<div id="${nID}" style="background-image: url($1); " class="postImage"><a class="download-img" href="$1" download target="_blank"><i class="fa-solid fa-download"></i></a></div>`
 	);
 
@@ -37,6 +37,13 @@ const displayContent = (content: string, postID: string = ""): string => {
 			`<iframe style="width: 100%; min-height: 350px; border: none;" src="https://youtube.com/embed/$1"></iframe>`
 		);
 	}
+
+	// if (txt.match(/\[(.*?)\]/g)) {
+	// 	txt = txt.replace(
+	// 		/\[(.*?)\]/g,
+	// 		`<iframe src="$1" style="width: 100%; min-height: 350px; border: none;" height="200" width="300"  title="description"></iframe>`
+	// 	);
+	// }
 
 	const element = document.getElementById(nID) as HTMLDivElement;
 	if (element) {

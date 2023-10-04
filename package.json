@@ -24,6 +24,7 @@
 		"dotenv": "^16.3.1",
 		"express": "^4.18.2",
 		"express-rate-limit": "^6.7.0",
+		"express-session": "^1.17.3",
 		"jsonwebtoken": "^9.0.0",
 		"markdown-to-html": "^0.0.13",
 		"marked": "^5.1.0",
@@ -31,10 +32,12 @@
 		"multer": "^1.4.5-lts.1",
 		"nodemailer": "^6.9.3",
 		"nodemailer-smtp-transport": "^2.7.4",
+		"passport": "^0.6.0",
 		"querystring": "^0.2.1",
 		"sanitize-html": "^2.11.0",
 		"socket.io": "^4.7.1",
 		"spotify-web-api-node": "^5.0.2",
+		"stripe": "^13.8.0",
 		"uuid4": "^2.0.3"
 	},
 	"devDependencies": {

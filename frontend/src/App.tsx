@@ -35,6 +35,7 @@ import Developers from "./Settings/Pages/Developers";
 import HomeTags from "./Home/HomeTags";
 import { HelmetProvider } from "react-helmet-async";
 import HomeShop from "./Home/HomeShop";
+import BuyLevel from "./BuyForms/BuyLevel";
 
 function iOS() {
 	return (
@@ -185,6 +186,10 @@ function App() {
 					<Route
 						path="/shop"
 						element={<HomeShop />}
+					/>
+					<Route
+						path="/buy"
+						element={<BuyLevel />}
 					/>
 				</Routes>
 			</BrowserRouter>

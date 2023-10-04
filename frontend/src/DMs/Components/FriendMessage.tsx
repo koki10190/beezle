@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import UserType from "../../interfaces/UserType";
 import GetOtherUser from "../../api/GetOtherUser";
 import VerifyBadgeText from "../../functions/VerifyBadgeText";
+import styles from "../DMs2.module.css";
 
 interface FriendType {
 	handle: string;
@@ -13,19 +14,19 @@ interface FriendType {
 
 function FriendMessage({ handle, avatar, name, content, me }: FriendType) {
 	return (
-		<div className={me || handle === localStorage.getItem("handle") ? "dm-msg-right" : "dm-msg"}>
+		<div className={styles["dm-msg"]}>
 			<div
 				style={{ backgroundImage: `url("${avatar}")` }}
-				className="dm-friend-avatar"
+				className={styles["dm-friend-avatar"]}
 			></div>
 
-			<p className="dm-friend-name">{name}</p>
-			<p className="dm-friend-handle">@{handle}</p>
+			<p className={styles["dm-friend-name"]}>{name}</p>
+			<p className={styles["dm-friend-handle"]}>@{handle}</p>
 			<p
 				dangerouslySetInnerHTML={{
 					__html: content,
 				}}
-				className="dm-content"
+				className={styles["dm-content"]}
 			></p>
 		</div>
 	);

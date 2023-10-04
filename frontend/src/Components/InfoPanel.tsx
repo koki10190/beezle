@@ -24,7 +24,7 @@ function InfoPanel() {
 					<br></br>
 					Read Privacy & Terms{" "}
 					<a
-						href="https://0630-95-83-232-242.ngrok-free.app/privacy-and-terms"
+						href="/privacy-and-terms"
 						target="_blank"
 						className="link"
 					>

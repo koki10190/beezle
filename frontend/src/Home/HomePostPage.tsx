@@ -9,7 +9,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import "./HomePostPage.css";
 import { PostBoxType, PostType } from "../interfaces/PostType";
 import axios from "axios";
-import { api_url,darkMultiplyer } from "../constants/ApiURL";
+import { api_url, darkMultiplyer } from "../constants/ApiURL";
 import { VerifyBadgeBool } from "../functions/VerifyBadgeBool";
 import VerifyBadgeText from "../functions/VerifyBadgeText";
 import moment from "moment";
@@ -32,7 +32,7 @@ function HomePostPage() {
 	const { postID } = useParams();
 	const [me, setMe] = useState<UserType>({} as UserType);
 	const [user, setUser] = useState<UserType>({} as UserType);
-	const [post, setPost] = useState<PostBoxType> ({} as PostBoxType);
+	const [post, setPost] = useState<PostBoxType>({} as PostBoxType);
 	const [render, setRender] = useState<boolean>(false);
 	const [isLiked, setLiked] = useState<boolean>(false);
 	const [replies, setReplies] = useState<PostBoxType[]>([]);
@@ -40,7 +40,7 @@ function HomePostPage() {
 	const pageName = useRef<HTMLParagraphElement>(null);
 	const [offset, setOffset] = useState<number>(0);
 	const [isEmojiPickerShown, setEmojiShown] = useState(false);
-	const [replyParent, setReplyParent] = useState<PostBoxType> ({} as PostBoxType);
+	const [replyParent, setReplyParent] = useState<PostBoxType>({} as PostBoxType);
 	const [isBookmarked, setBookmarked] = useState<boolean>(false);
 	const [isReposted, setReposted] = useState<boolean>(false);
 	const [editingPost, setEditing] = useState<boolean>(false);
@@ -210,8 +210,10 @@ function HomePostPage() {
 							)
 						).data;
 
-						// postText.current!.value += res.img;
-						setImages(prev => [...prev, res.img]);
+						const split_res = (res.img as string).split(/\?ex=/g);
+
+						// postText.current!.value += split_res[0];
+						setImages(prev => [...prev, split_res[0]]);
 						setLoading(false);
 					});
 
@@ -1024,8 +1026,12 @@ function HomePostPage() {
 										  })`,
 								};
 								return (
-									<PostBox 
-rep={item.op.reputation}
+									<PostBox
+										rep={
+											item
+												.op
+												.reputation
+										}
 										activity={
 											item
 												.op

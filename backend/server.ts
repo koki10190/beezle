@@ -46,9 +46,20 @@ import cryptr from "cryptr";
 import SpotifyWebApi from "spotify-web-api-node";
 import App from "./models/App";
 import { activityItems } from "./interfaces/ItemType";
+import Notifications from "./models/Notifications";
 const crypt = new cryptr(process.env.SPOTIFY_SECRET as string);
 const spotifyAPI = new SpotifyWebApi();
 const basic_spotify = Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString("base64");
+
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY, {
+	apiVersion: "2020-08-27",
+	appInfo: {
+		// For sample support and debugging, not required for production:
+		name: "stripe-samples/accept-a-payment/custom-payment-flow",
+		version: "0.0.2",
+		url: "https://github.com/stripe-samples",
+	},
+});
 
 process.on("uncaughtException", function (err) {
 	console.error(err);
@@ -68,6 +79,49 @@ const transporter = nodemailer.createTransport(
 		},
 	})
 );
+
+async function AddXPAndCheckLevels(m_user: UserType) {
+	const user = (await User.findOne({ handle: m_user.handle }))!;
+	const xp = Math.floor(Math.random() * (CONSTANTS.XP_GIVE_MAXIMUM - CONSTANTS.XP_GIVE_MINIMUM) + CONSTANTS.XP_GIVE_MINIMUM);
+	if (user.levels) {
+		user.levels.xp += xp;
+	} else {
+		user.levels = {
+			xp,
+			level: 0,
+		};
+	}
+
+	if (user.levels.xp >= 1000) {
+		user.levels.xp = 0;
+		user.levels.level++;
+	}
+
+	const notifID = uuid4();
+	const notif = `<a id="${notifID}" href="/profile/${user.handle}" class="handle-notif"><div style="background-image: url(${user.avatar})" class="notifAvatar"></div> Congratulations! You leveled up to ${user.levels.level}</a>`;
+
+	if (user.handle != user.handle && user.status !== "dnd") {
+		if (getSockets()[user!.handle]) getSockets()[user.handle].emit("notification", notif, `/profile/${user.handle}`, notifID);
+
+		user.notifications.push(notif);
+		user.save();
+	}
+
+	user.save();
+}
+
+async function RemoveXPAndCheckLevels(m_user: UserType) {
+	const user = (await User.findOne({ handle: m_user.handle }))!;
+	const xp = Math.floor(Math.random() * (CONSTANTS.XP_GIVE_MAXIMUM - CONSTANTS.XP_GIVE_MINIMUM) + CONSTANTS.XP_GIVE_MINIMUM);
+	if (user.levels) {
+		user.levels.xp -= xp;
+		if (user.levels.xp <= 0) {
+			user.levels.xp = 0;
+		}
+	}
+
+	user.save();
+}
 
 function sendEmail(to: string, subject: string, text: string) {
 	const mailOptions = {
@@ -108,10 +162,85 @@ app.use(
 
 app.use(express.static(__dirname + "/view"));
 
+app.post("/create-payment-intent", async (req, res) => {
+	const { paymentMethodType, currency, paymentMethodOptions } = req.body;
+
+	// Each payment method type has support for different currencies. In order to
+	// support many payment method types and several currencies, this server
+	// endpoint accepts both the payment method type and the currency as
+	// parameters. To get compatible payment method types, pass
+	// `automatic_payment_methods[enabled]=true` and enable types in your dashboard
+	// at https://dashboard.stripe.com/settings/payment_methods.
+	//
+	// Some example payment method types include `card`, `ideal`, and `link`.
+	const params: any = {
+		payment_method_types: paymentMethodType === "link" ? ["link", "card"] : [paymentMethodType],
+		amount: 5999,
+		currency: currency,
+	};
+
+	// If this is for an ACSS payment, we add payment_method_options to create
+	// the Mandate.
+	if (paymentMethodType === "acss_debit") {
+		params.payment_method_options = {
+			acss_debit: {
+				mandate_options: {
+					payment_schedule: "sporadic",
+					transaction_type: "personal",
+				},
+			},
+		};
+	} else if (paymentMethodType === "konbini") {
+		/**
+		 * Default value of the payment_method_options
+		 */
+		params.payment_method_options = {
+			konbini: {
+				product_description: "Tシャツ",
+				expires_after_days: 3,
+			},
+		};
+	} else if (paymentMethodType === "customer_balance") {
+		params.payment_method_data = {
+			type: "customer_balance",
+		};
+		params.confirm = true;
+		params.customer = req.body.customerId || (await stripe.customers.create().then((data: any) => data.id));
+	}
+
+	/**
+	 * If API given this data, we can overwride it
+	 */
+	if (paymentMethodOptions) {
+		params.payment_method_options = paymentMethodOptions;
+	}
+
+	// Create a PaymentIntent with the amount, currency, and a payment method type.
+	//
+	// See the documentation [0] for the full list of supported parameters.
+	//
+	// [0] https://stripe.com/docs/api/payment_intents/create
+	try {
+		const paymentIntent = await stripe.paymentIntents.create(params);
+
+		// Send publishable key and PaymentIntent details to client
+		res.send({
+			clientSecret: paymentIntent.client_secret,
+			nextAction: paymentIntent.next_action,
+		});
+	} catch (e) {
+		return res.status(400).send({
+			error: {
+				message: (e as any).message,
+			},
+		});
+	}
+});
+
 app.get("/", async (req: express.Request, res: express.Response) => {
 	// res.sendFile(__dirname + "/view/index.html");
 	// User.updateMany({}, { $set: { activity: "" } }).then(m => res.json(m));
-	const user = await User.findOne({handle: "koki"});
+	const user = await User.findOne({ handle: "koki" });
 	user!.reputation = 100;
 	user?.save();
 	res.send("asdasdasd");
@@ -515,7 +644,7 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 
 		if (post_limiters[m_user.handle]) return res.json({ error: true });
 
-		let post;
+		let post: any;
 		if (req.body.reply_type) {
 			post = await Post.create({
 				postID: uuid4(),
@@ -555,8 +684,27 @@ app.post("/api/post", async (req: express.Request, res: express.Response) => {
 				repost_id: "",
 			});
 			m_user.coins += CONSTANTS.COIN_GIVE;
+			AddXPAndCheckLevels(m_user as UserType);
 			m_user.save();
 		}
+
+		const notifs = await Notifications.find({ notif_of: user.handle });
+		notifs.forEach(async m_notif => {
+			const receiver = (await User.find({ handle: m_notif.op }).limit(1))[0];
+			const url = `/post/${post.postID}`;
+			const notifID = uuid4();
+			const notif = `<a id="${notifID}" href="${url}" class="handle-notif"><div style="background-image: url(${
+				m_user?.avatar
+			})" class="notifAvatar"></div> @${VerifyBadgeText(m_user as any as UserType)} made a new post!</a>`;
+
+			if (receiver.handle != user.handle && receiver.status !== "dnd") {
+				if (getSockets()[receiver!.handle])
+					getSockets()[receiver.handle].emit("notification", notif, url, notifID);
+
+				receiver.notifications.push(notif);
+				receiver.save();
+			}
+		});
 
 		const mentions = content.match(/@([a-z\d_\.-]+)/gi);
 
@@ -685,6 +833,8 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 			if (index! < 0) return;
 			m_post?.likes.splice(index!, 1);
 			m_user.coins -= CONSTANTS.COIN_GIVE;
+			RemoveXPAndCheckLevels(m_user as UserType);
+			RemoveXPAndCheckLevels(m_user as UserType);
 			m_user.save();
 
 			io.emit("post-like-refresh", postId, m_post?.likes);
@@ -743,6 +893,7 @@ app.post("/api/like-post", async (req: express.Request, res: express.Response) =
 			}
 
 			m_user.coins += CONSTANTS.COIN_GIVE;
+			AddXPAndCheckLevels(m_user as UserType);
 			m_user.save();
 		}
 
@@ -899,9 +1050,11 @@ app.post("/api/follow", async (req: express.Request, res: express.Response) => {
 
 			m_user_follow!.save();
 			m_user!.coins += CONSTANTS.COIN_GIVE;
+			AddXPAndCheckLevels(m_user! as UserType);
 			m_user!.save();
 		} else {
 			m_user!.coins -= CONSTANTS.COIN_GIVE;
+			RemoveXPAndCheckLevels(m_user as UserType);
 			m_user!.save();
 			Unfollow();
 		}
@@ -1137,6 +1290,7 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 			);
 			if (m_user.coins > 0) {
 				m_user.coins += CONSTANTS.COIN_GIVE;
+				AddXPAndCheckLevels(m_user as UserType);
 				m_user.save();
 			}
 			post.save();
@@ -1193,6 +1347,7 @@ app.post("/api/repost", async (req: express.Request, res: express.Response) => {
 			}
 			receiver!.save();
 			m_user.coins += CONSTANTS.COIN_GIVE;
+			AddXPAndCheckLevels(m_user as UserType);
 			m_user.save();
 
 			return res.json(repost);
@@ -1284,6 +1439,7 @@ app.post("/mod/ban-user", async (req: express.Request, res: express.Response) =>
 		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true });
 		m_user.coins += CONSTANTS.COIN_GIVE;
+		AddXPAndCheckLevels(m_user as UserType);
 		m_user.save();
 
 		const user_ban = await User.findOne({ handle });
@@ -1314,6 +1470,7 @@ app.post("/mod/delete-post", async (req: express.Request, res: express.Response)
 		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true });
 		m_user.coins += CONSTANTS.COIN_GIVE;
+		AddXPAndCheckLevels(m_user as UserType);
 		m_user.save();
 
 		const post = await Post.findOne({ postID });
@@ -1345,6 +1502,7 @@ app.post("/mod/get-reports", async (req: express.Request, res: express.Response)
 		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true, reports: [], offset });
 		m_user.coins += CONSTANTS.COIN_GIVE;
+		AddXPAndCheckLevels(m_user as UserType);
 		m_user.save();
 
 		const reports = (await Report.find({
@@ -1375,6 +1533,7 @@ app.post("/mod/resolve", async (req: express.Request, res: express.Response) => 
 		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true });
 		m_user.coins += CONSTANTS.COIN_GIVE;
+		AddXPAndCheckLevels(m_user as UserType);
 		m_user.save();
 
 		const reports = await Report.find({
@@ -1405,6 +1564,7 @@ app.post("/mod/verify-user", async (req: express.Request, res: express.Response)
 		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true });
 		m_user.coins += CONSTANTS.COIN_GIVE;
+		AddXPAndCheckLevels(m_user as UserType);
 		m_user.save();
 
 		const verify_user = await User.findOne({ handle });
@@ -1432,6 +1592,7 @@ app.post("/mod/supporter-user", async (req: express.Request, res: express.Respon
 		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true });
 		m_user.coins += CONSTANTS.COIN_GIVE;
+		AddXPAndCheckLevels(m_user as UserType);
 		m_user.save();
 
 		const verify_user = await User.findOne({ handle });
@@ -1459,6 +1620,7 @@ app.post("/mod/kofi-user", async (req: express.Request, res: express.Response) =
 		if (m_user.moderator || m_user.owner) {
 		} else return res.json({ error: true });
 		m_user.coins += CONSTANTS.COIN_GIVE;
+		AddXPAndCheckLevels(m_user as UserType);
 		m_user.save();
 
 		const verify_user = await User.findOne({ handle });
@@ -2033,3 +2195,34 @@ app.post("/buy-profile-colors", async (req: express.Request, res: express.Respon
 });
 
 // ACTIVITY SHOP SECTION
+
+// NOTIFICATIONS SECTION
+
+app.get("/check-notis/:op/:notisOf", async (req: express.Request, res: express.Response) => {
+	const { op, notisOf } = req.params;
+
+	const notif = await Notifications.findOne({ op, notif_of: notisOf });
+
+	if (notif) res.json({ has: true });
+	else res.json({ has: false });
+});
+
+app.post("/set-notis", async (req: express.Request, res: express.Response) => {
+	const { token, notisHandle, hasNotis } = req.body;
+
+	jwt.verify(token, jwt_secret, async (err: any, m: any) => {
+		if (err) return res.json({ error: true });
+
+		const user = (await User.find({ handle: m.handle }))[0];
+		if (hasNotis) {
+			console.log("hm");
+			const notif = await Notifications.findOneAndDelete({ op: user.handle, notif_of: notisHandle });
+			res.json({ error: false });
+		} else {
+			const notif = await Notifications.create({ op: user.handle, notif_of: notisHandle });
+			res.json({ error: false });
+		}
+	});
+});
+
+// NOTIFICATIONS SECTION

@@ -62,6 +62,7 @@ function NavigationPanel() {
 				notifs.unshift(notif);
 
 			localStorage.setItem("notifs", JSON.stringify(notifs));
+			notifToast("New notification!", {});
 			window.dispatchEvent(new Event("notif-update"));
 			setCounter(notifs.length);
 			notifCounter.current!.innerText = `(${counter})`;

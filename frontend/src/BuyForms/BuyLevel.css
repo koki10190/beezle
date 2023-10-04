@@ -1,0 +1,38 @@
+body {
+	/* background-color: white; */
+	/* color: black; */
+	/* padding: 30px; */
+}
+
+.payment-box {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100vw;
+	height: 100vh;
+	background-color: white;
+	color: black;
+	padding: 30px;
+}
+
+.payment {
+	width: 500px;
+	border-radius: 10px;
+	padding: 20px;
+	box-shadow: rgba(0, 0, 0, 0.2) -1px 2px 5px;
+}
+
+.payment button {
+	outline: none;
+	border: none;
+	padding: 10px 15px 10px 15px;
+	background-color: rgb(0, 89, 255);
+	color: white;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: ease-in-out 150ms;
+}
+
+.payment button:hover {
+	background-color: rgb(0, 70, 201);
+}

@@ -54,10 +54,12 @@ function Profile() {
 	const following = useRef<HTMLSpanElement>(null);
 	const followers = useRef<HTMLSpanElement>(null);
 	const followBtn = useRef<HTMLButtonElement>(null);
+	const levelBox = useRef<HTMLSpanElement>(null);
 
 	const [posts, setPosts] = useState([] as PostBoxType[]);
 	const [offset, setOffset] = useState(0);
 	const [status, setStatus] = useState("offline");
+	const [notisOn, setNotis] = useState(false);
 
 	// Spotify
 	const [isSpotify, setIsSpotify] = useState(false);
@@ -127,7 +129,7 @@ function Profile() {
 	};
 
 	(async () => {
-		user = (await GetOtherUser(handle!)).user;
+		user = (await GetOtherUser(handle!))!.user;
 	})();
 
 	function millisToMinutesAndSeconds(millis: number) {
@@ -166,8 +168,77 @@ function Profile() {
 
 	useEffect(() => {
 		(async () => {
-			user = (await GetOtherUser(handle!)).user;
+			user = (await GetOtherUser(handle!))!.user;
 			setUserFollow(user);
+			if (user.levels) {
+				// const level = 0;
+				const level = user.levels.level;
+				const xp = user.levels.xp;
+				const box = levelBox.current as HTMLSpanElement;
+
+				if (between(level, 0, 9)) {
+					console.log("chec asdfasdfk!");
+					box.style.background =
+						"linear-gradient(45deg, rgb(255, 255, 255), rgb(95, 95, 95)) border-box";
+				}
+
+				if (between(level, 10, 19)) {
+					console.log("check!");
+					box.style.background =
+						"linear-gradient(45deg, rgb(255, 174, 0), rgb(156, 107, 0)) border-box";
+				}
+
+				if (between(level, 20, 29)) {
+					console.log("check!");
+					box.style.background =
+						"linear-gradient(45deg, rgb(255, 0, 0), rgb(131, 0, 0)) border-box";
+				}
+
+				if (between(level, 30, 39)) {
+					console.log("check!");
+					box.style.background =
+						"linear-gradient(45deg, rgb(70, 119, 255), rgb(46, 90, 156)) border-box";
+				}
+
+				if (between(level, 40, 49)) {
+					console.log("check!");
+					box.style.background =
+						"linear-gradient(45deg, rgb(255, 0, 0), rgb(255, 195, 67)) border-box";
+				}
+				if (between(level, 50, 59)) {
+					console.log("check!");
+					box.style.background =
+						"linear-gradient(45deg, rgb(195, 0, 255), rgb(255, 67, 224)) border-box";
+				}
+				if (between(level, 60, 69)) {
+					console.log("check!");
+					box.style.background =
+						"linear-gradient(45deg, rgb(255, 106, 243), rgb(255, 106, 243)) border-box";
+				}
+				if (between(level, 70, 79)) {
+					console.log("check!");
+					box.style.background =
+						"linear-gradient(45deg, rgb(119, 0, 255), rgb(24, 0, 131)) border-box";
+				}
+				if (between(level, 80, 89)) {
+					console.log("check!");
+					box.style.background =
+						"linear-gradient(45deg, rgb(174, 102, 255), rgb(24, 0, 131)) border-box";
+				}
+				if (between(level, 90, 99)) {
+					console.log("check!");
+					box.style.background =
+						"linear-gradient(45deg, rgb(255, 0, 0), rgb(89, 0, 255)) border-box";
+				}
+				if (level >= 100) {
+					box.style.background =
+						"linear-gradient(45deg, rgb(60, 255, 0), rgb(12, 107, 0)) border-box";
+					box.style.borderRadius = "5px";
+				}
+			} else {
+				levelBox.current!.style.background =
+					"linear-gradient(45deg, rgb(255, 255, 255), rgb(95, 95, 95)) border-box";
+			}
 			console.log(user);
 			const usrData = await GetUserData();
 			setUser(usrData.user);
@@ -336,11 +407,52 @@ function Profile() {
 
 			const rpc_res = await axios.get(`${api_url}/rpc/${handle}`);
 			setRPC(rpc_res.data);
+
+			const data = (await axios.get(`${api_url}/check-notis/${usrData.user.handle}/${user.handle}`)).data;
+			setNotis(data.has as boolean);
+
+			function between(x: number, min: number, max: number) {
+				return x >= min && x <= max;
+			}
+
+			/* level 1 - 9: background: linear-gradient(45deg, rgb(255, 255, 255), rgb(95, 95, 95)) border-box; */
+			/* level 10 - 19: */
+			/* background: linear-gradient(45deg, rgb(255, 174, 0), rgb(156, 107, 0)) border-box; */
+			/* level 20 - 29: */
+			/* background: linear-gradient(45deg, rgb(255, 0, 0), rgb(131, 0, 0)) border-box; */
+			/* level 30 - 39: */
+			/* background: linear-gradient(45deg, rgb(70, 119, 255), rgb(46, 90, 156)) border-box; */
+			/* level 40 - 49: */
+			/* background: linear-gradient(45deg, rgb(255, 0, 0), rgb(255, 195, 67)) border-box; */
+			/* level 50 - 59: */
+			/* background: linear-gradient(45deg, rgb(195, 0, 255), rgb(255, 67, 224)) border-box; */
+			/* level 60 - 69: */
+			/* background: linear-gradient(45deg, rgb(255, 106, 243), rgb(255, 106, 243)) border-box; */
+			/* level 70 - 79: */
+			/* background: linear-gradient(45deg, rgb(119, 0, 255), rgb(24, 0, 131)) border-box; */
+			/* level 80 - 89: */
+			/* background: linear-gradient(45deg, rgb(174, 102, 255), rgb(24, 0, 131)) border-box; */
+			/* level 90 - 99: */
+			/* background: linear-gradient(45deg, rgb(255, 0, 0), rgb(89, 0, 255)) border-box; */
+			/* level 100 - infinite: */
+			/* background: linear-gradient(45deg, rgb(60, 255, 0), rgb(12, 107, 0)) border-box; */
+			/* border-radius: 5px; */
 		})();
 	}, []);
 
 	const editProf = () => {
 		navigate("/user/edit-profile");
+	};
+
+	const notifButton = async () => {
+		const data = await axios.post(`${api_url}/set-notis`, {
+			token: localStorage.getItem("auth_token"),
+			notisHandle: user.handle,
+			hasNotis: notisOn,
+		});
+		console.log(user.handle);
+		console.log(data.data);
+		// window.location.reload();
 	};
 
 	const followersPage = () => {
@@ -428,13 +540,39 @@ function Profile() {
 						Edit Profile
 					</button>
 				) : (
-					<button
-						ref={followBtn}
-						onClick={follow}
-						className="edit-prof-btn"
-					>
-						Follow
-					</button>
+					<>
+						<button
+							ref={followBtn}
+							onClick={follow}
+							className="edit-prof-btn"
+						>
+							Follow
+						</button>
+						<button
+							onClick={follow}
+							className="edit-prof-btn"
+							style={{
+								marginTop: "-10px",
+								width: "50px",
+							}}
+						>
+							{notisOn ? (
+								<i
+									onClick={notifButton}
+									style={{
+										marginLeft: "-7.5px",
+									}}
+									className="fa-solid fa-bell-on"
+								></i>
+							) : (
+								<i
+									onClick={notifButton}
+									style={{ marginLeft: "-4px" }}
+									className="fa-solid fa-bell-plus"
+								></i>
+							)}
+						</button>
+					</>
 				)}
 			</div>
 			<h1
@@ -448,6 +586,56 @@ function Profile() {
 				}}
 				className="profile-handle"
 			></h3>
+			<h3
+				style={{
+					marginBottom: "20px",
+					marginTop: "10px",
+					color: "white",
+				}}
+				className="profile-handle"
+			>
+				<span
+					className="test-gradient"
+					// style={{
+					// 	background: "-webkit-linear-gradient(45deg, #fc0b03, #0398fc)",
+					// 	WebkitBackgroundClip: "text",
+					// 	WebkitTextFillColor: "transparent",
+					// }}
+				>
+					Level{" "}
+					<span
+						ref={levelBox}
+						className="level-box"
+					>
+						{m_user_follow.levels
+							? m_user_follow.levels.level
+								? m_user_follow.levels.level
+										.toString()
+										.replace(
+											/\B(?=(\d{3})+(?!\d))/g,
+											","
+										)
+								: 0
+							: (0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+					</span>
+				</span>
+				{
+					<span style={{ color: "rgba(255,255,255,0.6)" }}>
+						{" - XP "}{" "}
+						{m_user_follow.levels
+							? m_user_follow.levels.xp
+								? m_user_follow.levels.xp
+										.toString()
+										.replace(
+											/\B(?=(\d{3})+(?!\d))/g,
+											","
+										)
+								: 0
+							: (0).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}
+						/1000
+					</span>
+				}
+			</h3>
 			<a
 				style={{
 					marginLeft: "25px",
@@ -465,36 +653,63 @@ function Profile() {
 					fontSize: "15px",
 				}}
 			>
-				{m_user_follow.reputation ? 
-				(() => {
-					if(m_user_follow.reputation < 25) {
-						return (
-							<div className="rep-box">
-							<i style={{color: "red"}} className="fa-solid fa-biohazard"></i> Awful Reputation
-							</div>
-						)
-					} else if(m_user_follow.reputation < 50) {
-						return (
-							<div className="rep-box">
-							<i style={{color: "orange"}} className="fa-solid fa-circle-radiation"></i> Bad Reputation
-							</div>
-						)
-					} else if(m_user_follow.reputation < 75) {
-						return (
-							<div className="rep-box">
-							<i style={{color: "yellow"}} className="fa-solid fa-circle-exclamation"></i> Decent Reputation
-							</div>
-						)
-					} else if(m_user_follow.reputation >= 75) {
-						return (
-							<div className="rep-box">
-							<i style={{color: "lime"}} className="fa-solid fa-hexagon-check"></i> Good Reputation
-							</div>
-						)
-					}
-				})() : <>
-				<i className="fa-solid fa-block-question"></i> No Reputation Detected
-				</>}
+				{m_user_follow.reputation ? (
+					(() => {
+						if (m_user_follow.reputation < 25) {
+							return (
+								<div className="rep-box">
+									<i
+										style={{
+											color: "red",
+										}}
+										className="fa-solid fa-biohazard"
+									></i>{" "}
+									Awful Reputation
+								</div>
+							);
+						} else if (m_user_follow.reputation < 50) {
+							return (
+								<div className="rep-box">
+									<i
+										style={{
+											color: "orange",
+										}}
+										className="fa-solid fa-circle-radiation"
+									></i>{" "}
+									Bad Reputation
+								</div>
+							);
+						} else if (m_user_follow.reputation < 75) {
+							return (
+								<div className="rep-box">
+									<i
+										style={{
+											color: "yellow",
+										}}
+										className="fa-solid fa-circle-exclamation"
+									></i>{" "}
+									Decent Reputation
+								</div>
+							);
+						} else if (m_user_follow.reputation >= 75) {
+							return (
+								<div className="rep-box">
+									<i
+										style={{
+											color: "lime",
+										}}
+										className="fa-solid fa-hexagon-check"
+									></i>{" "}
+									Good Reputation
+								</div>
+							);
+						}
+					})()
+				) : (
+					<>
+						<i className="fa-solid fa-block-question"></i> No Reputation Detected
+					</>
+				)}
 			</a>
 			{m_user.handle ? (
 				<Helmet>
@@ -756,8 +971,8 @@ function Profile() {
 
 			<div className="profile-posts">
 				{posts.map(item => (
-					<PostBox 
-rep={item.op.reputation}
+					<PostBox
+						rep={item.op.reputation}
 						gradient={{
 							color1:
 								postColors.color1 === "#000000"

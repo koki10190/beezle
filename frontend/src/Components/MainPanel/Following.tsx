@@ -17,7 +17,7 @@ function Following() {
 	const { handle } = useParams();
 
 	(async () => {
-		setFollowing((await GetOtherUser(handle as string)).user.following);
+		setFollowing((await GetOtherUser(handle as string))!.user.following);
 	})();
 
 	return (

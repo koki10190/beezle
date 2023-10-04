@@ -23,6 +23,7 @@ interface UserType {
 	status: string;
 	bot_account: boolean;
 	joined: Date;
+	levels: { xp: number; level: number };
 	kofi: boolean;
 	connected_accounts: {
 		spotify: {

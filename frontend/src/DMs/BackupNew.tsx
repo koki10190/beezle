@@ -3,8 +3,7 @@ import GetUserData from "../api/GetUserData";
 import socket from "../io/socket";
 import UserType from "../interfaces/UserType";
 
-// import "./DMs.css";
-import styles from "./DMs2.module.css";
+import "./DMs.css";
 import FriendDM from "./Components/FriendDM";
 import FriendMessage from "./Components/FriendMessage";
 import uuid4 from "uuid4";
@@ -35,15 +34,6 @@ function HomeDms() {
 	const [openSidePanel, setSidePanel] = useState(true);
 	const [messages, setMessages] = useState<MessageType[]>([] as MessageType[]);
 
-	const scrollToBottom = (id: string) => {
-		const element = document.getElementById(id) as any;
-		element.scrollTop = element.scrollHeight;
-	};
-
-	useEffect(() => {
-		scrollToBottom("main-page");
-	}, [messages]);
-
 	useEffect(() => {
 		console.log("yo2");
 		socket.on("get-message", (from: string, to: string, msg: MessageType) => {
@@ -54,11 +44,10 @@ function HomeDms() {
 			messages.push(msg);
 			// if (messages.find(x => x.messageID === msg.messageID)) return;
 			setMessages(prev => [...prev, msg]);
-			scrollToBottom("main-page");
 		});
 
 		(async () => {
-			// if (window.innerWidth <= 1000) setSidePanel(false);
+			if (window.innerWidth <= 1000) setSidePanel(false);
 			const data = await GetUserData();
 			m_user = data.user;
 			setUser(data.user);
@@ -71,12 +60,12 @@ function HomeDms() {
 
 				if (event.key == "Enter" && !m_shiftDown) {
 					sendMessage(
-						((document.querySelector("#dms-field") as HTMLTextAreaElement)
+						((document.querySelector(".dms-field") as HTMLTextAreaElement)
 							? (document.querySelector(
-									"#dms-field"
+									".dms-field"
 							  ) as HTMLTextAreaElement)
 							: (document.querySelector(
-									"#dms-field-full"
+									".dms-field-full"
 							  ) as HTMLTextAreaElement)
 						).value
 					);
@@ -109,11 +98,10 @@ function HomeDms() {
 			setMessages(messages);
 		});
 
-		// if (window.innerWidth <= 1000) setSidePanel(false);
+		if (window.innerWidth <= 1000) setSidePanel(false);
 	};
 
 	const sendMessage = async (content: string) => {
-		scrollToBottom("main-page");
 		if (content === "") return;
 		if (m_user?.bot_account) return;
 		const message: MessageType = {
@@ -132,62 +120,77 @@ function HomeDms() {
 
 		messages.push(message);
 		setMessages(prev => [...prev, message]);
-		scrollToBottom("main-page");
 
-		((document.querySelector("#dms-field") as HTMLTextAreaElement)
-			? (document.querySelector("#dms-field") as HTMLTextAreaElement)
-			: (document.querySelector("#dms-field-full") as HTMLTextAreaElement)
+		((document.querySelector(".dms-field") as HTMLTextAreaElement)
+			? (document.querySelector(".dms-field") as HTMLTextAreaElement)
+			: (document.querySelector(".dms-field-full") as HTMLTextAreaElement)
 		).value = "";
-		scrollToBottom("main-page");
-		(document.querySelector("#dms-field") as HTMLTextAreaElement).value = "";
 	};
 
 	return (
 		<>
-			<div
-				style={{
-					display: openSidePanel ? "block" : "none",
-				}}
-				className={styles["dms-side-panel"]}
+			<a
+				onClick={() => setSidePanel(!openSidePanel)}
+				className="close-btn"
 			>
-				{friends.map(handle => (
-					<FriendDM
-						changeDM={changeDM}
-						key={handle}
-						handle={handle}
-					/>
-				))}
-			</div>
-			<div
-				id="main-page"
-				className={styles["main-pages"]}
-			>
-				{messages.length <= 0 ? (
-					<h1 style={{ color: "rgba(255,255,255,0.2)" }}>No messages.</h1>
-				) : (
-					messages.map(msg => (
-						<FriendMessage
-							key={uuid4()}
-							me={msg.me}
-							avatar={msg.avatar}
-							content={msg.content}
-							handle={msg.handle}
-							name={msg.name}
+				<i className="fa-solid fa-ellipsis"></i>
+			</a>
+			<div className="main-pages">
+				<div
+					style={{
+						display: openSidePanel ? "block" : "none",
+					}}
+					className="dms-side-panel"
+				>
+					{friends.map(handle => (
+						<FriendDM
+							changeDM={changeDM}
+							key={handle}
+							handle={handle}
 						/>
-					))
-				)}
-				{/* {openSidePanel && window.innerWidth <= 1000 ? ( */}
-				{/* "" */}
-				{/* ) : dm_set ? ( */}
-				<textarea
-					id="dms-field"
-					maxLength={4000}
-					className={styles["dms-field"]}
-					placeholder={"Send message to @" + dm_user}
-				></textarea>
-				{/* ) : ( */}
-				{/* "" */}
-				{/* )} */}
+					))}
+				</div>
+				<div
+					className={openSidePanel ? "dms-content" : "dms-content-full"}
+					style={{
+						display: window.innerWidth <= 1000 && openSidePanel ? "none" : "block",
+					}}
+				>
+					<div className="msg-navbar">
+						<a className="msg-navbar-btn">
+							<i className="fa-solid fa-phone-volume"></i>
+						</a>
+					</div>
+					<div className="dms-messages">
+						{messages.length <= 0 ? (
+							<h1 style={{ color: "rgba(255,255,255,0.2)" }}>
+								No messages.
+							</h1>
+						) : (
+							messages.map(msg => (
+								<FriendMessage
+									key={uuid4()}
+									me={msg.me}
+									avatar={msg.avatar}
+									content={msg.content}
+									handle={msg.handle}
+									name={msg.name}
+								/>
+							))
+						)}
+					</div>
+					{openSidePanel && window.innerWidth <= 1000 ? (
+						""
+					) : dm_set ? (
+						<textarea
+							maxLength={4000}
+							className="dms-field"
+							placeholder={"Send message to @" + dm_user}
+						></textarea>
+					) : (
+						""
+					)}
+				</div>
 			</div>
 		</>
 	);

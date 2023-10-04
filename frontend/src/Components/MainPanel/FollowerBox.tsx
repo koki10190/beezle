@@ -20,7 +20,7 @@ function FollowerBox({ handle }: FollowerBoxData) {
 
 	useEffect(() => {
 		(async () => {
-			const user = (await GetOtherUser(handle)).user;
+			const user = (await GetOtherUser(handle))!.user;
 			setUser(user);
 
 			if (user.followers.find(x => x === localStorage.getItem("handle"))) {

@@ -20,6 +20,13 @@ const schema = new mongoose.Schema({
 	private: { type: Boolean, default: false },
 	joined: { type: Date, default: Date.now() },
 	activity: { type: String, default: "" },
+	levels: {
+		xp: {
+			type: Number,
+			default: 0,
+		},
+		level: { type: Number, default: 0 },
+	},
 	bio: {
 		type: String,
 		required: false,

@@ -70,7 +70,7 @@ function PostBox({
 	avatarShape,
 	gradient,
 	activity,
-	rep
+	rep,
 }: PostBoxInterface) {
 	const navigate = useNavigate();
 	let user: UserType;
@@ -127,7 +127,7 @@ function PostBox({
 				});
 				setRepostData(repostData.data.data);
 
-				const repostOp = await GetOtherUser(repost_op);
+				const repostOp = (await GetOtherUser(repost_op))!;
 				setRepostOp(repostOp.user);
 				setIsRepost(repost_type);
 
@@ -245,7 +245,7 @@ function PostBox({
 	const hoverMention = async (mmention: string) => {
 		if (mention?.handle === mmention) return clearTimeout(timeoutM);
 		const data = await GetOtherUser(mmention.replace("@", ""));
-		setMention(data.user);
+		setMention(data!.user);
 	};
 
 	useEffect(() => {
@@ -415,7 +415,9 @@ function PostBox({
 							.replace("anhour", "1h")
 							.replace("aday", "1d")
 							.replace("days", "d")
-							.replace("day", "1d")}
+							.replace("day", "1d")
+							.replace("months", " months")
+							.replace("amonth", "1 month")}
 					</p>
 				</div>
 				<p
